@@ -10,14 +10,14 @@
     >
       <div v-if="column.key === 'status'">
         <Select
-          class="w-full bg-transparent !p-0 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
+          class="w-max bg-transparent -ml-2 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
           :options="statusOptions"
           v-model="props.row['status']"
         />
       </div>
       <div v-else-if="column.key === 'sla_behavior'">
         <Select
-          class="w-full bg-transparent !p-0 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
+          class="w-max bg-transparent -ml-2 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
           :options="slaBehaviorOptions"
           v-model="props.row['sla_behavior']"
         />

@@ -76,7 +76,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src"),
       "tailwind.config.js": path.resolve(__dirname, "tailwind.config.js"),
-      // vue: "vue/dist/vue.esm-bundler.js",
+      vue: "vue/dist/vue.esm-bundler.js",
     },
   },
   optimizeDeps: {

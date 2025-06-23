@@ -1,7 +1,7 @@
 <template>
   <div class="rounded-md border p-1 border-gray-300 text-sm">
     <div
-      class="grid p-2 items-center"
+      class="grid p-2 items-center gap-2"
       :style="{
         gridTemplateColumns: '1fr 4fr 22px',
       }"
@@ -25,9 +25,12 @@
           :key="column.key"
           class="w-full py-2 overflow-hidden whitespace-nowrap text-ellipsis"
         >
-          <div
+          <input
             v-if="column.key === 'description'"
-            v-html="holiday[column.key]"
+            :type="'text'"
+            placeholder="Description"
+            v-model="holiday[column.key]"
+            class="!bg-white text-base px-0 focus:!ring-0 border-none hover:bg-white outline-none no-underline focus:!outline-none"
           />
           <div v-else>
             {{ dayjs(holiday[column.key]).format("DD MMM YYYY") }}
@@ -99,7 +102,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Dropdown, DatePicker, FormControl, FormLabel, toast } from "frappe-ui";
+import { Dropdown, DatePicker, FormControl, FormLabel } from "frappe-ui";
 import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
 import dayjs from "dayjs";
 

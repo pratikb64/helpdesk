@@ -161,7 +161,7 @@
 
 <script setup lang="ts">
 import { slaActiveScreen, slaDataErrors } from "./sla";
-import { createResource, Switch, Checkbox, DatePicker } from "frappe-ui";
+import { createResource, Switch, Checkbox, DatePicker, toast } from "frappe-ui";
 import { onUnmounted, ref } from "vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
@@ -229,9 +229,7 @@ const goBack = () => {
   };
 };
 
-const errors = ref([]);
 const saveSla = () => {
-  errors.value = [];
   slaDataErrors.value = {
     service_level: "",
     description: "",
@@ -249,7 +247,6 @@ const saveSla = () => {
   };
   if (!slaData.value.service_level?.trim()) {
     slaDataErrors.value.service_level = "SLA policy name is required";
-    errors.value.push("SLA policy name is required");
   }
 
   if (
@@ -257,32 +254,38 @@ const saveSla = () => {
     slaData.value.priorities.length === 0
   ) {
     slaDataErrors.value.priorities = "At least one priority is required";
-    errors.value.push("At least one priority is required");
   } else {
+    let prioritiesError = [];
     slaData.value.priorities.forEach((priority, index) => {
       const priorityNum = index + 1;
       if (!priority.priority?.trim()) {
-        errors.value.push(`Priority ${priorityNum}: Priority name is required`);
+        prioritiesError.push(
+          `Priority ${priorityNum}: Priority name is required`
+        );
       }
-      if (!priority.response_time) {
-        errors.value.push(`Priority ${priorityNum}: Response time is required`);
+      if (!priority.response_time || priority.response_time == 0) {
+        prioritiesError.push(
+          `Priority ${priorityNum}: Response time is required`
+        );
       }
       if (
         Boolean(slaData.value.apply_sla_for_resolution) &&
-        !priority.resolution_time
+        priority.resolution_time == 0
       ) {
-        errors.value.push(
+        prioritiesError.push(
           `Priority ${priorityNum}: Resolution time is required`
         );
       }
     });
+    if (prioritiesError.length > 0) {
+      slaDataErrors.value.priorities = prioritiesError.join(", ");
+    }
 
     const hasDefaultPriority = slaData.value.priorities.some(
       (p) => p.default_priority == true
     );
     if (!hasDefaultPriority) {
       slaDataErrors.value.default_priority = "Default priority is required";
-      errors.value.push("Default priority is required");
     }
   }
 
@@ -292,7 +295,6 @@ const saveSla = () => {
 
     if (startDate > endDate) {
       slaDataErrors.value.end_date = "To date must be after from date";
-      errors.value.push("To date must be after from date");
     }
   }
 
@@ -303,9 +305,6 @@ const saveSla = () => {
   ) {
     slaDataErrors.value.statuses =
       "At least one status for 'Fulfilled on' and 'Paused on' is required";
-    errors.value.push(
-      "At least one status for 'Fulfilled on' and 'Paused on' is required"
-    );
   } else {
     const hasFulfilled = slaData.value.statuses.some(
       (s) => s.sla_behavior === "Fulfilled"
@@ -317,12 +316,10 @@ const saveSla = () => {
     if (!hasFulfilled) {
       slaDataErrors.value.statuses =
         "At least one 'Fulfilled on' status is required";
-      errors.value.push("At least one 'Fulfilled on' status is required");
     }
     if (!hasPaused) {
       slaDataErrors.value.statuses =
         "At least one 'Paused on' status is required";
-      errors.value.push("At least one 'Paused on' status is required");
     }
   }
 
@@ -339,42 +336,32 @@ const saveSla = () => {
   if (!validWorkdays?.length) {
     slaDataErrors.value.support_and_resolution =
       "At least one valid workday with start and end time is required";
-    errors.value.push(
-      "At least one valid workday with start and end time is required"
-    );
   } else {
-    // Validate start time is before end time for each workday
-    validWorkdays.forEach((day, index) => {
+    let workdayError = false;
+    validWorkdays.forEach((day) => {
       const startTime = day.start_time.trim();
       const endTime = day.end_time.trim();
 
       if (startTime >= endTime) {
-        slaDataErrors.value.support_and_resolution = `Workday ${
-          day.workday || index + 1
-        }: Start time must be before end time`;
-        errors.value.push(
-          `Workday ${
-            day.workday || index + 1
-          }: Start time must be before end time`
-        );
+        workdayError = true;
       }
     });
+    if (workdayError) {
+      slaDataErrors.value.support_and_resolution =
+        "Workday start time must be before end time";
+    }
   }
 
   // Validate conditions if any exist
   if (slaData.value.condition && slaData.value.condition.length > 0) {
     let conditionError = false;
-    slaData.value.condition.forEach((condition, index) => {
-      const conditionNum = index + 1;
+    slaData.value.condition.forEach((condition) => {
       if (
         !condition.field ||
         condition.value === undefined ||
         condition.value === null ||
         condition.value === ""
       ) {
-        errors.value.push(
-          `Condition ${conditionNum}: Field and value are required`
-        );
         conditionError = true;
       }
     });
@@ -383,7 +370,8 @@ const saveSla = () => {
     }
   }
 
-  if (errors.value.length > 0) {
+  if (Object.values(slaDataErrors.value).some((error) => error)) {
+    toast.error("Please provide all required fields");
     return;
   }
 

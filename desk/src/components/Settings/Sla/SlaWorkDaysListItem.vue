@@ -13,7 +13,7 @@
       </div>
       <div v-else>
         <Select
-          class="w-full bg-transparent !p-0 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
+          class="bg-transparent w-max -ml-2 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
           :options="workDayOptions"
           v-model="props.row[column.key]"
         />

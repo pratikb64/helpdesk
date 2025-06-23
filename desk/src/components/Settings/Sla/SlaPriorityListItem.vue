@@ -14,15 +14,27 @@
           @update:modelValue="(e) => onDefaultPriorityChange(e)"
         />
       </div>
-      <div v-else-if="column.key === 'response_time'">
-        {{ formatTimeHMS(props.row[column.key]) }}
-      </div>
-      <div v-else-if="column.key === 'resolution_time'">
-        {{ formatTimeHMS(props.row[column.key]) }}
+      <div
+        v-else-if="
+          column.key === 'response_time' || column.key === 'resolution_time'
+        "
+      >
+        <Popover>
+          <template #target="{ togglePopover }">
+            <div @click="togglePopover()">
+              {{ formatTimeHMS(props.row[column.key]) }}
+            </div>
+          </template>
+          <template #body>
+            <div class="absolute bg-white top-2">
+              <DurationPicker v-model="props.row[column.key]" />
+            </div>
+          </template>
+        </Popover>
       </div>
       <div v-else>
         <Select
-          class="w-full bg-transparent !p-0 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
+          class="w-max bg-transparent -ml-2 hover:bg-transparent border-0 focus-visible:!ring-0 bg-none"
           :options="priorityOptions"
           v-model="props.row[column.key]"
         />
@@ -50,7 +62,7 @@
   <hr class="my-0.5" v-if="!props.isLast" />
   <Dialog v-model="dialog">
     <template #body-title>
-      <h3 class="text-2xl font-semibold">Edit Response & Resolution metric</h3>
+      <h3 class="text-2xl font-semibold">Edit response and resolution</h3>
     </template>
     <template #body-content>
       <div class="flex flex-col gap-4">
@@ -64,26 +76,54 @@
           :options="priorityOptions"
           required
         />
-        <FormControl
-          :type="'number'"
-          size="sm"
-          variant="subtle"
-          placeholder="Response Time"
-          label="Response Time"
-          description="Enter time in seconds"
-          v-model="priorityData.response_time"
-          required
-        />
-        <FormControl
-          :type="'number'"
-          size="sm"
-          variant="subtle"
-          placeholder="Resolution Time"
-          label="Resolution Time"
-          description="Enter time in seconds"
-          v-model="priorityData.resolution_time"
-          required
-        />
+        <div>
+          <FormLabel label="Response time" required />
+          <Popover class="mt-2">
+            <template #target="{ togglePopover }" class="w-max">
+              <div
+                @click="togglePopover()"
+                class="w-full bg-gray-100 rounded p-1.5 px-2 text-base text-gray-800"
+              >
+                <div v-if="priorityData.response_time">
+                  {{ formatTimeHMS(priorityData.response_time) }}
+                </div>
+                <div v-else class="text-gray-500">Select time</div>
+              </div>
+            </template>
+            <template #body>
+              <div class="absolute bg-white top-2">
+                <DurationPicker
+                  v-model="priorityData.response_time"
+                  :options="{ seconds: false }"
+                />
+              </div>
+            </template>
+          </Popover>
+        </div>
+        <div>
+          <FormLabel label="Resolution time" required />
+          <Popover class="mt-2">
+            <template #target="{ togglePopover }" class="w-max">
+              <div
+                @click="togglePopover()"
+                class="w-full bg-gray-100 rounded p-1.5 px-2 text-base text-gray-800"
+              >
+                <div v-if="priorityData.resolution_time">
+                  {{ formatTimeHMS(priorityData.resolution_time) }}
+                </div>
+                <div v-else class="text-gray-500">Select time</div>
+              </div>
+            </template>
+            <template #body>
+              <div class="absolute bg-white top-2">
+                <DurationPicker
+                  v-model="priorityData.resolution_time"
+                  :options="{ seconds: false }"
+                />
+              </div>
+            </template>
+          </Popover>
+        </div>
         <Checkbox
           v-model="priorityData.default_priority"
           label="Set default priority"
@@ -119,10 +159,12 @@ import {
   Dropdown,
   FeatherIcon,
   Dialog,
-  createResource,
   toast,
   Select,
+  Popover,
+  FormLabel,
 } from "frappe-ui";
+import DurationPicker from "@/components/frappe-ui/DurationPicker.vue";
 
 const props = defineProps({
   columns: {
