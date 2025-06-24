@@ -20,81 +20,37 @@
       </div>
     </div>
     <div class="flex justify-end">
-      <Button variant="ghost" @click="editWorkDay">
-        <template #icon>
-          <EditIcon class="size-4" />
-        </template>
-      </Button>
+      <Dropdown
+        :options="[
+          {
+            label: 'Edit',
+            onClick: () => editWorkDay(),
+            icon: 'edit',
+          },
+          {
+            label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
+            onClick: (event) => deleteWorkDay(event),
+            icon: 'trash-2',
+          },
+        ]"
+      >
+        <Button
+          icon="more-horizontal"
+          variant="ghost"
+          @click="isConfirmingDelete = false"
+        />
+      </Dropdown>
     </div>
   </div>
   <hr class="my-0.5" v-if="!props.isLast" />
-  <Dialog v-model="dialog">
-    <template #body-title>
-      <h3 class="text-2xl font-semibold">Edit Workday</h3>
-    </template>
-    <template #body-content>
-      <div class="flex flex-col gap-4">
-        <FormControl
-          :type="'select'"
-          size="sm"
-          variant="subtle"
-          placeholder="Workday"
-          label="Workday"
-          v-model="workDayData.workday"
-          required
-          :options="workDayOptions"
-        />
-        <FormControl
-          :type="'time'"
-          size="sm"
-          variant="subtle"
-          placeholder="Start Time"
-          label="Start Time"
-          v-model="workDayData.start_time"
-          required
-        />
-        <FormControl
-          :type="'time'"
-          size="sm"
-          variant="subtle"
-          placeholder="End Time"
-          label="End Time"
-          v-model="workDayData.end_time"
-          required
-        />
-      </div>
-    </template>
-    <template #actions>
-      <div class="flex justify-between">
-        <div>
-          <Button
-            variant="subtle"
-            theme="red"
-            :label="isConfirmingDelete ? 'Confirm Delete' : 'Delete'"
-            @click="deleteWorkDay"
-          >
-            <template #prefix>
-              <FeatherIcon name="trash-2" class="size-4" />
-            </template>
-          </Button>
-        </div>
-        <div class="flex justify-end">
-          <div class="flex gap-2">
-            <Button variant="subtle" theme="gray" @click="dialog = false">
-              Cancel
-            </Button>
-            <Button variant="solid" @click="onSave"> Save </Button>
-          </div>
-        </div>
-      </div>
-    </template>
-  </Dialog>
+  <WorkDayModal v-model="dialog" :workDaysList="props.workDaysList" />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { Button, FeatherIcon, Dialog, Select } from "frappe-ui";
 import { EditIcon } from "@/components/icons";
+import WorkDayModal from "./WorkDayModal.vue";
 
 const props = defineProps({
   columns: {
@@ -110,10 +66,17 @@ const props = defineProps({
     default: false,
   },
   workDaysList: {
-    type: Object,
+    type: Array<any>,
     required: true,
   },
 });
+
+const dialog = ref({
+  show: false,
+  isEditing: false,
+  data: {},
+});
+
 const workDayOptions = [
   {
     label: "Monday",
@@ -146,12 +109,10 @@ const workDayOptions = [
 ];
 const isConfirmingDelete = ref(false);
 
-const deleteWorkDay = () => {
+const deleteWorkDay = (event) => {
+  event.preventDefault();
   if (!isConfirmingDelete.value) {
     isConfirmingDelete.value = true;
-    setTimeout(() => {
-      isConfirmingDelete.value = false;
-    }, 3000);
     return;
   }
 
@@ -162,37 +123,32 @@ const deleteWorkDay = () => {
     props.workDaysList.splice(item, 1);
   }
 };
-const dialog = ref(false);
-const workDayData = ref({
-  workday: props.row.workday,
-  start_time: props.row.start_time,
-  end_time: props.row.end_time,
-});
 
 const editWorkDay = () => {
-  dialog.value = true;
-  workDayData.value = {
+  dialog.value.show = true;
+  dialog.value.isEditing = true;
+  dialog.value.data = {
     workday: props.row.workday,
     start_time: props.row.start_time,
     end_time: props.row.end_time,
   };
 };
 
-const onSave = () => {
-  const item = props.workDaysList.findIndex(
-    (item) => item.workday === props.row.workday
-  );
-  if (item !== -1) {
-    props.workDaysList[item].start_time = workDayData.value.start_time;
-    props.workDaysList[item].end_time = workDayData.value.end_time;
-  }
-  workDayData.value = {
-    workday: "",
-    start_time: "",
-    end_time: "",
-  };
-  dialog.value = false;
-};
+// const onSave = () => {
+//   const item = props.workDaysList.findIndex(
+//     (item) => item.workday === props.row.workday
+//   );
+//   if (item !== -1) {
+//     props.workDaysList[item].start_time = workDayData.value.start_time;
+//     props.workDaysList[item].end_time = workDayData.value.end_time;
+//   }
+//   workDayData.value = {
+//     workday: "",
+//     start_time: "",
+//     end_time: "",
+//   };
+//   dialog.value = false;
+// };
 
 function getGridTemplateColumns(columns) {
   let columnsWidth = columns

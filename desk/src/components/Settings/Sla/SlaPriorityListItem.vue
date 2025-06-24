@@ -21,7 +21,7 @@
       >
         <Popover>
           <template #target="{ togglePopover }">
-            <div @click="togglePopover()">
+            <div @click="togglePopover()" class="min-h-4 w-full">
               {{ formatTimeHMS(props.row[column.key]) }}
             </div>
           </template>
@@ -45,12 +45,12 @@
         :options="[
           {
             label: 'Edit',
-            onClick: () => editSla(),
+            onClick: () => editItem(),
             icon: 'edit',
           },
           {
             label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-            onClick: () => deleteSla(),
+            onClick: () => deleteItem(),
             icon: 'trash-2',
           },
         ]"
@@ -134,7 +134,12 @@
     <template #actions>
       <div class="flex justify-between">
         <div>
-          <Button variant="subtle" theme="red" label="Delete">
+          <Button
+            variant="subtle"
+            theme="red"
+            :label="isConfirmingDelete ? 'Confirm Delete' : 'Delete'"
+            @click="deleteItem"
+          >
             <template #prefix>
               <FeatherIcon name="trash-2" class="size-4" />
             </template>
@@ -198,6 +203,10 @@ const priorityOptions = [
     label: "High",
     value: "High",
   },
+  {
+    label: "Urgent",
+    value: "Urgent",
+  },
 ];
 
 const isConfirmingDelete = ref(false);
@@ -209,20 +218,17 @@ const priorityData = ref({
   default_priority: props.row.default_priority,
 });
 
-const deleteSla = () => {
+const deleteItem = () => {
   event.preventDefault();
   if (!isConfirmingDelete.value) {
     isConfirmingDelete.value = true;
-    setTimeout(() => {
-      isConfirmingDelete.value = false;
-    }, 3000);
     return;
   }
 
   props.priorityList.splice(props.priorityList.indexOf(props.row), 1);
 };
 
-const editSla = () => {
+const editItem = () => {
   dialog.value = true;
   priorityData.value = {
     priority: props.row.priority,

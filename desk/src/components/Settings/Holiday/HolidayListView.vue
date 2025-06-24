@@ -1,28 +1,22 @@
 <template>
   <div
-    v-if="!holidayData.loading"
-    class="pb-12 px-10 py-8 overflow-y-scroll h-full"
+    class="flex items-center justify-between sticky top-0 z-10 bg-white px-10 pt-8 pb-4"
   >
-    <div class="flex items-center justify-between">
-      <div>
-        <div class="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            icon-left="chevron-left"
-            :label="holidayData.holiday_list_name || 'New Holiday List'"
-            size="md"
-            @click="goBack()"
-            class="cursor-pointer -ml-4 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:none active:bg-transparent active:outline-none active:ring-0 active:ring-offset-0 active:text-ink-gray-5"
-          />
-        </div>
+    <div>
+      <div class="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          icon-left="chevron-left"
+          :label="holidayData?.holiday_list_name || 'New Holiday List'"
+          size="md"
+          @click="goBack()"
+          class="cursor-pointer -ml-4 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:none active:bg-transparent active:outline-none active:ring-0 active:ring-offset-0 active:text-ink-gray-5"
+        />
       </div>
-      <Button
-        label="Save"
-        theme="gray"
-        variant="solid"
-        @click="saveHoliday()"
-      />
     </div>
+    <Button label="Save" theme="gray" variant="solid" @click="saveHoliday()" />
+  </div>
+  <div v-if="!holidayData.loading" class="px-10 pb-8 overflow-y-scroll h-full">
     <div class="flex items-center justify-between gap-2 mt-8">
       <span class="text-sm"> Total holidays (Calculated automatically) </span>
       <div

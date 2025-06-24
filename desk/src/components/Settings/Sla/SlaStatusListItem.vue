@@ -28,17 +28,12 @@
         :options="[
           {
             label: 'Edit',
-            onClick: () => editSla(),
+            onClick: () => editItem(),
             icon: 'edit',
           },
           {
-            label: 'Duplicate',
-            onClick: () => duplicate(),
-            icon: 'copy',
-          },
-          {
             label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-            onClick: () => deleteSla(),
+            onClick: () => deleteItem(),
             icon: 'trash-2',
           },
         ]"
@@ -48,7 +43,7 @@
     </div>
   </div>
   <hr class="my-0.5" v-if="!props.isLast" />
-  <Dialog v-model="dialog">
+  <Dialog v-model="dialog" @after-leave="isConfirmingDelete = false">
     <template #body-title>
       <h3 class="text-2xl font-semibold">Edit Status</h3>
     </template>
@@ -79,7 +74,12 @@
     <template #actions>
       <div class="flex justify-between">
         <div>
-          <Button variant="subtle" theme="red" label="Delete">
+          <Button
+            variant="subtle"
+            theme="red"
+            :label="isConfirmingDelete ? 'Confirm Delete' : 'Delete'"
+            @click="deleteItem"
+          >
             <template #prefix>
               <FeatherIcon name="trash-2" class="size-4" />
             </template>
@@ -162,24 +162,17 @@ const slaBehaviorOptions = [
   },
 ];
 
-const deleteSla = () => {
+const deleteItem = () => {
   event.preventDefault();
   if (!isConfirmingDelete.value) {
     isConfirmingDelete.value = true;
-    setTimeout(() => {
-      isConfirmingDelete.value = false;
-    }, 3000);
     return;
   }
 
   props.statusList.splice(props.statusList.indexOf(props.row), 1);
 };
 
-const duplicate = () => {
-  console.log("duplicate");
-};
-
-const editSla = () => {
+const editItem = () => {
   statusData.value = {
     status: props.row.status,
     sla_behavior: props.row.sla_behavior,

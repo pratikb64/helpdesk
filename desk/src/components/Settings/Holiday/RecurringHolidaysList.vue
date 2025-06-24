@@ -110,15 +110,6 @@
             v-model="recurringHolidayData.day"
           />
         </div>
-        <FormControl
-          :type="'textarea'"
-          size="sm"
-          variant="subtle"
-          placeholder="Description"
-          label="Description"
-          v-model="recurringHolidayData.description"
-          required
-        />
         <div class="flex flex-col gap-1.5">
           <FormLabel label="Repetition" required />
           <div class="grid grid-cols-2 gap-2 mt-2">
@@ -196,7 +187,6 @@ const recurringHolidayData = ref({
     third: false,
     fourth: false,
   },
-  description: "",
   isEditing: false,
 });
 
@@ -261,7 +251,6 @@ const addHoliday = () => {
       third: false,
       fourth: false,
     },
-    description: "",
     isEditing: false,
   };
   dialog.value = true;
@@ -273,10 +262,7 @@ const editHoliday = (holiday: any) => {
   dialog.value = true;
 };
 const saveHoliday = () => {
-  if (
-    !recurringHolidayData.value.day ||
-    !recurringHolidayData.value.description
-  ) {
+  if (!recurringHolidayData.value.day) {
     return;
   }
 
@@ -292,8 +278,7 @@ const saveHoliday = () => {
         props.holidayData.to_date,
         day.day,
         props.holidays,
-        day.repetition,
-        day.description
+        day.repetition
       )
     );
   }
@@ -303,8 +288,7 @@ const saveHoliday = () => {
       props.holidayData.to_date,
       recurringHolidayData.value.day,
       props.holidays,
-      recurringHolidayData.value.repetition,
-      recurringHolidayData.value.description
+      recurringHolidayData.value.repetition
     )
   );
 
@@ -345,8 +329,7 @@ const deleteHoliday = (event, holiday: any) => {
         props.holidayData.to_date,
         day.day,
         props.holidays,
-        day.repetition,
-        day.description
+        day.repetition
       )
     );
   }
@@ -360,8 +343,7 @@ function getWeeklyOffDates(
   endDate,
   weeklyOff,
   holidays,
-  repetition,
-  description
+  repetition
 ) {
   const dateList = getWeeklyOffDateList(
     startDate,

@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { slaPolicyListData, slaActiveScreen } from "./sla";
+import { slaPolicyListData, slaActiveScreen, resetSlaData } from "./sla";
 import SlaPolicyList from "./SlaPolicyList.vue";
 import { onMounted } from "vue";
 import { Button } from "frappe-ui";
@@ -42,6 +42,7 @@ onMounted(() => {
 });
 
 const goToNew = () => {
+  // resetSlaData();
   slaActiveScreen.value = {
     screen: "view",
     data: null,

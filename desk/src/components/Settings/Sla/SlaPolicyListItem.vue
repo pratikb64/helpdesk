@@ -80,9 +80,6 @@ const deleteSla = () => {
   event.preventDefault();
   if (!isConfirmingDelete.value) {
     isConfirmingDelete.value = true;
-    setTimeout(() => {
-      isConfirmingDelete.value = false;
-    }, 3000);
     return;
   }
 

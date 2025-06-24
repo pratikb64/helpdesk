@@ -21,11 +21,6 @@
       </div>
       <Button label="Save" theme="gray" variant="solid" @click="saveSla()" />
     </div>
-    <!-- <div class="text-xs text-red-600 mt-2 flex gap-1 flex-col">
-      <span v-for="(error, index) in errors" :key="index">
-        {{ index + 1 }}. {{ error }}
-      </span>
-    </div> -->
   </div>
   <div v-if="!slaData.loading" class="overflow-y-auto px-10 pb-10">
     <div class="flex items-center justify-between gap-2">
@@ -43,6 +38,7 @@
           label="Name"
           v-model="slaData.service_level"
           required
+          @blur="validateSlaData()"
         />
         <span v-if="slaDataErrors.service_level" class="text-red-500 text-xs">
           {{ slaDataErrors.service_level }}
@@ -55,7 +51,6 @@
         placeholder="Description"
         label="Description"
         v-model="slaData.description"
-        :rows="1"
       />
     </div>
     <hr class="my-6" />
@@ -63,8 +58,7 @@
       <div class="flex flex-col gap-2">
         <span class="text-lg font-medium">Assignment conditions</span>
         <span class="text-sm text-gray-600">
-          Choose which tickets are affected by this policy. Learn about
-          conditions
+          Choose which tickets are affected by this policy.
         </span>
       </div>
       <div class="mt-4">
@@ -72,7 +66,7 @@
           label="Apply default SLA conditions"
           v-model="slaData.default_sla"
         />
-        <div class="mt-4">
+        <div class="mt-4" v-if="!slaData.default_sla">
           <SlaAssignmentConditions :conditions="slaData.condition" />
         </div>
       </div>
@@ -94,6 +88,7 @@
             placeholder="From date"
             class="w-full"
             id="from_date"
+            @change="validateSlaData()"
           />
           <span v-if="slaDataErrors.start_date" class="text-red-500 text-xs">
             {{ slaDataErrors.start_date }}
@@ -107,6 +102,7 @@
             placeholder="To date"
             class="w-full"
             id="to_date"
+            @change="validateSlaData()"
           />
           <span v-if="slaDataErrors.end_date" class="text-red-500 text-xs">
             {{ slaDataErrors.end_date }}
@@ -155,35 +151,25 @@
     <SlaHolidays
       :workDaysList="slaData.support_and_resolution"
       v-model="slaData.holiday_list"
+      :slaData="slaData"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { slaActiveScreen, slaDataErrors } from "./sla";
+import {
+  resetSlaData,
+  slaActiveScreen,
+  slaData,
+  slaDataErrors,
+  validateSlaData,
+} from "./sla";
 import { createResource, Switch, Checkbox, DatePicker, toast } from "frappe-ui";
-import { onUnmounted, ref } from "vue";
+import { onUnmounted, ref, watch } from "vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
 import SlaHolidays from "./SlaHolidays.vue";
 import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
-
-const slaData = ref({
-  service_level: "",
-  description: "",
-  enabled: false,
-  default_sla: false,
-  apply_sla_for_resolution: false,
-  priorities: [],
-  statuses: [],
-  holiday_list: "Default",
-  default_priority: "",
-  start_date: "",
-  end_date: "",
-  loading: false,
-  support_and_resolution: [],
-  condition: [],
-});
 
 const getSlaData = createResource({
   url: "helpdesk.api.sla.get_sla",
@@ -230,6 +216,7 @@ const goBack = () => {
 };
 
 const saveSla = () => {
+  // Reset all errors
   slaDataErrors.value = {
     service_level: "",
     description: "",
@@ -245,132 +232,15 @@ const saveSla = () => {
     support_and_resolution: "",
     condition: "",
   };
-  if (!slaData.value.service_level?.trim()) {
-    slaDataErrors.value.service_level = "SLA policy name is required";
-  }
 
-  if (
-    !Array.isArray(slaData.value.priorities) ||
-    slaData.value.priorities.length === 0
-  ) {
-    slaDataErrors.value.priorities = "At least one priority is required";
-  } else {
-    let prioritiesError = [];
-    slaData.value.priorities.forEach((priority, index) => {
-      const priorityNum = index + 1;
-      if (!priority.priority?.trim()) {
-        prioritiesError.push(
-          `Priority ${priorityNum}: Priority name is required`
-        );
-      }
-      if (!priority.response_time || priority.response_time == 0) {
-        prioritiesError.push(
-          `Priority ${priorityNum}: Response time is required`
-        );
-      }
-      if (
-        Boolean(slaData.value.apply_sla_for_resolution) &&
-        priority.resolution_time == 0
-      ) {
-        prioritiesError.push(
-          `Priority ${priorityNum}: Resolution time is required`
-        );
-      }
-    });
-    if (prioritiesError.length > 0) {
-      slaDataErrors.value.priorities = prioritiesError.join(", ");
-    }
+  // Validate SLA data
+  const validationErrors = validateSlaData();
 
-    const hasDefaultPriority = slaData.value.priorities.some(
-      (p) => p.default_priority == true
-    );
-    if (!hasDefaultPriority) {
-      slaDataErrors.value.default_priority = "Default priority is required";
-    }
-  }
+  // Copy validation errors to the component's error state
+  Object.assign(slaDataErrors.value, validationErrors);
 
-  if (slaData.value.start_date && slaData.value.end_date) {
-    const startDate = new Date(slaData.value.start_date);
-    const endDate = new Date(slaData.value.end_date);
-
-    if (startDate > endDate) {
-      slaDataErrors.value.end_date = "To date must be after from date";
-    }
-  }
-
-  // Validate statuses
-  if (
-    !Array.isArray(slaData.value.statuses) ||
-    slaData.value.statuses.length === 0
-  ) {
-    slaDataErrors.value.statuses =
-      "At least one status for 'Fulfilled on' and 'Paused on' is required";
-  } else {
-    const hasFulfilled = slaData.value.statuses.some(
-      (s) => s.sla_behavior === "Fulfilled"
-    );
-    const hasPaused = slaData.value.statuses.some(
-      (s) => s.sla_behavior === "Paused"
-    );
-
-    if (!hasFulfilled) {
-      slaDataErrors.value.statuses =
-        "At least one 'Fulfilled on' status is required";
-    }
-    if (!hasPaused) {
-      slaDataErrors.value.statuses =
-        "At least one 'Paused on' status is required";
-    }
-  }
-
-  // Validate at least one workday with start and end time exists
-  const validWorkdays = slaData.value.support_and_resolution?.filter(
-    (day) =>
-      !day.is_holiday &&
-      day.start_time &&
-      day.end_time &&
-      day.start_time.trim() !== "" &&
-      day.end_time.trim() !== ""
-  );
-
-  if (!validWorkdays?.length) {
-    slaDataErrors.value.support_and_resolution =
-      "At least one valid workday with start and end time is required";
-  } else {
-    let workdayError = false;
-    validWorkdays.forEach((day) => {
-      const startTime = day.start_time.trim();
-      const endTime = day.end_time.trim();
-
-      if (startTime >= endTime) {
-        workdayError = true;
-      }
-    });
-    if (workdayError) {
-      slaDataErrors.value.support_and_resolution =
-        "Workday start time must be before end time";
-    }
-  }
-
-  // Validate conditions if any exist
-  if (slaData.value.condition && slaData.value.condition.length > 0) {
-    let conditionError = false;
-    slaData.value.condition.forEach((condition) => {
-      if (
-        !condition.field ||
-        condition.value === undefined ||
-        condition.value === null ||
-        condition.value === ""
-      ) {
-        conditionError = true;
-      }
-    });
-    if (conditionError) {
-      slaDataErrors.value.condition = `Field and value are required for all conditions`;
-    }
-  }
-
-  if (Object.values(slaDataErrors.value).some((error) => error)) {
+  // Check if there are any validation errors
+  if (Object.values(validationErrors).some((error) => error)) {
     toast.error("Please provide all required fields");
     return;
   }
@@ -412,6 +282,17 @@ const createSla = () => {
       is_new: true,
     },
     auto: true,
+    onSuccess(data) {
+      toast.success("SLA policy created successfully");
+      slaActiveScreen.value.data = data;
+      slaActiveScreen.value.screen = "view";
+      getSlaData.submit({
+        docname: data.name,
+      });
+    },
+    onError(error) {
+      toast.error(`SLA policy creation failed: ${error}`);
+    },
   });
 };
 
@@ -448,6 +329,10 @@ const updateSla = () => {
     auto: true,
     onSuccess() {
       getSlaData.submit();
+      toast.success("SLA policy updated successfully");
+    },
+    onError(error) {
+      toast.error(`SLA policy update failed: ${error}`);
     },
   });
 };
@@ -468,5 +353,9 @@ onUnmounted(() => {
     support_and_resolution: "",
     condition: "",
   };
+});
+
+onUnmounted(() => {
+  resetSlaData();
 });
 </script>

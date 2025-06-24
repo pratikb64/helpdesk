@@ -91,14 +91,7 @@
       </div>
     </template>
     <template #actions>
-      <div class="flex justify-between">
-        <div>
-          <Button variant="subtle" theme="red" label="Delete">
-            <template #prefix>
-              <FeatherIcon name="trash-2" class="size-4" />
-            </template>
-          </Button>
-        </div>
+      <div class="flex justify-end">
         <div class="flex gap-2">
           <Button variant="subtle" theme="gray" @click="dialog = false">
             Cancel

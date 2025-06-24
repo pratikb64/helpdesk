@@ -31,98 +31,31 @@
       No workdays added
     </div>
   </div>
-  <Button variant="subtle" label="Add row" class="mt-4" @click="dialog = true">
+  <div
+    v-if="slaDataErrors.support_and_resolution"
+    class="text-red-500 text-xs mt-2"
+  >
+    {{ slaDataErrors.support_and_resolution }}
+  </div>
+  <Button variant="subtle" label="Add row" class="mt-4" @click="addWorkDay">
     <template #prefix>
       <FeatherIcon name="plus" class="h-4" />
     </template>
   </Button>
-  <Dialog v-model="dialog">
-    <template #body-title>
-      <h3 class="text-2xl font-semibold">New row</h3>
-    </template>
-    <template #body-content>
-      <div class="flex flex-col gap-4">
-        <FormControl
-          :type="'select'"
-          size="sm"
-          variant="subtle"
-          placeholder="Select Workday"
-          label="Workday"
-          v-model="workDayData.workday"
-          :options="[
-            {
-              label: 'Monday',
-              value: 'Monday',
-            },
-            {
-              label: 'Tuesday',
-              value: 'Tuesday',
-            },
-            {
-              label: 'Wednesday',
-              value: 'Wednesday',
-            },
-            {
-              label: 'Thursday',
-              value: 'Thursday',
-            },
-            {
-              label: 'Friday',
-              value: 'Friday',
-            },
-            {
-              label: 'Saturday',
-              value: 'Saturday',
-            },
-            {
-              label: 'Sunday',
-              value: 'Sunday',
-            },
-          ]"
-          required
-        />
-        <FormControl
-          :type="'time'"
-          size="sm"
-          variant="subtle"
-          placeholder="Start Time"
-          label="Start Time"
-          description="Enter time in seconds"
-          v-model="workDayData.start_time"
-          required
-        />
-        <FormControl
-          :type="'time'"
-          size="sm"
-          variant="subtle"
-          placeholder="End Time"
-          label="End Time"
-          description="Enter time in seconds"
-          v-model="workDayData.end_time"
-          required
-        />
-      </div>
-    </template>
-    <template #actions>
-      <div class="flex gap-2 justify-end">
-        <Button variant="subtle" theme="gray" @click="dialog = false">
-          Cancel
-        </Button>
-        <Button variant="solid" @click="onSave"> Save </Button>
-      </div>
-    </template>
-  </Dialog>
+  <WorkDayModal v-model="dialog" :workDaysList="workDaysList" />
 </template>
 
 <script setup lang="ts">
-import { Button, createResource } from "frappe-ui";
-import Draggable from "vuedraggable";
-import NestedPopover from "@/components/NestedPopover.vue";
-import Autocomplete from "@/components/frappe-ui/Autocomplete.vue";
-import { computed, ref } from "vue";
+import { Button } from "frappe-ui";
+import { ref, watch } from "vue";
 import SlaWorkDaysListItem from "./SlaWorkDaysListItem.vue";
+import WorkDayModal from "./WorkDayModal.vue";
+import { slaDataErrors } from "./sla";
 
-const dialog = ref(false);
+const dialog = ref({
+  show: false,
+  isEditing: false,
+});
 
 const props = defineProps({
   workDaysList: {
@@ -131,26 +64,11 @@ const props = defineProps({
   },
 });
 
-const workDayData = ref({
-  workday: "",
-  start_time: "",
-  end_time: "",
-});
-
-const onSave = () => {
-  if (
-    workDayData.value.end_time &&
-    workDayData.value.start_time &&
-    workDayData.value.workday
-  ) {
-    props.workDaysList.push(workDayData.value);
-    dialog.value = false;
-    workDayData.value = {
-      workday: "",
-      start_time: "",
-      end_time: "",
-    };
-  }
+const addWorkDay = () => {
+  dialog.value = {
+    show: true,
+    isEditing: false,
+  };
 };
 
 function getGridTemplateColumns(columns) {
@@ -183,4 +101,11 @@ const columns = [
     isRequired: true,
   },
 ];
+
+watch(
+  () => props.workDaysList,
+  () => {
+    dialog.value.show = false;
+  }
+);
 </script>

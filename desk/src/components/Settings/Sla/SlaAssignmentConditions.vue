@@ -4,6 +4,9 @@
     :conditions="props.conditions"
     :level="0"
   />
+  <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
+    {{ slaDataErrors.condition }}
+  </div>
   <div
     v-if="props.conditions.length == 0"
     class="flex p-4 items-center cursor-pointer justify-center gap-2 text-sm border border-gray-300 text-gray-600 rounded-md"
@@ -57,16 +60,13 @@
       </template>
     </Button>
   </Dropdown>
-  <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
-    {{ slaDataErrors.condition }}
-  </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import AssignmentConditions from "./AssignmentConditions/AssignmentConditions.vue";
 import { Button, Dropdown, FeatherIcon } from "frappe-ui";
-import { slaDataErrors } from "./sla";
+import { slaDataErrors, validateSlaData } from "./sla";
 
 type Conditions = {
   field: string | object | null;
