@@ -31,19 +31,22 @@
       No items in the list
     </div>
   </div>
-  <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
-    <template #prefix>
-      <FeatherIcon name="plus" class="h-4" />
-    </template>
-  </Button>
-  <div class="mt-2">
-    <div v-if="slaDataErrors.default_priority" class="text-red-500 text-xs">
-      {{ slaDataErrors.default_priority }}
-    </div>
-    <div v-if="slaDataErrors.priorities" class="text-red-500 text-xs">
-      {{ slaDataErrors.priorities }}
+  <div class="flex items-center justify-between">
+    <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
+      <template #prefix>
+        <FeatherIcon name="plus" class="h-4" />
+      </template>
+    </Button>
+    <div class="mt-2">
+      <div v-if="slaDataErrors.default_priority" class="text-red-500 text-xs">
+        {{ slaDataErrors.default_priority }}
+      </div>
+      <div v-if="slaDataErrors.priorities" class="text-red-500 text-xs">
+        {{ slaDataErrors.priorities }}
+      </div>
     </div>
   </div>
+
   <Dialog v-model="dialog">
     <template #body-title>
       <h3 class="text-2xl font-semibold">New row</h3>
@@ -144,9 +147,10 @@
 import { Button, Checkbox, FormControl, Popover, toast } from "frappe-ui";
 import SlaPriorityListItem from "./SlaPriorityListItem.vue";
 import { ref, computed } from "vue";
-import { slaDataErrors } from "./sla";
+import { slaDataErrors, validateSlaData } from "./sla";
 import DurationPicker from "@/components/frappe-ui/DurationPicker.vue";
 import FormLabel from "frappe-ui/src/components/FormLabel.vue";
+import { watchDebounced } from "@vueuse/core";
 
 const dialog = ref(false);
 
@@ -160,6 +164,14 @@ const props = defineProps({
     required: true,
   },
 });
+
+watchDebounced(
+  () => [...props.priorityList],
+  () => {
+    validateSlaData();
+  },
+  { deep: true, debounce: 300 }
+);
 
 const priorityData = ref({
   priority: "",
@@ -212,7 +224,7 @@ const addRow = () => {
     priority: "Low",
     resolution_time: 60 * 60,
     response_time: 60 * 60,
-    default_priority: false,
+    default_priority: props.priorityList.length == 0,
   });
 };
 const columns = computed(() => [

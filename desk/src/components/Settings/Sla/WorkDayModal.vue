@@ -180,13 +180,41 @@ watch(
   (isOpen) => {
     if (isOpen) {
       if (dialog.value.isEditing && dialog.value.data) {
-        Object.assign(workDayData, dialog.value.data);
+        console.log(
+          "dialog.value.data",
+          dialog.value.data,
+          formatTimeToHHMMSS(dialog.value.data.start_time)
+        );
+        workDayData.workday = dialog.value.data.workday;
+        workDayData.start_time = formatTimeToHHMMSS(
+          dialog.value.data.start_time
+        );
+        workDayData.end_time = formatTimeToHHMMSS(dialog.value.data.end_time);
       } else {
         resetForm();
       }
     }
   }
 );
+
+function formatTimeToHHMMSS(timeStr: string) {
+  if (!timeStr) return "";
+
+  if (/^\d{1,2}:\d{2}:\d{2}$/.test(timeStr)) {
+    const [hours, minutes, seconds] = timeStr.split(":");
+    return `${hours.padStart(2, "0")}:${minutes.padStart(
+      2,
+      "0"
+    )}:${seconds.padStart(2, "0")}`;
+  }
+
+  if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
+    const [hours, minutes] = timeStr.split(":");
+    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`;
+  }
+
+  return "";
+}
 
 function resetForm() {
   workDayData.workday = "";

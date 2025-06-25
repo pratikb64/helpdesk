@@ -4,9 +4,6 @@
     :conditions="props.conditions"
     :level="0"
   />
-  <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
-    {{ slaDataErrors.condition }}
-  </div>
   <div
     v-if="props.conditions.length == 0"
     class="flex p-4 items-center cursor-pointer justify-center gap-2 text-sm border border-gray-300 text-gray-600 rounded-md"
@@ -22,51 +19,60 @@
     <FeatherIcon name="plus" class="h-4" />
     Add a custom condition
   </div>
-  <Dropdown
-    v-if="props.conditions.length > 0"
-    class="mt-2"
-    v-slot="{ open }"
-    :options="[
-      {
-        label: 'Add condition',
-        onClick: () => {
-          addCondition();
+  <div class="flex items-center justify-between">
+    <Dropdown
+      v-if="props.conditions.length > 0"
+      class="mt-2"
+      v-slot="{ open }"
+      :options="[
+        {
+          label: 'Add condition',
+          onClick: () => {
+            addCondition();
+          },
         },
-      },
-      {
-        label: 'Add condition group',
-        onClick: () => {
-          conditions.push({
-            field: 'group',
-            operator: 'equals',
-            value: [
-              {
-                field: null,
-                operator: 'equals',
-                value: '',
-                conjunction: 'and',
-              },
-            ],
-            conjunction: 'and',
-          });
+        {
+          label: 'Add condition group',
+          onClick: () => {
+            conditions.push({
+              field: 'group',
+              operator: 'equals',
+              value: [
+                {
+                  field: null,
+                  operator: 'equals',
+                  value: '',
+                  conjunction: 'and',
+                },
+              ],
+              conjunction: 'and',
+            });
+          },
         },
-      },
-    ]"
-  >
-    <Button :disabled="!areConditionsValid">
-      Add condition
-      <template #suffix>
-        <FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4" />
-      </template>
-    </Button>
-  </Dropdown>
+      ]"
+    >
+      <Button :disabled="slaDataErrors.condition !== ''">
+        Add condition
+        <template #suffix>
+          <FeatherIcon
+            :name="open ? 'chevron-up' : 'chevron-down'"
+            class="h-4"
+          />
+        </template>
+      </Button>
+    </Dropdown>
+    <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
+      {{ slaDataErrors.condition }}
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import AssignmentConditions from "./AssignmentConditions/AssignmentConditions.vue";
 import { Button, Dropdown, FeatherIcon } from "frappe-ui";
-import { slaDataErrors, validateSlaData } from "./sla";
+import { slaDataErrors, validateConditions, validateSlaData } from "./sla";
+import { watchDebounced } from "@vueuse/core";
 
 type Conditions = {
   field: string | object | null;
@@ -75,8 +81,6 @@ type Conditions = {
   conjunction?: string;
 };
 
-const areConditionsValid = ref(false);
-
 const props = defineProps({
   conditions: {
     type: Array<Conditions>,
@@ -84,19 +88,19 @@ const props = defineProps({
   },
 });
 
-const validateConditions = (conditions) => {
-  return conditions.every((condition) => {
-    if (condition.field === "group" && Array.isArray(condition.value)) {
-      return validateConditions(condition.value);
-    }
-    return (
-      condition.field !== null &&
-      condition.field !== "" &&
-      condition.operator !== "" &&
-      condition.value !== ""
-    );
-  });
-};
+// const validateConditions = (conditions) => {
+//   return conditions.every((condition) => {
+//     if (condition.field === "group" && Array.isArray(condition.value)) {
+//       return validateConditions(condition.value);
+//     }
+//     return (
+//       condition.field !== null &&
+//       condition.field !== "" &&
+//       condition.operator !== "" &&
+//       condition.value !== ""
+//     );
+//   });
+// };
 
 const addCondition = () => {
   // Check if all existing conditions have a field selected
@@ -114,11 +118,11 @@ const addCondition = () => {
   });
 };
 
-watch(props.conditions, () => {
-  areConditionsValid.value = validateConditions(props.conditions);
-});
-
-onMounted(() => {
-  areConditionsValid.value = validateConditions(props.conditions);
-});
+watchDebounced(
+  () => [...props.conditions],
+  () => {
+    validateSlaData();
+  },
+  { deep: true, debounce: 300 }
+);
 </script>

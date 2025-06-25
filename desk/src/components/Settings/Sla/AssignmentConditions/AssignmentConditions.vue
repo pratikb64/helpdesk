@@ -14,7 +14,7 @@
     </div>
     <div v-if="props.isChild" class="flex">
       <Dropdown v-slot="{ open }" :options="dropdownOptions">
-        <Button :disabled="!areConditionsValid">
+        <Button :disabled="slaDataErrors.condition !== ''">
           Add condition
           <template #prefix>
             <FeatherIcon :name="'plus'" class="h-4" />
@@ -35,8 +35,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Button, FeatherIcon, Dropdown } from "frappe-ui";
 import AssignmentCondition from "./AssignmentCondition.vue";
-
-const areConditionsValid = ref(false);
+import { validateConditions, slaDataErrors } from "../sla";
 
 const props = defineProps({
   conditions: {
@@ -103,19 +102,19 @@ function unGroupConditions(condition) {
   }
 }
 
-const validateConditions = (conditions) => {
-  return conditions.every((condition) => {
-    if (condition.field === "group" && Array.isArray(condition.value)) {
-      return validateConditions(condition.value);
-    }
-    return (
-      condition.field !== null &&
-      condition.field !== "" &&
-      condition.operator !== "" &&
-      condition.value !== ""
-    );
-  });
-};
+// const validateConditions = (conditions) => {
+//   return conditions.every((condition) => {
+//     if (condition.field === "group" && Array.isArray(condition.value)) {
+//       return validateConditions(condition.value);
+//     }
+//     return (
+//       condition.field !== null &&
+//       condition.field !== "" &&
+//       condition.operator !== "" &&
+//       condition.value !== ""
+//     );
+//   });
+// };
 
 function updateConjunction(level) {
   const updateConjunctions = (conditions, targetLevel, currentLevel = 0) => {
@@ -134,12 +133,4 @@ function updateConjunction(level) {
 
   updateConjunctions(props.conditions, level);
 }
-
-watch(props.conditions, () => {
-  areConditionsValid.value = validateConditions(props.conditions);
-});
-
-onMounted(() => {
-  areConditionsValid.value = validateConditions(props.conditions);
-});
 </script>

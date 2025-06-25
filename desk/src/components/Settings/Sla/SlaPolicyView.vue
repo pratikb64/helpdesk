@@ -38,7 +38,7 @@
           label="Name"
           v-model="slaData.service_level"
           required
-          @blur="validateSlaData()"
+          @change="debouncedValidateSlaData()"
         />
         <span v-if="slaDataErrors.service_level" class="text-red-500 text-xs">
           {{ slaDataErrors.service_level }}
@@ -88,7 +88,7 @@
             placeholder="From date"
             class="w-full"
             id="from_date"
-            @change="validateSlaData()"
+            @change="debouncedValidateSlaData()"
           />
           <span v-if="slaDataErrors.start_date" class="text-red-500 text-xs">
             {{ slaDataErrors.start_date }}
@@ -102,7 +102,7 @@
             placeholder="To date"
             class="w-full"
             id="to_date"
-            @change="validateSlaData()"
+            @change="debouncedValidateSlaData()"
           />
           <span v-if="slaDataErrors.end_date" class="text-red-500 text-xs">
             {{ slaDataErrors.end_date }}
@@ -170,6 +170,11 @@ import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
 import SlaHolidays from "./SlaHolidays.vue";
 import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
+import { useDebounceFn } from "@vueuse/core";
+
+const debouncedValidateSlaData = useDebounceFn(() => {
+  validateSlaData();
+}, 300);
 
 const getSlaData = createResource({
   url: "helpdesk.api.sla.get_sla",

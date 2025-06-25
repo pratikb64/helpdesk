@@ -28,13 +28,15 @@
       No items in the list
     </div>
   </div>
-  <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
-    <template #prefix>
-      <FeatherIcon name="plus" class="h-4" />
-    </template>
-  </Button>
-  <div v-if="slaDataErrors.statuses" class="text-red-500 text-xs mt-2">
-    {{ slaDataErrors.statuses }}
+  <div class="flex items-center justify-between">
+    <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
+      <template #prefix>
+        <FeatherIcon name="plus" class="h-4" />
+      </template>
+    </Button>
+    <div v-if="slaDataErrors.statuses" class="text-red-500 text-xs mt-2">
+      {{ slaDataErrors.statuses }}
+    </div>
   </div>
   <Dialog v-model="dialog">
     <template #body-title>
@@ -107,7 +109,8 @@
 import { Button, toast } from "frappe-ui";
 import SlaStatusListItem from "./SlaStatusListItem.vue";
 import { ref } from "vue";
-import { slaDataErrors } from "./sla";
+import { slaDataErrors, validateSlaData } from "./sla";
+import { watchDebounced } from "@vueuse/core";
 
 const props = defineProps({
   statusList: {
@@ -116,6 +119,13 @@ const props = defineProps({
   },
 });
 
+watchDebounced(
+  () => [...props.statusList],
+  () => {
+    validateSlaData();
+  },
+  { deep: true, debounce: 300 }
+);
 const dialog = ref(false);
 const statusData = ref({
   status: "",

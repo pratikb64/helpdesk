@@ -48,8 +48,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button, FeatherIcon, Dialog, Select } from "frappe-ui";
-import { EditIcon } from "@/components/icons";
+import { Button, Select } from "frappe-ui";
 import WorkDayModal from "./WorkDayModal.vue";
 
 const props = defineProps({

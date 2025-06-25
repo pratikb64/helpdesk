@@ -79,7 +79,7 @@ import { createResource } from "frappe-ui";
 import SlaWorkDaysList from "./SlaWorkDaysList.vue";
 import { activeTab, tabs } from "../settingsModal";
 import { holidayListActiveScreen } from "../Holiday/holidayList";
-import { watch } from "vue";
+import { watchDebounced } from "@vueuse/core";
 import { validateSlaData } from "./sla";
 
 const holidayList = defineModel<string>();
@@ -94,6 +94,14 @@ const props = defineProps({
     required: true,
   },
 });
+
+watchDebounced(
+  props.workDaysList,
+  () => {
+    validateSlaData();
+  },
+  { debounce: 300 }
+);
 
 const createNewHolidayList = () => {
   activeTab.value = tabs[5];
@@ -123,10 +131,6 @@ const holidayListData = createResource({
     // console.log("holidayList", data);
   },
 });
-
-// watch(props.workDaysList, () => {
-//   validateSlaData(props.slaData);
-// });
 </script>
 
 <style scoped>

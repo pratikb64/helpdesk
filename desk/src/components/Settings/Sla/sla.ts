@@ -66,6 +66,24 @@ export const slaDataErrors = ref<SlaValidationErrors>({
   condition: "",
 });
 
+export function validateConditions(conditions: any[]): boolean {
+  if (!Array.isArray(conditions)) return false;
+
+  return conditions.every((condition) => {
+    if (!condition) return false;
+
+    if (condition.field === "group" && Array.isArray(condition.value)) {
+      return validateConditions(condition.value);
+    }
+    return (
+      condition.field !== null &&
+      condition.field !== "" &&
+      condition.operator !== "" &&
+      condition.value !== ""
+    );
+  });
+}
+
 export function validateSlaData(): SlaValidationErrors {
   slaDataErrors.value = {
     service_level: "",
@@ -173,25 +191,52 @@ export function validateSlaData(): SlaValidationErrors {
         "At least one 'Paused on' status is required";
     }
 
-    // Check for duplicate statuses
+    // Check for duplicate statuses and ensure each status has only one behavior
     const statusMap = new Map();
     const duplicateStatuses = [];
+    const conflictingBehaviors = [];
 
     for (const status of slaData.value.statuses) {
-      const statusKey = `${status.status?.trim().toLowerCase()}:${
-        status.sla_behavior
-      }`;
-      if (statusMap.has(statusKey)) {
-        duplicateStatuses.push(status.status);
+      const statusKey = status.status?.trim().toLowerCase();
+      const behavior = status.sla_behavior;
+
+      if (!statusMap.has(statusKey)) {
+        statusMap.set(statusKey, new Set([behavior]));
       } else {
-        statusMap.set(statusKey, true);
+        // Check if this status already has this behavior
+        if (statusMap.get(statusKey).has(behavior)) {
+          duplicateStatuses.push(status.status);
+        } else {
+          // This status has a different behavior already
+          conflictingBehaviors.push({
+            status: status.status,
+            behaviors: [...statusMap.get(statusKey), behavior],
+          });
+          statusMap.get(statusKey).add(behavior);
+        }
       }
     }
 
+    const errorMessages = [];
     if (duplicateStatuses.length > 0) {
-      slaDataErrors.value.statuses = `Statuses must be unique. Duplicate status behavior found for: ${duplicateStatuses.join(
-        ", "
-      )}`;
+      errorMessages.push(
+        `Duplicate status behavior found for: ${[
+          ...new Set(duplicateStatuses),
+        ].join(", ")}`
+      );
+    }
+    if (conflictingBehaviors.length > 0) {
+      const conflictMessages = conflictingBehaviors.map(
+        ({ status, behaviors }) =>
+          `"${status}" cannot be both ${behaviors.join(" and ")}`
+      );
+      errorMessages.push(
+        `Conflicting behaviors: ${conflictMessages.join("; ")}`
+      );
+    }
+
+    if (errorMessages.length > 0) {
+      slaDataErrors.value.statuses = errorMessages.join(". ");
     }
   }
 
@@ -232,12 +277,30 @@ export function validateSlaData(): SlaValidationErrors {
 
     // Check for valid time ranges
     const invalidTimeRanges = [];
-    for (const [index, day] of validWorkdays.entries()) {
-      const startTime = day.start_time.trim();
-      const endTime = day.end_time.trim();
+    for (const day of validWorkdays) {
+      const startTimeStr = day.start_time.trim();
+      const endTimeStr = day.end_time.trim();
 
-      if (startTime >= endTime) {
-        invalidTimeRanges.push(`${day.workday} (${startTime} - ${endTime})`);
+      // Parse times to Date objects for comparison
+      const parseTime = (timeStr: string) => {
+        const [hours, minutes] = timeStr.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes || 0, 0, 0);
+        return date;
+      };
+
+      try {
+        const startTime = parseTime(startTimeStr);
+        const endTime = parseTime(endTimeStr);
+
+        if (startTime >= endTime) {
+          invalidTimeRanges.push(
+            `${day.workday} (${startTimeStr} - ${endTimeStr})`
+          );
+        }
+      } catch (error) {
+        // If time parsing fails, mark as invalid
+        invalidTimeRanges.push(`${day.workday} (Invalid time format)`);
       }
     }
 
@@ -249,16 +312,12 @@ export function validateSlaData(): SlaValidationErrors {
   }
 
   // Validate conditions
-  if (slaData.value.condition && slaData.value.condition.length > 0) {
-    const hasInvalidCondition = slaData.value.condition.some(
-      (condition) =>
-        !condition.field ||
-        condition.value === undefined ||
-        condition.value === null ||
-        condition.value === ""
-    );
-    if (hasInvalidCondition) {
-      slaDataErrors.value.condition = `Field and value are required for all conditions`;
+  if (
+    Array.isArray(slaData.value.condition) &&
+    slaData.value.condition.length > 0
+  ) {
+    if (!validateConditions(slaData.value.condition)) {
+      slaDataErrors.value.condition = "All condition fields are required";
     }
   }
 

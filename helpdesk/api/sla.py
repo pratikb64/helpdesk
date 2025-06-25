@@ -31,8 +31,9 @@ def get_sla(docname):
 
 @frappe.whitelist()
 def save_sla(doc, is_new):
+    sla = None
     if is_new:
-        frappe.client.insert(
+        sla = frappe.client.insert(
             {
                 **doc,
                 "doctype": "HD Service Level Agreement",
@@ -48,7 +49,7 @@ def save_sla(doc, is_new):
             }
         )
         sla.save()
-    return "success"
+    return sla
 
 
 def convert_to_conditions(conditions, is_nested=False):

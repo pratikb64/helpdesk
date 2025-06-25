@@ -31,17 +31,19 @@
       No workdays added
     </div>
   </div>
-  <div
-    v-if="slaDataErrors.support_and_resolution"
-    class="text-red-500 text-xs mt-2"
-  >
-    {{ slaDataErrors.support_and_resolution }}
+  <div class="flex items-center justify-between">
+    <Button variant="subtle" label="Add row" class="mt-4" @click="addWorkDay">
+      <template #prefix>
+        <FeatherIcon name="plus" class="h-4" />
+      </template>
+    </Button>
+    <div
+      v-if="slaDataErrors.support_and_resolution"
+      class="text-red-500 text-xs mt-2"
+    >
+      {{ slaDataErrors.support_and_resolution }}
+    </div>
   </div>
-  <Button variant="subtle" label="Add row" class="mt-4" @click="addWorkDay">
-    <template #prefix>
-      <FeatherIcon name="plus" class="h-4" />
-    </template>
-  </Button>
   <WorkDayModal v-model="dialog" :workDaysList="workDaysList" />
 </template>
 
@@ -67,8 +69,8 @@ const props = defineProps({
 const addWorkDay = () => {
   props.workDaysList.push({
     workday: "Monday",
-    start_time: "09:00",
-    end_time: "17:00",
+    start_time: "09:00:00",
+    end_time: "17:00:00",
   });
 };
 

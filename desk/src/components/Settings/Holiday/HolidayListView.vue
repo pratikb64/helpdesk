@@ -57,12 +57,12 @@
       <div class="flex flex-col gap-2">
         <span class="text-lg font-medium">Valid from</span>
         <span class="text-sm text-gray-600">
-          Choose how long this SLA policy will be active.
+          Choose the duration of this holiday list.
         </span>
       </div>
       <div class="mt-4 flex gap-2">
         <div class="w-full">
-          <label for="from_date" class="text-sm text-gray-600">From date</label>
+          <FormLabel label="From date" for="from_date" required />
           <DatePicker
             v-model="holidayData.from_date"
             variant="subtle"
@@ -78,7 +78,7 @@
           </div>
         </div>
         <div class="w-full">
-          <label for="to_date" class="text-sm text-gray-600">To date</label>
+          <FormLabel label="To date" for="to_date" required />
           <DatePicker
             v-model="holidayData.to_date"
             variant="subtle"
@@ -178,6 +178,7 @@ interface HolidayErrors {
 import HolidaysCalendarView from "./HolidaysCalendarView.vue";
 import AddHolidayModal from "./AddHolidayModal.vue";
 import { htmlToText } from "@/utils";
+import FormLabel from "frappe-ui/src/components/FormLabel.vue";
 
 const dialog = ref(false);
 const errors = ref<HolidayErrors>({});
