@@ -48,7 +48,8 @@ export const resetSlaData = () => {
 export const slaActiveScreen = ref<{
   screen: "list" | "view";
   data: Record<string, any> | null;
-}>({ screen: "list", data: null });
+  fetchData: boolean;
+}>({ screen: "list", data: null, fetchData: true });
 
 export const slaDataErrors = ref<SlaValidationErrors>({
   service_level: "",
@@ -125,12 +126,16 @@ export function validateSlaData(): SlaValidationErrors {
           `Priority ${priorityNum}: Response time is required`
         );
       }
-      if (
-        Boolean(slaData.value.apply_sla_for_resolution) &&
-        priority.resolution_time == 0
-      ) {
+      if (Boolean(slaData.value.apply_sla_for_resolution)) {
+        if (priority.resolution_time == 0) {
+          prioritiesError.push(
+            `Priority ${priorityNum}: Resolution time is required`
+          );
+        }
+      }
+      if (priority.response_time > priority.resolution_time) {
         prioritiesError.push(
-          `Priority ${priorityNum}: Resolution time is required`
+          `Priority ${priorityNum}: Response time cannot be greater than resolution time`
         );
       }
     });

@@ -9,6 +9,7 @@
           <FormLabel label="Date" required />
           <DatePicker
             v-model="holidayData.holiday_date"
+            :formatter="(date) => getFormat(date)"
             variant="subtle"
             placeholder="Date"
             class="w-full"
@@ -46,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import { getFormat } from "@/utils";
 import {
   Dialog,
   FormControl,

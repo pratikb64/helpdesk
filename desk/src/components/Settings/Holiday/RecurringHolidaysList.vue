@@ -143,6 +143,11 @@
               label="Every fourth week"
               :disabled="recurringHolidayData.repetition.all"
             />
+            <Checkbox
+              v-model="recurringHolidayData.repetition.fifth"
+              label="Every fifth week"
+              :disabled="recurringHolidayData.repetition.all"
+            />
           </div>
         </div>
       </div>
@@ -172,11 +177,11 @@ import { Select, FormLabel, Checkbox, toast } from "frappe-ui";
 import dayjs from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { updateWeeklyOffDates } from "./holidayList";
 
 dayjs.extend(weekday);
 dayjs.extend(isSameOrBefore);
 
-const emit = defineEmits(["update:holidays"]);
 const dialog = ref(false);
 const recurringHolidayData = ref({
   day: null,
@@ -186,6 +191,7 @@ const recurringHolidayData = ref({
     second: false,
     third: false,
     fourth: false,
+    fifth: false,
   },
   isEditing: false,
 });
@@ -226,6 +232,7 @@ const getRepetitionText = (repetition: any) => {
     if (repetition.second) parts.push("second");
     if (repetition.third) parts.push("third");
     if (repetition.fourth) parts.push("fourth");
+    if (repetition.fifth) parts.push("fifth");
 
     if (parts.length === 0) return "";
 
@@ -250,6 +257,7 @@ const addHoliday = () => {
       second: false,
       third: false,
       fourth: false,
+      fifth: false,
     },
     isEditing: false,
   };
@@ -263,6 +271,15 @@ const editHoliday = (holiday: any) => {
 };
 const saveHoliday = () => {
   if (!recurringHolidayData.value.day) {
+    toast.error("Please select a day of the week");
+    return;
+  }
+
+  // Check if at least one repetition option is selected
+  const { all, first, second, third, fourth, fifth } =
+    recurringHolidayData.value.repetition;
+  if (!all && !first && !second && !third && !fourth && !fifth) {
+    toast.error("Please select at least one repetition option");
     return;
   }
 
@@ -270,33 +287,11 @@ const saveHoliday = () => {
     return h.day === recurringHolidayData.value.day;
   });
 
-  const weeklyOffDates = [];
-  for (const day of props.holidays) {
-    weeklyOffDates.push(
-      ...getWeeklyOffDates(
-        props.holidayData.from_date,
-        props.holidayData.to_date,
-        day.day,
-        props.holidays,
-        day.repetition
-      )
-    );
-  }
-  weeklyOffDates.push(
-    ...getWeeklyOffDates(
-      props.holidayData.from_date,
-      props.holidayData.to_date,
-      recurringHolidayData.value.day,
-      props.holidays,
-      recurringHolidayData.value.repetition
-    )
-  );
-
   if (recurringHolidayData.value.isEditing) {
     props.holidays.splice(index, 1, {
       ...recurringHolidayData.value,
     });
-    emit("update:holidays", weeklyOffDates);
+    updateWeeklyOffDates();
   } else {
     if (index !== -1) {
       toast.error("Holiday already exists");
@@ -305,7 +300,7 @@ const saveHoliday = () => {
     props.holidays.push({
       ...recurringHolidayData.value,
     });
-    emit("update:holidays", weeklyOffDates);
+    updateWeeklyOffDates();
   }
   dialog.value = false;
 };
@@ -321,115 +316,8 @@ const deleteHoliday = (event, holiday: any) => {
     return h.day === holiday.day;
   });
   props.holidays.splice(index, 1);
-  const weeklyOffDates = [];
-  for (const day of props.holidays) {
-    weeklyOffDates.push(
-      ...getWeeklyOffDates(
-        props.holidayData.from_date,
-        props.holidayData.to_date,
-        day.day,
-        props.holidays,
-        day.repetition
-      )
-    );
-  }
-  emit("update:holidays", weeklyOffDates);
+  updateWeeklyOffDates();
   dialog.value = false;
   isConfirmingDelete.value = false;
 };
-
-function getWeeklyOffDates(
-  startDate,
-  endDate,
-  weeklyOff,
-  holidays,
-  repetition
-) {
-  const dateList = getWeeklyOffDateList(
-    startDate,
-    endDate,
-    weeklyOff,
-    holidays,
-    repetition
-  );
-  return dateList.map((date) => ({
-    description: weeklyOff,
-    holiday_date: date,
-    weekly_off: 1,
-  }));
-}
-
-function getWeeklyOffDateList(
-  startDate,
-  endDate,
-  weeklyOff,
-  holidays,
-  repetition
-) {
-  const start = dayjs(startDate);
-  const end = dayjs(endDate);
-
-  const dayMap = {
-    MONDAY: 1,
-    TUESDAY: 2,
-    WEDNESDAY: 3,
-    THURSDAY: 4,
-    FRIDAY: 5,
-    SATURDAY: 6,
-    SUNDAY: 0,
-  };
-
-  const targetDay = dayMap[weeklyOff.toUpperCase()];
-  const existingDates = holidays.map((h) =>
-    dayjs(h.holiday_date).format("YYYY-MM-DD")
-  );
-  const result = [];
-
-  let currentDate = start.day(targetDay);
-  if (currentDate.isBefore(start, "day")) {
-    currentDate = currentDate.add(1, "week");
-  }
-
-  if (!repetition || Object.keys(repetition).length === 0) {
-    repetition = { all: true };
-  }
-
-  if (repetition.all) {
-    while (currentDate.isSameOrBefore(end, "day")) {
-      const dateStr = currentDate.format("YYYY-MM-DD");
-      if (!existingDates.includes(dateStr)) {
-        result.push(dateStr);
-      }
-      currentDate = currentDate.add(1, "week");
-    }
-    return result;
-  }
-
-  const referenceDate = currentDate.clone();
-  let weekCount = 0;
-
-  while (currentDate.isSameOrBefore(end, "day")) {
-    const weeksSinceStart = Math.floor(
-      currentDate.diff(referenceDate, "day") / 7
-    );
-    const currentWeek = (weeksSinceStart % 4) + 1;
-
-    const isSelectedWeek =
-      (repetition.first && currentWeek === 1) ||
-      (repetition.second && currentWeek === 2) ||
-      (repetition.third && currentWeek === 3) ||
-      (repetition.fourth && currentWeek === 4);
-
-    if (isSelectedWeek) {
-      const dateStr = currentDate.format("YYYY-MM-DD");
-      if (!existingDates.includes(dateStr)) {
-        result.push(dateStr);
-      }
-    }
-
-    currentDate = currentDate.add(1, "week");
-  }
-
-  return result;
-}
 </script>

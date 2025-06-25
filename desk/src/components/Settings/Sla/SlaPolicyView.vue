@@ -89,6 +89,7 @@
             class="w-full"
             id="from_date"
             @change="debouncedValidateSlaData()"
+            :formatter="(date) => getFormat(date)"
           />
           <span v-if="slaDataErrors.start_date" class="text-red-500 text-xs">
             {{ slaDataErrors.start_date }}
@@ -103,6 +104,7 @@
             class="w-full"
             id="to_date"
             @change="debouncedValidateSlaData()"
+            :formatter="(date) => getFormat(date)"
           />
           <span v-if="slaDataErrors.end_date" class="text-red-500 text-xs">
             {{ slaDataErrors.end_date }}
@@ -165,12 +167,14 @@ import {
   validateSlaData,
 } from "./sla";
 import { createResource, Switch, Checkbox, DatePicker, toast } from "frappe-ui";
-import { onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
 import SlaHolidays from "./SlaHolidays.vue";
 import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
 import { useDebounceFn } from "@vueuse/core";
+import { getFormat } from "@/utils";
+import { holidayListActiveScreen } from "../Holiday/holidayList";
 
 const debouncedValidateSlaData = useDebounceFn(() => {
   validateSlaData();
@@ -208,7 +212,7 @@ const getSlaData = createResource({
   },
 });
 
-if (slaActiveScreen.value.data) {
+if (slaActiveScreen.value.data && slaActiveScreen.value.fetchData) {
   slaData.value.loading = true;
   getSlaData.submit();
 }
@@ -217,6 +221,7 @@ const goBack = () => {
   slaActiveScreen.value = {
     screen: "list",
     data: null,
+    fetchData: true,
   };
 };
 
@@ -238,13 +243,9 @@ const saveSla = () => {
     condition: "",
   };
   console.log("saveSla", slaData.value);
-  // Validate SLA data
+
   const validationErrors = validateSlaData();
 
-  // Copy validation errors to the component's error state
-  Object.assign(slaDataErrors.value, validationErrors);
-
-  // Check if there are any validation errors
   if (Object.values(validationErrors).some((error) => error)) {
     toast.error("Please provide all required fields");
     return;
@@ -358,9 +359,5 @@ onUnmounted(() => {
     support_and_resolution: "",
     condition: "",
   };
-});
-
-onUnmounted(() => {
-  resetSlaData();
 });
 </script>

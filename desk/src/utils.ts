@@ -224,3 +224,22 @@ export function getFontFamily(content: string) {
   }
   return langMap[lang];
 }
+
+/**
+ * Format a date according to the user's system settings
+ * @param {Date|string} date - Date object or ISO date string
+ * @returns {string} Formatted date string in the user's locale and preferences
+ */
+export function getFormat(date) {
+  if (!date) return "";
+
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (isNaN(dateObj.getTime())) return "";
+
+  // Use the browser's default locale and options
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).format(dateObj);
+}

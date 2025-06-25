@@ -42,10 +42,11 @@ onMounted(() => {
 });
 
 const goToNew = () => {
-  // resetSlaData();
+  resetSlaData();
   slaActiveScreen.value = {
     screen: "view",
     data: null,
+    fetchData: true,
   };
 };
 </script>

@@ -96,6 +96,7 @@
             v-model="editHolidayData.holiday_date"
             variant="subtle"
             placeholder="Date"
+            :formatter="(date) => getFormat(date)"
             class="w-full"
             id="holiday_date"
             required
@@ -127,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { htmlToText } from "@/utils";
+import { getFormat, htmlToText } from "@/utils";
 import { toast, DatePicker, FormLabel, Popover } from "frappe-ui";
 import { useDatePicker } from "frappe-ui/src/components/DatePicker/useDatePicker";
 import {

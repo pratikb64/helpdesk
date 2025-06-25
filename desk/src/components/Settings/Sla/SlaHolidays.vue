@@ -108,6 +108,10 @@ const createNewHolidayList = () => {
   holidayListActiveScreen.value = {
     screen: "view",
     data: null,
+    previousScreen: {
+      screen: "view",
+      data: props.slaData.name,
+    },
   };
 };
 
@@ -116,6 +120,10 @@ const editHolidayList = (data: any) => {
   holidayListActiveScreen.value = {
     screen: "view",
     data: data,
+    previousScreen: {
+      screen: "view",
+      data: props.slaData.name,
+    },
   };
 };
 

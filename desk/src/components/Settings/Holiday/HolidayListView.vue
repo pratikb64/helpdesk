@@ -17,8 +17,8 @@
     <Button label="Save" theme="gray" variant="solid" @click="saveHoliday()" />
   </div>
   <div v-if="!holidayData.loading" class="px-10 pb-8 overflow-y-scroll h-full">
-    <div class="flex items-center justify-between gap-2 mt-8">
-      <span class="text-sm"> Total holidays (Calculated automatically) </span>
+    <div class="flex items-center justify-between gap-2 mt-2">
+      <span class="text-sm"> Total holidays (calculated automatically) </span>
       <div
         class="text-sm font-semibold p-1.5 min-w-10 w-max text-center bg-gray-100 rounded text-gray-800"
       >
@@ -36,9 +36,13 @@
           label="Name"
           v-model="holidayData.holiday_list_name"
           required
+          @change="debouncedValidateHoliday()"
         />
-        <div v-if="errors.holiday_list_name" class="text-red-500 text-xs mt-1">
-          {{ errors.holiday_list_name }}
+        <div
+          v-if="holidayDataErrors.holiday_list_name"
+          class="text-red-500 text-xs mt-1"
+        >
+          {{ holidayDataErrors.holiday_list_name }}
         </div>
       </div>
       <FormControl
@@ -48,8 +52,6 @@
         placeholder="Description"
         label="Description"
         v-model="holidayData.description"
-        required
-        rows="1"
       />
     </div>
     <hr class="my-6" />
@@ -69,12 +71,20 @@
             placeholder="From date"
             class="w-full"
             id="from_date"
+            :formatter="(date) => getFormat(date)"
+            @change="debouncedUpdateDuration()"
           />
-          <div v-if="errors.from_date" class="text-red-500 text-xs mt-1">
-            {{ errors.from_date }}
+          <div
+            v-if="holidayDataErrors.from_date"
+            class="text-red-500 text-xs mt-1"
+          >
+            {{ holidayDataErrors.from_date }}
           </div>
-          <div v-if="errors.dateRange" class="text-red-500 text-xs mt-1">
-            {{ errors.dateRange }}
+          <div
+            v-if="holidayDataErrors.dateRange"
+            class="text-red-500 text-xs mt-1"
+          >
+            {{ holidayDataErrors.dateRange }}
           </div>
         </div>
         <div class="w-full">
@@ -85,9 +95,14 @@
             placeholder="To date"
             class="w-full"
             id="to_date"
+            :formatter="(date) => getFormat(date)"
+            @change="debouncedUpdateDuration()"
           />
-          <div v-if="errors.end_date" class="text-red-500 text-xs mt-1">
-            {{ errors.end_date }}
+          <div
+            v-if="holidayDataErrors.end_date"
+            class="text-red-500 text-xs mt-1"
+          >
+            {{ holidayDataErrors.end_date }}
           </div>
         </div>
       </div>
@@ -104,7 +119,6 @@
         <RecurringHolidaysList
           :holidayData="holidayData"
           :holidays="holidayData.recurring_holidays"
-          @update:holidays="updateHolidays"
         />
       </div>
     </div>
@@ -152,50 +166,38 @@
 </template>
 
 <script setup lang="ts">
-import { holidayListActiveScreen } from "./holidayList";
+import {
+  holidayData,
+  holidayDataErrors,
+  holidayListActiveScreen,
+  resetHolidayData,
+  updateWeeklyOffDates,
+  validateHoliday,
+} from "./holidayList";
 import {
   createResource,
-  Input,
   TabButtons,
   DatePicker,
-  Dialog,
   Button,
-  Checkbox,
   FormControl,
   toast,
 } from "frappe-ui";
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import HolidaysListView from "./HolidaysListView.vue";
 import RecurringHolidaysList from "./RecurringHolidaysList.vue";
 
-interface HolidayErrors {
-  holiday_list_name?: string;
-  from_date?: string;
-  end_date?: string;
-  dateRange?: string;
-  holidays?: string;
-}
 import HolidaysCalendarView from "./HolidaysCalendarView.vue";
 import AddHolidayModal from "./AddHolidayModal.vue";
-import { htmlToText } from "@/utils";
+import { getFormat, htmlToText } from "@/utils";
 import FormLabel from "frappe-ui/src/components/FormLabel.vue";
+import { useDebounceFn } from "@vueuse/core";
+import dayjs from "dayjs";
+import { activeTab, tabs } from "../settingsModal";
+import { slaActiveScreen } from "../Sla/sla";
 
 const dialog = ref(false);
-const errors = ref<HolidayErrors>({});
 
 const holidayListView = ref("list");
-
-const holidayData = ref({
-  holiday_list_name: "",
-  description: "",
-  associate_holiday_list: true,
-  loading: false,
-  total_holidays: 0,
-  holidays: [],
-  from_date: null,
-  to_date: null,
-  recurring_holidays: [],
-});
 
 const getHolidayData = createResource({
   url: "helpdesk.api.holiday_list.get_holiday_list",
@@ -219,47 +221,55 @@ if (holidayListActiveScreen.value.data?.name) {
   getHolidayData.fetch();
 }
 
+const debouncedValidateHoliday = useDebounceFn(() => validateHoliday(), 300);
+
+const updateDuration = () => {
+  validateHoliday();
+  // let isValid = false;
+  // console.log(holidayData.value.from_date, holidayData.value.to_date);
+  // if (holidayData.value.from_date && holidayData.value.to_date) {
+  //   const from_date = new Date(holidayData.value.from_date).getTime();
+  //   const to_date = new Date(holidayData.value.to_date).getTime();
+
+  //   if (from_date < to_date) {
+  //     holidayDataErrors.value.dateRange = "Start date cannot be after end date";
+  //     isValid = true;
+  //   }
+  // }
+  // console.log(isValid);
+  console.log(
+    holidayDataErrors.value.dateRange,
+    holidayDataErrors.value.dateRange === ""
+  );
+  if (
+    !holidayDataErrors.value.dateRange ||
+    holidayDataErrors.value.dateRange === ""
+  ) {
+    updateWeeklyOffDates();
+  }
+};
+
+const debouncedUpdateDuration = useDebounceFn(() => updateDuration(), 300);
+
 const goBack = () => {
+  if (holidayListActiveScreen.value.previousScreen) {
+    activeTab.value = tabs[4];
+
+    slaActiveScreen.value = {
+      screen: "view",
+      data: { name: holidayListActiveScreen.value.previousScreen.data },
+      fetchData: false,
+    };
+    holidayListActiveScreen.value = {
+      screen: "list",
+      data: null,
+    };
+    return;
+  }
   holidayListActiveScreen.value = {
     screen: "list",
     data: null,
   };
-};
-
-const validateHoliday = () => {
-  // Reset errors
-  errors.value = {};
-  let isValid = true;
-
-  // Required field validation
-  if (!holidayData.value.holiday_list_name?.trim()) {
-    errors.value.holiday_list_name = "Holiday list name is required";
-    isValid = false;
-  }
-
-  // Date validation
-  if (!holidayData.value.from_date) {
-    errors.value.from_date = "Start date is required";
-    isValid = false;
-  }
-
-  if (!holidayData.value.to_date) {
-    errors.value.end_date = "End date is required";
-    isValid = false;
-  }
-
-  // Validate date range
-  if (holidayData.value.from_date && holidayData.value.to_date) {
-    const startDate = new Date(holidayData.value.from_date);
-    const endDate = new Date(holidayData.value.to_date);
-
-    if (startDate > endDate) {
-      errors.value.dateRange = "Start date cannot be after end date";
-      isValid = false;
-    }
-  }
-
-  return isValid;
 };
 
 const saveHoliday = () => {
@@ -274,6 +284,12 @@ const saveHoliday = () => {
 };
 
 const createHoliday = () => {
+  const holidays = holidayData.value.holidays.map((holiday) => {
+    return {
+      ...holiday,
+      holiday_date: dayjs(holiday.holiday_date).format("YYYY-MM-DD"),
+    };
+  });
   createResource({
     url: "frappe.client.insert",
     params: {
@@ -283,27 +299,45 @@ const createHoliday = () => {
         description: holidayData.value.description,
         from_date: holidayData.value.from_date,
         to_date: holidayData.value.to_date,
-        holidays: holidayData.value.holidays,
+        holidays: holidays,
+        recurring_holidays: JSON.stringify(
+          holidayData.value.recurring_holidays
+        ),
       },
     },
     auto: true,
-    onSuccess() {
+    onSuccess(data) {
       toast.success("Holiday created successfully");
+      holidayListActiveScreen.value.data = data;
+      holidayListActiveScreen.value.screen = "view";
+      getHolidayData.submit({
+        docname: data.name,
+      });
     },
   });
 };
 
 const updateHoliday = () => {
+  const holidays = holidayData.value.holidays.map((holiday) => {
+    return {
+      ...holiday,
+      holiday_date: dayjs(holiday.holiday_date).format("YYYY-MM-DD"),
+    };
+  });
   createResource({
     url: "frappe.client.set_value",
     params: {
       doctype: "HD Service Holiday List",
       name: holidayListActiveScreen.value.data.name,
       fieldname: {
+        holiday_list_name: holidayData.value.holiday_list_name,
         description: holidayData.value.description,
         from_date: holidayData.value.from_date,
         to_date: holidayData.value.to_date,
-        holidays: holidayData.value.holidays,
+        holidays: holidays,
+        recurring_holidays: JSON.stringify(
+          holidayData.value.recurring_holidays
+        ),
       },
     },
     auto: true,
@@ -313,13 +347,9 @@ const updateHoliday = () => {
   });
 };
 
-const updateHolidays = (holidays) => {
-  const newHolidays = holidayData.value.holidays.filter((h) => {
-    return h.weekly_off == 0;
-  });
-  newHolidays.push(...holidays);
-  holidayData.value.holidays = newHolidays;
-};
+onUnmounted(() => {
+  resetHolidayData();
+});
 </script>
 
 <style scoped>

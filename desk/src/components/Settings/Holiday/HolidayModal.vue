@@ -14,6 +14,7 @@
             variant="subtle"
             placeholder="Date"
             class="w-full"
+            :formatter="(date) => getFormat(date)"
             id="holiday_date"
             required
           />
@@ -51,6 +52,7 @@ import {
   toast,
 } from "frappe-ui";
 import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
+import { getFormat } from "@/utils";
 
 const props = defineProps({
   holidays: {

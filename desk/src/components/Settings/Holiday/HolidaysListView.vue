@@ -30,7 +30,7 @@
             :type="'text'"
             placeholder="Description"
             v-model="holiday[column.key]"
-            class="!bg-white text-base px-0 focus:!ring-0 border-none hover:bg-white outline-none no-underline focus:!outline-none"
+            class="!bg-white w-full text-base px-0 focus:!ring-0 border-none hover:bg-white outline-none no-underline focus:!outline-none"
           />
           <div v-else>
             {{ dayjs(holiday[column.key]).format("DD MMM YYYY") }}
@@ -76,6 +76,7 @@
             class="w-full"
             id="holiday_date"
             required
+            :formatter="(date) => getFormat(date)"
           />
         </div>
         <FormControl
@@ -105,6 +106,8 @@ import { computed, ref } from "vue";
 import { Dropdown, DatePicker, FormControl, FormLabel } from "frappe-ui";
 import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
 import dayjs from "dayjs";
+import { holidayListActiveScreen } from "./holidayList";
+import { getFormat } from "@/utils";
 
 const isConfirmingDelete = ref(false);
 

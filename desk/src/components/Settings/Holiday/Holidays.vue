@@ -14,7 +14,7 @@
           </template>
         </Button>
       </div>
-      <p class="text-sm text-gray-700 mt-2 max-w-lg">
+      <p class="text-sm text-gray-700 mt-1 max-w-lg">
         Set your team’s working days, hours, and holidays using a template or
         custom schedule.
       </p>

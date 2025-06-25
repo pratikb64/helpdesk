@@ -1,6 +1,9 @@
 <template>
-  <div class="flex items-center py-2">
-    <div class="w-full">
+  <div class="flex items-center py-3 px-2 cursor-pointer hover:bg-gray-50">
+    <div
+      class="w-full"
+      @click="holidayListActiveScreen = { screen: 'view', data: data }"
+    >
       <div class="text-base">{{ data.name }}</div>
       <div
         class="text-sm text-gray-500 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"

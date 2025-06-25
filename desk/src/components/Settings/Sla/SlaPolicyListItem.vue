@@ -1,6 +1,9 @@
 <template>
-  <div class="flex items-center py-2">
-    <div class="w-4/5">
+  <div class="flex items-center py-3 px-2 cursor-pointer hover:bg-gray-50">
+    <div
+      @click="slaActiveScreen = { screen: 'view', data: data, fetchData: true }"
+      class="w-4/5"
+    >
       <div class="text-base">{{ data.name }}</div>
       <div
         class="text-sm w-11/12 text-gray-500 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"
@@ -43,7 +46,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Switch, Button, Dropdown, createResource } from "frappe-ui";
+import { Switch, Button, Dropdown, createResource, toast } from "frappe-ui";
 import { ref } from "vue";
 import { slaActiveScreen, slaPolicyListData } from "./sla";
 
@@ -64,6 +67,10 @@ const duplicate = () => {
     },
     onSuccess: () => {
       slaPolicyListData.reload();
+      toast.success("SLA policy duplicated");
+    },
+    onError: () => {
+      toast.error("Failed to duplicate SLA policy");
     },
     auto: true,
   });
@@ -73,6 +80,7 @@ const editSla = () => {
   slaActiveScreen.value = {
     screen: "view",
     data: props.data,
+    fetchData: true,
   };
 };
 
@@ -92,6 +100,10 @@ const deleteSla = () => {
     onSuccess: () => {
       slaPolicyListData.reload();
       isConfirmingDelete.value = false;
+      toast.success("SLA policy deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete SLA policy");
     },
     auto: true,
   });
@@ -108,6 +120,10 @@ const onToggle = () => {
     },
     onSuccess: () => {
       slaPolicyListData.reload();
+      toast.success("SLA policy enabled");
+    },
+    onError: () => {
+      toast.error("Failed to enable SLA policy");
     },
     auto: true,
   });
