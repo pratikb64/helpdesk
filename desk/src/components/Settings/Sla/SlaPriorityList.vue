@@ -31,7 +31,7 @@
       No items in the list
     </div>
   </div>
-  <Button variant="subtle" label="Add row" class="mt-4" @click="dialog = true">
+  <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
     <template #prefix>
       <FeatherIcon name="plus" class="h-4" />
     </template>
@@ -206,6 +206,15 @@ function formatTimeHMS(seconds) {
 
   return formattedTime.trim();
 }
+
+const addRow = () => {
+  props.priorityList.push({
+    priority: "Low",
+    resolution_time: 60 * 60,
+    response_time: 60 * 60,
+    default_priority: false,
+  });
+};
 const columns = computed(() => [
   {
     label: "Priority",

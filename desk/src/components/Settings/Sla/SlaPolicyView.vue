@@ -232,7 +232,7 @@ const saveSla = () => {
     support_and_resolution: "",
     condition: "",
   };
-
+  console.log("saveSla", slaData.value);
   // Validate SLA data
   const validationErrors = validateSlaData();
 

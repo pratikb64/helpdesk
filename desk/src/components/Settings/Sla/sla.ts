@@ -117,12 +117,22 @@ export function validateSlaData(): SlaValidationErrors {
       }
     });
 
+    // Check for duplicate priorities
+    const priorityNames = slaData.value.priorities
+      .map((p) => p.priority?.trim().toLowerCase())
+      .filter(Boolean);
+    const uniquePriorities = new Set(priorityNames);
+
+    if (priorityNames.length !== uniquePriorities.size) {
+      prioritiesError.push("Priorities must be unique");
+    }
+
     if (prioritiesError.length > 0) {
       slaDataErrors.value.priorities = prioritiesError.join(", ");
     }
 
-    const hasDefaultPriority = slaData.value.priorities.some(
-      (p) => p.default_priority === true
+    const hasDefaultPriority = slaData.value.priorities.some((p) =>
+      Boolean(p.default_priority)
     );
     if (!hasDefaultPriority) {
       slaDataErrors.value.default_priority = "Default priority is required";
