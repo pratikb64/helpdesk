@@ -172,6 +172,27 @@ export function validateSlaData(): SlaValidationErrors {
       slaDataErrors.value.statuses =
         "At least one 'Paused on' status is required";
     }
+
+    // Check for duplicate statuses
+    const statusMap = new Map();
+    const duplicateStatuses = [];
+
+    for (const status of slaData.value.statuses) {
+      const statusKey = `${status.status?.trim().toLowerCase()}:${
+        status.sla_behavior
+      }`;
+      if (statusMap.has(statusKey)) {
+        duplicateStatuses.push(status.status);
+      } else {
+        statusMap.set(statusKey, true);
+      }
+    }
+
+    if (duplicateStatuses.length > 0) {
+      slaDataErrors.value.statuses = `Statuses must be unique. Duplicate status behavior found for: ${duplicateStatuses.join(
+        ", "
+      )}`;
+    }
   }
 
   // Validate workdays
@@ -217,13 +238,6 @@ export function validateSlaData(): SlaValidationErrors {
 
       if (startTime >= endTime) {
         invalidTimeRanges.push(`${day.workday} (${startTime} - ${endTime})`);
-      }
-
-      // Validate time format (HH:MM or H:MM)
-      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
-        slaDataErrors.value.support_and_resolution = `Invalid time format for ${day.workday}. Please use HH:MM format.`;
-        return slaDataErrors.value;
       }
     }
 

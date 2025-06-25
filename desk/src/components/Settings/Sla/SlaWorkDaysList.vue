@@ -65,10 +65,11 @@ const props = defineProps({
 });
 
 const addWorkDay = () => {
-  dialog.value = {
-    show: true,
-    isEditing: false,
-  };
+  props.workDaysList.push({
+    workday: "Monday",
+    start_time: "09:00",
+    end_time: "17:00",
+  });
 };
 
 function getGridTemplateColumns(columns) {

@@ -28,7 +28,7 @@
       No items in the list
     </div>
   </div>
-  <Button variant="subtle" label="Add row" class="mt-4" @click="dialog = true">
+  <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
     <template #prefix>
       <FeatherIcon name="plus" class="h-4" />
     </template>
@@ -121,6 +121,13 @@ const statusData = ref({
   status: "",
   sla_behavior: "",
 });
+
+const addRow = () => {
+  props.statusList.push({
+    status: "Open",
+    sla_behavior: "Fulfilled",
+  });
+};
 
 function onSave() {
   if (!statusData.value.status) {
