@@ -98,12 +98,13 @@
       </div>
     </template>
     <template #actions>
-      <Button variant="solid" @click="saveHoliday" class="w-full">
-        Update Holiday
-        <template #prefix>
-          <FeatherIcon name="edit-2" class="size-4" />
-        </template>
-      </Button>
+      <Button
+        variant="solid"
+        @click="saveHoliday"
+        class="w-full"
+        label="Update Holiday"
+        icon-left="edit-2"
+      />
     </template>
   </Dialog>
 </template>

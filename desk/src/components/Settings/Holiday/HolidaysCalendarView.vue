@@ -85,9 +85,8 @@
   <AddHolidayModal v-model="dialog" />
 </template>
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import HLCalender from "./HLCalender.vue";
-import { Select, Autocomplete } from "frappe-ui";
 import YearsList from "./YearsList.vue";
 import dayjs from "dayjs";
 import { holidayData } from "./holidayList";

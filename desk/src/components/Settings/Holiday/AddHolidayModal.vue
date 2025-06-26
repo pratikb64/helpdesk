@@ -31,15 +31,18 @@
     <template #actions>
       <div class="flex justify-end">
         <div class="flex gap-2">
-          <Button variant="subtle" theme="gray" @click="dialog = false">
-            Cancel
-          </Button>
-          <Button variant="solid" @click="onSave">
-            Add Holiday
-            <template #prefix>
-              <FeatherIcon name="plus" class="size-4" />
-            </template>
-          </Button>
+          <Button
+            variant="subtle"
+            theme="gray"
+            label="Cancel"
+            @click="dialog = false"
+          />
+          <Button
+            variant="solid"
+            icon-left="plus"
+            label="Add Holiday"
+            @click="onSave"
+          />
         </div>
       </div>
     </template>

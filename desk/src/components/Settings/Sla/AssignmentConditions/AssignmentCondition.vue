@@ -23,12 +23,9 @@
             class="w-max"
             @click="updateConjunction"
             :disabled="props.itemIndex > 1"
-          >
-            {{ props.condition.conjunction }}
-            <template #suffix>
-              <FeatherIcon name="refresh-cw" class="size-3.5" />
-            </template>
-          </Button>
+            icon-right="refresh-cw"
+            :label="props.condition.conjunction"
+          />
         </div>
       </div>
       <div
@@ -86,17 +83,12 @@
           (props.level == 2 || props.level == 4)
         "
         @click="show = true"
-      >
-        Open nested conditions
-      </Button>
+        label="Open nested conditions"
+      />
     </div>
     <div :class="'w-max'">
       <Dropdown placement="right" :options="dropdownOptions">
-        <Button variant="ghost">
-          <template #icon>
-            <FeatherIcon name="more-horizontal" class="h-4 w-4" />
-          </template>
-        </Button>
+        <Button variant="ghost" icon="more-horizontal" />
       </Dropdown>
     </div>
   </div>

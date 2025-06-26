@@ -160,11 +160,12 @@
         <HolidaysCalendarView :holidayData="holidayData" v-else />
       </div>
       <div class="mt-4">
-        <Button variant="subtle" label="Add Holiday" @click="dialog = true">
-          <template #prefix>
-            <FeatherIcon name="plus" class="size-4" />
-          </template>
-        </Button>
+        <Button
+          variant="subtle"
+          label="Add Holiday"
+          @click="dialog = true"
+          icon-left="plus"
+        />
         <AddHolidayModal v-model="dialog" :holidays="holidayData.holidays" />
       </div>
     </div>

@@ -19,11 +19,8 @@
         theme="gray"
         variant="solid"
         @click="goToNew()"
-      >
-        <template #prefix>
-          <LucidePlus class="h-4 w-4" />
-        </template>
-      </Button>
+        icon-left="plus"
+      />
     </div>
     <div class="mt-6">
       <SlaPolicyList />

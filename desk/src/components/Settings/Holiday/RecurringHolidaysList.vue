@@ -62,12 +62,13 @@
       No items in the list
     </div>
   </div>
-  <Button variant="subtle" @click="addHoliday" class="mt-4">
-    Add Recurring Holiday
-    <template #prefix>
-      <FeatherIcon name="plus" class="size-4" />
-    </template>
-  </Button>
+  <Button
+    variant="subtle"
+    @click="addHoliday"
+    class="mt-4"
+    label="Add Recurring Holiday"
+    icon-left="plus"
+  />
   <Dialog v-model="dialog" :options="{ size: 'md' }">
     <template #body-title>
       <h3 class="text-2xl font-semibold">
@@ -165,15 +166,11 @@
         @click="saveHoliday"
         class="w-full"
         v-if="props.holidayData.from_date && props.holidayData.to_date"
-      >
-        {{ recurringHolidayData.isEditing ? "Update" : "Add" }} Holiday
-        <template #prefix>
-          <FeatherIcon
-            :name="recurringHolidayData.isEditing ? 'edit-2' : 'plus'"
-            class="size-4"
-          />
-        </template>
-      </Button>
+        :label="
+          recurringHolidayData.isEditing ? 'Update Holiday' : 'Add Holiday'
+        "
+        :icon-left="recurringHolidayData.isEditing ? 'edit-2' : 'plus'"
+      />
     </template>
   </Dialog>
 </template>

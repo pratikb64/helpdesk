@@ -8,15 +8,11 @@
       </div>
       <NestedPopover>
         <template #target="{ open }">
-          <Button class="text-sm">
-            {{ holidayList }}
-            <template #suffix>
-              <FeatherIcon
-                :name="open ? 'chevron-up' : 'chevron-down'"
-                class="h-4 text-gray-600"
-              />
-            </template>
-          </Button>
+          <Button
+            class="text-sm"
+            :icon-right="open ? 'chevron-up' : 'chevron-down'"
+            :label="holidayList"
+          />
         </template>
         <template #body="{ close }">
           <div
@@ -44,9 +40,8 @@
                     variant="ghost"
                     @click="editHolidayList(holiday)"
                     class="!h-5 w-5 !p-1"
-                  >
-                    <FeatherIcon name="edit" class="h-3.5" />
-                  </Button>
+                    icon-left="edit"
+                  />
                 </div>
               </div>
               <div
@@ -57,11 +52,8 @@
                   variant="ghost"
                   label="Create new business holiday"
                   @click="createNewHolidayList()"
-                >
-                  <template #prefix>
-                    <FeatherIcon name="plus" class="h-4" />
-                  </template>
-                </Button>
+                  icon-left="plus"
+                />
               </div>
             </div>
           </div>

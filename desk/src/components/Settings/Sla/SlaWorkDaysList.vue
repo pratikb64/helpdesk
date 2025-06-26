@@ -32,11 +32,13 @@
     </div>
   </div>
   <div class="flex items-center justify-between">
-    <Button variant="subtle" label="Add row" class="mt-4" @click="addWorkDay">
-      <template #prefix>
-        <FeatherIcon name="plus" class="h-4" />
-      </template>
-    </Button>
+    <Button
+      variant="subtle"
+      label="Add row"
+      class="mt-4"
+      @click="addWorkDay"
+      icon-left="plus"
+    />
     <div
       v-if="slaDataErrors.support_and_resolution"
       class="text-red-500 text-xs mt-2"

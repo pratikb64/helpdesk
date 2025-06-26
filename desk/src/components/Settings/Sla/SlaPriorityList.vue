@@ -32,11 +32,13 @@
     </div>
   </div>
   <div class="flex items-center justify-between">
-    <Button variant="subtle" label="Add row" class="mt-4" @click="addRow">
-      <template #prefix>
-        <FeatherIcon name="plus" class="h-4" />
-      </template>
-    </Button>
+    <Button
+      variant="subtle"
+      label="Add row"
+      class="mt-4"
+      @click="addRow"
+      icon-left="plus"
+    />
     <div class="mt-2">
       <div v-if="slaDataErrors.default_priority" class="text-red-500 text-xs">
         {{ slaDataErrors.default_priority }}
@@ -133,10 +135,13 @@
     <template #actions>
       <div class="flex justify-end">
         <div class="flex gap-2">
-          <Button variant="subtle" theme="gray" @click="dialog = false">
-            Cancel
-          </Button>
-          <Button variant="solid" @click="onSave"> Save </Button>
+          <Button
+            variant="subtle"
+            theme="gray"
+            @click="dialog = false"
+            label="Cancel"
+          />
+          <Button variant="solid" @click="onSave" label="Save" />
         </div>
       </div>
     </template>

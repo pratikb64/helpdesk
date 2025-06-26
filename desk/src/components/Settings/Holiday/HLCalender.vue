@@ -123,15 +123,13 @@
       </div>
     </template>
     <template #actions>
-      <Button variant="solid" @click="saveHoliday" class="w-full">
-        {{ editHolidayData.isEditing ? "Update" : "Add" }} Holiday
-        <template #prefix>
-          <FeatherIcon
-            :name="editHolidayData.isEditing ? 'edit-2' : 'plus'"
-            class="size-4"
-          />
-        </template>
-      </Button>
+      <Button
+        variant="solid"
+        @click="saveHoliday"
+        class="w-full"
+        :icon-left="editHolidayData.isEditing ? 'edit-2' : 'plus'"
+        :label="editHolidayData.isEditing ? 'Update Holiday' : 'Add Holiday'"
+      />
     </template>
   </Dialog>
 </template>

@@ -51,15 +51,11 @@
         },
       ]"
     >
-      <Button :disabled="slaDataErrors.condition !== ''">
-        Add condition
-        <template #suffix>
-          <FeatherIcon
-            :name="open ? 'chevron-up' : 'chevron-down'"
-            class="h-4"
-          />
-        </template>
-      </Button>
+      <Button
+        :disabled="slaDataErrors.condition !== ''"
+        :icon-right="open ? 'chevron-up' : 'chevron-down'"
+        label="Add condition"
+      />
     </Dropdown>
     <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
       {{ slaDataErrors.condition }}

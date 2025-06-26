@@ -14,28 +14,22 @@
     </div>
     <div v-if="props.isChild" class="flex">
       <Dropdown v-slot="{ open }" :options="dropdownOptions">
-        <Button :disabled="slaDataErrors.condition !== ''">
-          Add condition
-          <template #prefix>
-            <FeatherIcon :name="'plus'" class="h-4" />
-          </template>
-          <template #suffix>
-            <FeatherIcon
-              :name="open ? 'chevron-up' : 'chevron-down'"
-              class="h-4"
-            />
-          </template>
-        </Button>
+        <Button
+          :disabled="slaDataErrors.condition !== ''"
+          label="Add condition"
+          icon-left="plus"
+          :icon-right="open ? 'chevron-up' : 'chevron-down'"
+        />
       </Dropdown>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { Button, FeatherIcon, Dropdown } from "frappe-ui";
+import { computed } from "vue";
+import { Button, Dropdown } from "frappe-ui";
 import AssignmentCondition from "./AssignmentCondition.vue";
-import { validateConditions, slaDataErrors } from "../sla";
+import { slaDataErrors } from "../sla";
 
 const props = defineProps({
   conditions: {

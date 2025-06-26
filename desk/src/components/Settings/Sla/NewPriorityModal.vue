@@ -55,17 +55,21 @@
     <template #actions>
       <div class="flex justify-between">
         <div>
-          <Button variant="subtle" theme="red" label="Delete">
-            <template #prefix>
-              <FeatherIcon name="trash-2" class="size-4" />
-            </template>
-          </Button>
+          <Button
+            variant="subtle"
+            theme="red"
+            label="Delete"
+            icon-left="trash-2"
+          />
         </div>
         <div class="flex gap-2">
-          <Button variant="subtle" theme="gray" @click="dialog.show = false">
-            Cancel
-          </Button>
-          <Button variant="solid" @click="onSave"> Save </Button>
+          <Button
+            variant="subtle"
+            theme="gray"
+            @click="dialog.show = false"
+            label="Cancel"
+          />
+          <Button variant="solid" @click="onSave" label="Save" />
         </div>
       </div>
     </template>

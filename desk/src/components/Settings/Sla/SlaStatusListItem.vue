@@ -86,17 +86,17 @@
             theme="red"
             :label="isConfirmingDelete ? 'Confirm Delete' : 'Delete'"
             @click="deleteItem"
-          >
-            <template #prefix>
-              <FeatherIcon name="trash-2" class="size-4" />
-            </template>
-          </Button>
+            icon-left="trash-2"
+          />
         </div>
         <div class="flex gap-2">
-          <Button variant="subtle" theme="gray" @click="dialog = false">
-            Cancel
-          </Button>
-          <Button variant="solid" @click="onSave"> Save </Button>
+          <Button
+            variant="subtle"
+            theme="gray"
+            @click="dialog = false"
+            label="Cancel"
+          />
+          <Button variant="solid" @click="onSave" label="Save" />
         </div>
       </div>
     </template>
