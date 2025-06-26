@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="flex text-sm text-gray-600">
-      <div class="">Schedule name</div>
+      <div class="ml-2">Schedule name</div>
     </div>
-    <hr class="mt-2" />
+    <hr class="mx-2 mt-2" />
     <div>
       <div
         v-if="holidayListData.data"
@@ -11,7 +11,7 @@
         :key="holiday.name"
       >
         <HolidayListItem :data="holiday" />
-        <hr />
+        <hr class="mx-2" />
       </div>
     </div>
   </div>

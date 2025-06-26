@@ -1,9 +1,9 @@
 <template>
   <div class="px-10 py-8">
-    <div class="flex items-center justify-between">
+    <div class="flex items-start justify-between">
       <div class="flex flex-col gap-2">
         <h1 class="text-lg font-semibold">Work schedule and holidays</h1>
-        <p class="text-sm text-gray-700 mt-1 max-w-lg">
+        <p class="text-sm text-gray-700 max-w-lg">
           Set your team’s working days, hours, and holidays using a template or
           custom schedule.
         </p>

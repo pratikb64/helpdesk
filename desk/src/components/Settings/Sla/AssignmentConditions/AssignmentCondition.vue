@@ -91,7 +91,7 @@
       </Button>
     </div>
     <div :class="'w-max'">
-      <Dropdown :options="dropdownOptions">
+      <Dropdown placement="right" :options="dropdownOptions">
         <Button variant="ghost">
           <template #icon>
             <FeatherIcon name="more-horizontal" class="h-4 w-4" />
@@ -128,6 +128,7 @@ import GroupIcon from "~icons/lucide/group";
 import UnGroupIcon from "~icons/lucide/ungroup";
 import { h, defineEmits, ref, onMounted, computed } from "vue";
 import AssignmentConditions from "./AssignmentConditions.vue";
+import { TemplateOption } from "@/utils";
 
 const show = ref(false);
 const emit = defineEmits(["remove", "unGroupConditions", "updateConjunction"]);
@@ -177,11 +178,33 @@ const dropdownOptions = computed(() => {
   }
 
   options.push({
-    label: props.condition.field == "group" ? "Remove group" : "Remove",
-    icon: "trash-2",
-    onClick: () => {
-      emit("remove");
-    },
+    label: "Remove",
+    component: (props) =>
+      TemplateOption({
+        option: "Remove",
+        icon: "trash-2",
+        active: props.active,
+        variant: "danger",
+        onClick: () => {
+          emit("remove");
+        },
+      }),
+    condition: () => props.condition.field != "group",
+  });
+
+  options.push({
+    label: "Remove group",
+    component: (props) =>
+      TemplateOption({
+        option: "Remove group",
+        icon: "trash-2",
+        active: props.active,
+        variant: "danger",
+        onClick: () => {
+          emit("remove");
+        },
+      }),
+    condition: () => props.condition.field == "group",
   });
 
   return options;

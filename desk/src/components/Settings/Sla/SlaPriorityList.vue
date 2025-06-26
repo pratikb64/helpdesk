@@ -219,14 +219,29 @@ function formatTimeHMS(seconds) {
   return formattedTime.trim();
 }
 
+const priorityOptions = ["Low", "Medium", "High", "Urgent"];
+
 const addRow = () => {
+  const existingPriorities = props.priorityList.map((p) => p.priority);
+  const availablePriorities = priorityOptions.filter(
+    (p) => !existingPriorities.includes(p)
+  );
+
+  if (availablePriorities.length === 0) {
+    toast.error("All available priorities have already been added");
+    return;
+  }
+
+  const newPriority = availablePriorities[0] || "Low";
+
   props.priorityList.push({
-    priority: "Low",
+    priority: newPriority,
     resolution_time: 60 * 60,
     response_time: 60 * 60,
-    default_priority: props.priorityList.length == 0,
+    default_priority: props.priorityList.length === 0,
   });
 };
+
 const columns = computed(() => [
   {
     label: "Priority",

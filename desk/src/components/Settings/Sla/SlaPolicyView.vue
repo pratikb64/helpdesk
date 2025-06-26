@@ -23,7 +23,10 @@
     </div>
   </div>
   <div v-if="!slaData.loading" class="overflow-y-auto px-10 pb-10">
-    <div class="flex items-center justify-between gap-2">
+    <div
+      class="flex items-center justify-between gap-2"
+      @click="slaData.enabled = !slaData.enabled"
+    >
       <span class="text-sm"> Enable Policy </span>
       <Switch size="sm" v-model="slaData.enabled" />
     </div>
@@ -73,14 +76,14 @@
     </div>
     <hr class="my-6" />
     <div>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-3">
         <span class="text-lg font-medium">Valid from</span>
         <span class="text-sm text-gray-600">
           Choose how long this SLA policy will be active.
         </span>
       </div>
       <div class="mt-4 flex gap-2">
-        <div class="w-full">
+        <div class="w-full space-y-1.5">
           <label for="from_date" class="text-sm text-gray-600">From date</label>
           <DatePicker
             v-model="slaData.start_date"
@@ -95,7 +98,7 @@
             {{ slaDataErrors.start_date }}
           </span>
         </div>
-        <div class="w-full">
+        <div class="w-full space-y-1.5">
           <label for="to_date" class="text-sm text-gray-600">To date</label>
           <DatePicker
             v-model="slaData.end_date"

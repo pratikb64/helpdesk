@@ -38,6 +38,7 @@
         </div>
         <div class="flex justify-end">
           <Dropdown
+            placement="right"
             :options="[
               {
                 label: 'Edit',
@@ -45,9 +46,15 @@
                 icon: 'edit',
               },
               {
-                label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-                onClick: () => deleteHoliday(holiday),
-                icon: 'trash-2',
+                label: 'Confirm Delete',
+                component: (props) =>
+                  TemplateOption({
+                    option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
+                    icon: 'trash-2',
+                    active: props.active,
+                    variant: 'danger',
+                    onClick: () => deleteHoliday(holiday),
+                  }),
               },
             ]"
           >
@@ -107,7 +114,7 @@ import { Dropdown, DatePicker, FormControl, FormLabel } from "frappe-ui";
 import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
 import dayjs from "dayjs";
 import { holidayListActiveScreen } from "./holidayList";
-import { getFormat } from "@/utils";
+import { getFormat, TemplateOption } from "@/utils";
 
 const isConfirmingDelete = ref(false);
 

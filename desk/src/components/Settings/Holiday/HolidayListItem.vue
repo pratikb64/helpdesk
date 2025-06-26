@@ -1,34 +1,37 @@
 <template>
-  <div class="flex items-center py-3 px-2 cursor-pointer hover:bg-gray-50">
+  <div class="flex items-center cursor-pointer hover:bg-gray-50 rounded">
     <div
-      class="w-full"
+      class="w-full py-3 pl-2"
       @click="holidayListActiveScreen = { screen: 'view', data: data }"
     >
       <div class="text-base">{{ data.name }}</div>
       <div
+        v-if="data.description && data.description.length > 0"
         class="text-sm text-gray-500 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"
       >
         {{ data.description }}
       </div>
     </div>
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center pr-2">
       <div>
         <Dropdown
+          placement="right"
           :options="[
-            {
-              label: 'Edit',
-              onClick: () => editHolidayList(),
-              icon: 'edit',
-            },
             {
               label: 'Duplicate',
               onClick: () => duplicate(),
               icon: 'copy',
             },
             {
-              label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-              onClick: () => deleteHolidayList(),
-              icon: 'trash-2',
+              label: 'Confirm Delete',
+              component: (props) =>
+                TemplateOption({
+                  option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
+                  icon: 'trash-2',
+                  active: props.active,
+                  variant: 'danger',
+                  onClick: () => deleteHolidayList(),
+                }),
             },
           ]"
         >
@@ -42,6 +45,7 @@
 import { Button, Dropdown, createResource, toast } from "frappe-ui";
 import { ref } from "vue";
 import { holidayListActiveScreen, holidayListData } from "./holidayList";
+import { TemplateOption } from "@/utils";
 
 const props = defineProps({
   data: {

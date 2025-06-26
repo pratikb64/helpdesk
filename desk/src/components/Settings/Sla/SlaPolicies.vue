@@ -1,9 +1,9 @@
 <template>
   <div class="px-10 py-8">
-    <div class="flex items-center justify-between">
-      <div>
+    <div class="flex items-start justify-between">
+      <div class="flex flex-col gap-2">
         <h1 class="text-lg font-semibold">Service Level Agreements (SLAs)</h1>
-        <p class="text-sm text-gray-700 mt-2 max-w-md">
+        <p class="text-sm text-gray-700 max-w-md">
           SLAs align your team and customers with defined timelines for a
           reliable experience.
           <a

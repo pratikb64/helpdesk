@@ -34,12 +34,12 @@ export const tabs = [
     component: markRaw(TeamsConfig),
   },
   {
-    label: "SLA policies",
+    label: "SLA Policies",
     icon: markRaw(ShieldCheck),
     component: markRaw(Sla),
   },
   {
-    label: "Holiday list",
+    label: "Business Holidays",
     icon: markRaw(Briefcase),
     component: markRaw(HolidayList),
   },

@@ -7,7 +7,7 @@
         <Button
           variant="ghost"
           icon-left="chevron-left"
-          :label="holidayData?.holiday_list_name || 'New Holiday List'"
+          :label="holidayData?.holiday_list_name || 'New Business Holiday'"
           size="md"
           @click="goBack()"
           class="cursor-pointer -ml-4 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:none active:bg-transparent active:outline-none active:ring-0 active:ring-offset-0 active:text-ink-gray-5"
@@ -17,13 +17,19 @@
     <Button label="Save" theme="gray" variant="solid" @click="saveHoliday()" />
   </div>
   <div v-if="!holidayData.loading" class="px-10 pb-8 overflow-y-scroll h-full">
-    <div class="flex items-center justify-between gap-2 mt-2">
+    <!-- <div class="flex items-center gap-2 mt-2">
       <span class="text-sm"> Total holidays (calculated automatically) </span>
       <div
         class="text-sm font-semibold p-1.5 min-w-10 w-max text-center bg-gray-100 rounded text-gray-800"
       >
         {{ holidayData.holidays.length }}
       </div>
+    </div> -->
+    <div class="flex items-center gap-2 mt-2">
+      <span class="text-sm">
+        There are in total <b>{{ holidayData.holidays.length }}</b> holidays in
+        this list</span
+      >
     </div>
     <hr class="mb-6 mt-3" />
     <div class="grid grid-cols-2 gap-2">
@@ -63,7 +69,7 @@
         </span>
       </div>
       <div class="mt-4 flex gap-2">
-        <div class="w-full">
+        <div class="w-full space-y-1.5">
           <FormLabel label="From date" for="from_date" required />
           <DatePicker
             v-model="holidayData.from_date"
@@ -87,7 +93,7 @@
             {{ holidayDataErrors.dateRange }}
           </div>
         </div>
-        <div class="w-full">
+        <div class="w-full space-y-1.5">
           <FormLabel label="To date" for="to_date" required />
           <DatePicker
             v-model="holidayData.to_date"

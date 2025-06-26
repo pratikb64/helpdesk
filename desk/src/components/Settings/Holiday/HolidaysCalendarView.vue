@@ -1,12 +1,22 @@
 <template>
   <div class="p-3 rounded-md border border-gray-300">
     <div class="mb-4 flex justify-between items-center">
-      <div class="*:w-[86px]">
-        <Select
-          class="bg-white font-semibold text-xl hover:bg-white focus:!ring-0 outline-none border-0"
-          :options="yearsOption"
+      <div class="ml-2">
+        <YearsList
           v-model="currentYear"
-        />
+          :startYear="dayjs(holidayData.from_date || new Date()).year()"
+          :endYear="dayjs(holidayData.to_date || new Date()).year()"
+        >
+          <template #trigger="{ toggle, isOpen, selectedYear }">
+            <div
+              class="flex items-center gap-2 font-semibold text-xl cursor-pointer select-none"
+              @click="toggle"
+            >
+              {{ selectedYear }}
+              <FeatherIcon name="chevron-down" class="size-4" />
+            </div>
+          </template>
+        </YearsList>
       </div>
       <div class="flex gap-2 items-center">
         <Button
@@ -37,7 +47,7 @@
         :key="month"
         :year="currentYear"
         :month="month"
-        :holidays="props.holidayData.holidays"
+        :holidays="holidayData.holidays"
       />
     </div>
     <div class="grid grid-cols-3 gap-5" v-else>
@@ -46,7 +56,7 @@
         :key="month"
         :year="currentYear"
         :month="month"
-        :holidays="props.holidayData.holidays"
+        :holidays="holidayData.holidays"
       />
     </div>
     <div class="flex gap-2 items-center w-full justify-center mt-8">
@@ -77,20 +87,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import HLCalender from "./HLCalender.vue";
-import { Select } from "frappe-ui";
+import { Select, Autocomplete } from "frappe-ui";
+import YearsList from "./YearsList.vue";
+import dayjs from "dayjs";
+import { holidayData } from "./holidayList";
 
 const visibleMonths = ref("first-half");
 const months = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 const currentYear = ref(new Date().getFullYear());
 const dialog = ref(false);
 const yearsOption = ref([]);
-
-const props = defineProps({
-  holidayData: {
-    type: Object,
-    required: true,
-  },
-});
 
 onMounted(() => {
   const startYear = new Date().getFullYear() - 20;

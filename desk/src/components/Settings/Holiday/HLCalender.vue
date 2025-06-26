@@ -4,9 +4,9 @@
       {{ formattedMonth }}
     </div>
     <div class="rounded-md text-sm">
-      <div class="flex items-center justify-between text-xs uppercase">
+      <div class="flex items-center text-xs uppercase">
         <div
-          class="flex h-6 w-6 items-center justify-center text-center text-gray-600"
+          class="flex size-7.5 items-center justify-center text-center text-gray-600"
           v-for="(d, i) in ['s', 'm', 't', 'w', 't', 'f', 's']"
           :key="i"
         >
@@ -18,7 +18,7 @@
           <Popover v-if="isHoliday(date)">
             <template #target="{ open, close }">
               <div
-                class="flex size-8 cursor-pointer text-orange-700 bg-yellow-100 items-center justify-center rounded hover:bg-surface-gray-2 select-none"
+                class="flex size-7 cursor-pointer text-orange-700 bg-yellow-100 items-center justify-center rounded hover:bg-surface-gray-2 select-none m-[1px]"
                 :class="{
                   '!text-ink-gray-4 !bg-gray-100': isWeekOff(date),
                 }"
@@ -46,6 +46,7 @@
                   </div>
                 </div>
                 <Dropdown
+                  placement="right"
                   :options="[
                     {
                       label: 'Edit',
@@ -53,9 +54,17 @@
                       icon: 'edit',
                     },
                     {
-                      label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-                      onClick: (event) => deleteHoliday(event, date),
-                      icon: 'trash-2',
+                      label: 'Confirm Delete',
+                      component: (props) =>
+                        TemplateOption({
+                          option: isConfirmingDelete
+                            ? 'Confirm Delete'
+                            : 'Delete',
+                          icon: 'trash-2',
+                          active: props.active,
+                          variant: 'danger',
+                          onClick: (event) => deleteHoliday(event, date),
+                        }),
                     },
                   ]"
                 >
@@ -66,11 +75,11 @@
           </Popover>
           <div
             v-else
-            class="flex size-8 cursor-pointer items-center justify-center rounded hover:bg-surface-gray-2 select-none"
+            class="flex size-7 cursor-pointer items-center justify-center rounded hover:bg-surface-gray-2 select-none m-[1px]"
             :class="{
               'text-ink-gray-3': date.getMonth() !== currentMonth - 1,
               'text-ink-gray-9': getDateValue(date) === getDateValue(today),
-              'bg-red-500/90 text-ink-white hover:!bg-red-500':
+              'bg-black text-ink-white hover:bg-black/80 hover:text-ink-white':
                 getDateValue(date) === dateValue,
               'text-orange-700 bg-yellow-100': isHoliday(date),
             }"
@@ -128,8 +137,8 @@
 </template>
 
 <script setup lang="ts">
-import { getFormat, htmlToText } from "@/utils";
-import { toast, DatePicker, FormLabel, Popover } from "frappe-ui";
+import { getFormat, htmlToText, TemplateOption } from "@/utils";
+import { toast, DatePicker, FormLabel, Popover, Dropdown } from "frappe-ui";
 import { useDatePicker } from "frappe-ui/src/components/DatePicker/useDatePicker";
 import {
   getDate,
@@ -163,7 +172,7 @@ const props = defineProps({
   },
 });
 
-const dateValue = reactive(getDateValue(today.value));
+const dateValue = ref(getDateValue(today.value));
 
 const handleMouseEnter = (date, callback) => {
   popoverTimeouts.value[date] = setTimeout(() => {

@@ -21,6 +21,7 @@
     </div>
     <div class="flex justify-end">
       <Dropdown
+        placement="right"
         :options="[
           {
             label: 'Edit',
@@ -28,9 +29,15 @@
             icon: 'edit',
           },
           {
-            label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-            onClick: (event) => deleteWorkDay(event),
-            icon: 'trash-2',
+            label: 'Confirm Delete',
+            component: (props) =>
+              TemplateOption({
+                option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
+                icon: 'trash-2',
+                active: props.active,
+                variant: 'danger',
+                onClick: (event) => deleteWorkDay(event),
+              }),
           },
         ]"
       >
@@ -50,6 +57,7 @@
 import { ref } from "vue";
 import { Button, Select } from "frappe-ui";
 import WorkDayModal from "./WorkDayModal.vue";
+import { TemplateOption } from "@/utils";
 
 const props = defineProps({
   columns: {

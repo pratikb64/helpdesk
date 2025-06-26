@@ -32,6 +32,7 @@
         </div>
         <div class="flex justify-end">
           <Dropdown
+            placement="right"
             :options="[
               {
                 label: 'Edit',
@@ -39,9 +40,15 @@
                 icon: 'edit',
               },
               {
-                label: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-                onClick: (event) => deleteHoliday(event, holiday),
-                icon: 'trash-2',
+                label: 'Confirm Delete',
+                component: (props) =>
+                  TemplateOption({
+                    option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
+                    icon: 'trash-2',
+                    active: props.active,
+                    variant: 'danger',
+                    onClick: (event) => deleteHoliday(event, holiday),
+                  }),
               },
             ]"
           >
@@ -173,11 +180,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { Select, FormLabel, Checkbox, toast } from "frappe-ui";
+import { Select, FormLabel, Checkbox, toast, Dropdown } from "frappe-ui";
 import dayjs from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { updateWeeklyOffDates } from "./holidayList";
+import { TemplateOption } from "@/utils";
 
 dayjs.extend(weekday);
 dayjs.extend(isSameOrBefore);

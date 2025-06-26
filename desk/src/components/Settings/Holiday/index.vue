@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pb-8">
     <Holidays v-if="holidayListActiveScreen.screen == 'list'" />
     <HolidayListView v-else-if="holidayListActiveScreen.screen == 'view'" />
   </div>

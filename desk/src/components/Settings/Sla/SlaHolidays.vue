@@ -55,7 +55,7 @@
                 <Button
                   class="w-full !justify-start !text-ink-gray-5"
                   variant="ghost"
-                  label="Create new holiday list"
+                  label="Create new business holiday"
                   @click="createNewHolidayList()"
                 >
                   <template #prefix>
