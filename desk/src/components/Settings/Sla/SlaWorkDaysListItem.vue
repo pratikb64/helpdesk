@@ -1,7 +1,9 @@
 <template>
   <div
     class="grid gap-2 px-2 py-1 items-center"
-    :style="{ gridTemplateColumns: getGridTemplateColumns(props.columns) }"
+    :style="{
+      gridTemplateColumns: getGridTemplateColumnsForTable(props.columns),
+    }"
   >
     <div
       v-for="column in props.columns"
@@ -57,7 +59,7 @@
 import { ref } from "vue";
 import { Button, Select } from "frappe-ui";
 import WorkDayModal from "./WorkDayModal.vue";
-import { TemplateOption } from "@/utils";
+import { getGridTemplateColumnsForTable, TemplateOption } from "@/utils";
 
 const props = defineProps({
   columns: {
@@ -140,35 +142,6 @@ const editWorkDay = () => {
     end_time: props.row.end_time,
   };
 };
-
-// const onSave = () => {
-//   const item = props.workDaysList.findIndex(
-//     (item) => item.workday === props.row.workday
-//   );
-//   if (item !== -1) {
-//     props.workDaysList[item].start_time = workDayData.value.start_time;
-//     props.workDaysList[item].end_time = workDayData.value.end_time;
-//   }
-//   workDayData.value = {
-//     workday: "",
-//     start_time: "",
-//     end_time: "",
-//   };
-//   dialog.value = false;
-// };
-
-function getGridTemplateColumns(columns) {
-  let columnsWidth = columns
-    .map((col) => {
-      let width = col.width || 1;
-      if (typeof width === "number") {
-        return width + "fr";
-      }
-      return width;
-    })
-    .join(" ");
-  return columnsWidth + " 22px";
-}
 
 const formatTime = (time) => {
   if (!time) return "00:00";

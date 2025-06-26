@@ -1,29 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
 import { createResource } from "frappe-ui";
 import { ref } from "vue";
-
-interface Holiday {
-  description: string;
-  holiday_date: string | Date;
-  weekly_off?: number;
-  idx?: number;
-  [key: string]: any;
-}
-
-interface RepetitionPattern {
-  all: boolean;
-  first: boolean;
-  second: boolean;
-  third: boolean;
-  fourth: boolean;
-  fifth: boolean;
-  [key: string]: boolean;
-}
-
-interface WeeklyOffDay {
-  day: string;
-  repetition?: RepetitionPattern;
-}
+import { Holiday, HolidayErrors, RepetitionPattern } from "./types";
 
 export const holidayListData = createResource({
   url: "frappe.client.get_list",
@@ -71,17 +49,14 @@ export const resetHolidayData = () => {
 };
 
 export const validateHoliday = () => {
-  // Reset errors
   holidayDataErrors.value = {};
   let isValid = true;
 
-  // Required field validation
   if (!holidayData.value.holiday_list_name?.trim()) {
     holidayDataErrors.value.holiday_list_name = "Holiday list name is required";
     isValid = false;
   }
 
-  // Date validation
   if (!holidayData.value.from_date) {
     holidayDataErrors.value.from_date = "Start date is required";
     isValid = false;
@@ -92,7 +67,6 @@ export const validateHoliday = () => {
     isValid = false;
   }
 
-  // Validate date range
   if (holidayData.value.from_date && holidayData.value.to_date) {
     const startDate = new Date(holidayData.value.from_date);
     const endDate = new Date(holidayData.value.to_date);
@@ -140,7 +114,6 @@ function getWeeklyOffDateList(
   const end = dayjs(endDate);
   const dateList: Date[] = [];
 
-  // Map day names to day numbers (0 = Sunday, 1 = Monday, etc.)
   const dayMap: Record<string, number> = {
     sunday: 0,
     monday: 1,
@@ -160,21 +133,16 @@ function getWeeklyOffDateList(
     dayjs(h.holiday_date).startOf("day").toDate()
   );
 
-  // Find the first occurrence of the target day on or after start date
   let currentDate = start.day(targetDay);
   if (currentDate.isBefore(start, "day")) {
     currentDate = currentDate.add(1, "week");
   }
-
-  // If no repetition pattern is provided, use all occurrences
   const useAllOccurrences = !repetition || repetition.all;
 
-  // Add all occurrences of the target day within the date range
   while (currentDate.isSameOrBefore(end, "day")) {
     const currentDateObj = currentDate.toDate();
     const currentDateStart = dayjs(currentDateObj).startOf("day");
 
-    // Check if this date should be included based on repetition pattern
     if (useAllOccurrences || shouldIncludeDate(currentDate, repetition)) {
       if (
         !existingDates.some((d) =>
@@ -198,7 +166,6 @@ function shouldIncludeDate(
 
   const weekOfMonth = getWeekOfMonth(date);
 
-  // Check which week of the month this date falls into (1st, 2nd, 3rd, 4th, or 5th)
   switch (weekOfMonth) {
     case 1:
       return repetition.first;
@@ -237,18 +204,10 @@ function getWeeklyOffDates(
     repetition
   );
   return dateList.map((date, index) => ({
-    description: weeklyOff.charAt(0).toUpperCase() + weeklyOff.slice(1), // Capitalize first letter
+    description: weeklyOff.charAt(0).toUpperCase() + weeklyOff.slice(1),
     holiday_date: date,
     weekly_off: 1,
     idx: index + 1,
     repetition: repetition,
   }));
-}
-
-interface HolidayErrors {
-  holiday_list_name?: string;
-  from_date?: string;
-  end_date?: string;
-  dateRange?: string;
-  holidays?: string;
 }

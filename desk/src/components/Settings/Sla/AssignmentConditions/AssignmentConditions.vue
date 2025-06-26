@@ -96,20 +96,6 @@ function unGroupConditions(condition) {
   }
 }
 
-// const validateConditions = (conditions) => {
-//   return conditions.every((condition) => {
-//     if (condition.field === "group" && Array.isArray(condition.value)) {
-//       return validateConditions(condition.value);
-//     }
-//     return (
-//       condition.field !== null &&
-//       condition.field !== "" &&
-//       condition.operator !== "" &&
-//       condition.value !== ""
-//     );
-//   });
-// };
-
 function updateConjunction(level) {
   const updateConjunctions = (conditions, targetLevel, currentLevel = 0) => {
     if (!conditions || !Array.isArray(conditions)) return;

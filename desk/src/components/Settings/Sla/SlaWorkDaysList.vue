@@ -3,7 +3,7 @@
     <div
       class="grid p-2 items-center"
       :style="{
-        gridTemplateColumns: getGridTemplateColumns(columns),
+        gridTemplateColumns: getGridTemplateColumnsForTable(columns),
       }"
     >
       <div
@@ -46,20 +46,13 @@
       {{ slaDataErrors.support_and_resolution }}
     </div>
   </div>
-  <WorkDayModal v-model="dialog" :workDaysList="workDaysList" />
 </template>
 
 <script setup lang="ts">
 import { Button } from "frappe-ui";
-import { ref, watch } from "vue";
 import SlaWorkDaysListItem from "./SlaWorkDaysListItem.vue";
-import WorkDayModal from "./WorkDayModal.vue";
 import { slaDataErrors } from "./sla";
-
-const dialog = ref({
-  show: false,
-  isEditing: false,
-});
+import { getGridTemplateColumnsForTable } from "@/utils";
 
 const props = defineProps({
   workDaysList: {
@@ -75,19 +68,6 @@ const addWorkDay = () => {
     end_time: "17:00:00",
   });
 };
-
-function getGridTemplateColumns(columns) {
-  let columnsWidth = columns
-    .map((col) => {
-      let width = col.width || 1;
-      if (typeof width === "number") {
-        return width + "fr";
-      }
-      return width;
-    })
-    .join(" ");
-  return columnsWidth + " 22px";
-}
 
 const columns = [
   {
@@ -106,11 +86,4 @@ const columns = [
     isRequired: true,
   },
 ];
-
-watch(
-  () => props.workDaysList,
-  () => {
-    dialog.value.show = false;
-  }
-);
 </script>

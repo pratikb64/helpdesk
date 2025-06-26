@@ -110,7 +110,6 @@ import {
   DateTimePicker,
   DateRangePicker,
   createResource,
-  FeatherIcon,
   Button,
   Dialog,
   Dropdown,
@@ -305,7 +304,6 @@ function updateValue(value) {
   } else {
     props.condition.value = value;
   }
-  // apply();
 }
 
 function getSelectOptions(options) {
@@ -319,16 +317,12 @@ function updateOperator(event) {
   if (!isSameTypeOperator(oldOperatorValue, newOperatorValue)) {
     props.condition.value = getDefaultValue(props.condition.field);
   }
-  // if (newOperatorValue === "is" || newOperatorValue === "is not") {
-  //   filter.value = "set";
-  // }
-  // apply();
 }
 
 function getOperators() {
   let options = [];
   const { field } = props.condition;
-  if (!field) return options; // Return empty options if field is null/undefined
+  if (!field) return options;
   const { fieldtype, fieldname } = field;
   if (typeString.includes(fieldtype)) {
     options.push(
@@ -470,35 +464,6 @@ function isSameTypeOperator(oldOperator, newOperator) {
   )
     return true;
   return false;
-}
-
-function getDefaultOperator(fieldtype, fieldname = null) {
-  if (fieldname === "_assign") {
-    return "like";
-  }
-  if (typeSelect.includes(fieldtype)) {
-    return "equals";
-  }
-  if (typeCheck.includes(fieldtype) || typeNumber.includes(fieldtype)) {
-    return "equals";
-  }
-  if (typeDate.includes(fieldtype)) {
-    return "between";
-  }
-  if (typeLink.includes(fieldtype)) {
-    return "equals";
-  }
-  if (typeRating.includes(fieldtype)) {
-    return "equals";
-  }
-  return "like";
-}
-
-function transformIn(f) {
-  if (f.operator.includes("like") && !f.value.includes("%")) {
-    f.value = `${f.value}`;
-  }
-  return f;
 }
 
 const turnIntoGroup = () => {

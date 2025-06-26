@@ -11,9 +11,8 @@
           :variant="buttonVariant"
           :class="buttonClass"
           @click="handleButtonClick(togglePopover)"
-        >
-          {{ selectedYear || placeholder }}
-        </Button>
+          :label="selectedYear + '' || placeholder"
+        />
       </slot>
     </template>
     <template #body-main>

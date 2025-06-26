@@ -138,11 +138,8 @@
 import { getFormat, htmlToText, TemplateOption } from "@/utils";
 import { toast, DatePicker, FormLabel, Popover, Dropdown } from "frappe-ui";
 import { useDatePicker } from "frappe-ui/src/components/DatePicker/useDatePicker";
-import {
-  getDate,
-  getDateValue,
-} from "frappe-ui/src/components/DatePicker/utils";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
+import { ref, watch } from "vue";
 
 const dialog = ref(false);
 const editHolidayData = ref({
@@ -192,7 +189,6 @@ const addHoliday = (date) => {
 
 const isHoliday = (date: Date): boolean => {
   if (!props.holidays?.length) return false;
-  // console.log(isWeekOff(date));
   const inputDate = new Date(date);
   inputDate.setHours(0, 0, 0, 0);
 
@@ -217,12 +213,6 @@ const isWeekOff = (date: Date): boolean => {
       holidayDate.getTime() === inputDate.getTime() && holiday.weekly_off == 1
     );
   });
-};
-
-const dismissPopover = (callback, delay = 600) => {
-  setTimeout(() => {
-    callback();
-  }, delay);
 };
 
 const editHoliday = (date) => {

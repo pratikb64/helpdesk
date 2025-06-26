@@ -37,7 +37,7 @@
                   icon: 'trash-2',
                   active: props.active,
                   variant: 'danger',
-                  onClick: () => deleteSla(),
+                  onClick: (event) => deleteSla(event),
                 }),
             },
           ]"
@@ -84,15 +84,7 @@ const duplicate = () => {
   });
 };
 
-const editSla = () => {
-  slaActiveScreen.value = {
-    screen: "view",
-    data: props.data,
-    fetchData: true,
-  };
-};
-
-const deleteSla = () => {
+const deleteSla = (event) => {
   event.preventDefault();
   if (!isConfirmingDelete.value) {
     isConfirmingDelete.value = true;

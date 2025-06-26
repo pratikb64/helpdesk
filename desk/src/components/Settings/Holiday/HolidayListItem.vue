@@ -30,7 +30,7 @@
                   icon: 'trash-2',
                   active: props.active,
                   variant: 'danger',
-                  onClick: () => deleteHolidayList(),
+                  onClick: (event) => deleteHolidayList(event),
                 }),
             },
           ]"
@@ -69,14 +69,7 @@ const duplicate = () => {
   });
 };
 
-const editHolidayList = () => {
-  holidayListActiveScreen.value = {
-    screen: "view",
-    data: props.data,
-  };
-};
-
-const deleteHolidayList = () => {
+const deleteHolidayList = (event) => {
   event.preventDefault();
   if (!isConfirmingDelete.value) {
     isConfirmingDelete.value = true;

@@ -53,7 +53,7 @@
                     icon: 'trash-2',
                     active: props.active,
                     variant: 'danger',
-                    onClick: () => deleteHoliday(holiday),
+                    onClick: (event) => deleteHoliday(event, holiday),
                   }),
               },
             ]"
@@ -114,7 +114,6 @@ import { computed, ref } from "vue";
 import { Dropdown, DatePicker, FormControl, FormLabel } from "frappe-ui";
 import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
 import dayjs from "dayjs";
-import { holidayListActiveScreen } from "./holidayList";
 import { getFormat, TemplateOption } from "@/utils";
 
 const isConfirmingDelete = ref(false);
@@ -155,19 +154,6 @@ const columns = [
   },
 ];
 
-function getGridTemplateColumns(columns) {
-  let columnsWidth = columns
-    .map((col) => {
-      let width = col.width || 1;
-      if (typeof width === "number") {
-        return width + "fr";
-      }
-      return width;
-    })
-    .join(" ");
-  return columnsWidth + " 22px";
-}
-
 const editHoliday = (holiday: Holiday) => {
   dialog.value = true;
   editHolidayData.value = { ...holiday };
@@ -197,7 +183,7 @@ const saveHoliday = () => {
   }
 };
 
-const deleteHoliday = (holidayToDelete?: Holiday) => {
+const deleteHoliday = (event, holidayToDelete?: Holiday) => {
   event.preventDefault();
 
   if (!isConfirmingDelete.value) {

@@ -17,14 +17,6 @@
     <Button label="Save" theme="gray" variant="solid" @click="saveHoliday()" />
   </div>
   <div v-if="!holidayData.loading" class="px-10 pb-8 overflow-y-scroll h-full">
-    <!-- <div class="flex items-center gap-2 mt-2">
-      <span class="text-sm"> Total holidays (calculated automatically) </span>
-      <div
-        class="text-sm font-semibold p-1.5 min-w-10 w-max text-center bg-gray-100 rounded text-gray-800"
-      >
-        {{ holidayData.holidays.length }}
-      </div>
-    </div> -->
     <div class="flex items-center gap-2 mt-2">
       <span class="text-sm">
         There are in total <b>{{ holidayData.holidays.length }}</b> holidays in
@@ -232,22 +224,6 @@ const debouncedValidateHoliday = useDebounceFn(() => validateHoliday(), 300);
 
 const updateDuration = () => {
   validateHoliday();
-  // let isValid = false;
-  // console.log(holidayData.value.from_date, holidayData.value.to_date);
-  // if (holidayData.value.from_date && holidayData.value.to_date) {
-  //   const from_date = new Date(holidayData.value.from_date).getTime();
-  //   const to_date = new Date(holidayData.value.to_date).getTime();
-
-  //   if (from_date < to_date) {
-  //     holidayDataErrors.value.dateRange = "Start date cannot be after end date";
-  //     isValid = true;
-  //   }
-  // }
-  // console.log(isValid);
-  console.log(
-    holidayDataErrors.value.dateRange,
-    holidayDataErrors.value.dateRange === ""
-  );
   if (
     !holidayDataErrors.value.dateRange ||
     holidayDataErrors.value.dateRange === ""

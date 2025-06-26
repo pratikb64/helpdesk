@@ -51,15 +51,7 @@
 
 <script setup lang="ts">
 import { getFormat } from "@/utils";
-import {
-  Dialog,
-  FormControl,
-  Checkbox,
-  Button,
-  TabButtons,
-  FormLabel,
-  toast,
-} from "frappe-ui";
+import { Dialog, FormControl, Button, FormLabel, toast } from "frappe-ui";
 import DatePicker from "frappe-ui/src/components/DatePicker/DatePicker.vue";
 import { ref } from "vue";
 

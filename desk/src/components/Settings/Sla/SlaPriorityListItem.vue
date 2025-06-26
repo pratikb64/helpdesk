@@ -1,7 +1,9 @@
 <template>
   <div
     class="grid gap-2 px-2 items-center"
-    :style="{ gridTemplateColumns: getGridTemplateColumns(props.columns) }"
+    :style="{
+      gridTemplateColumns: getGridTemplateColumnsForTable(props.columns),
+    }"
   >
     <div
       v-for="column in props.columns"
@@ -164,12 +166,11 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref } from "vue";
+import { ref } from "vue";
 import {
   Button,
   Checkbox,
   Dropdown,
-  FeatherIcon,
   Dialog,
   toast,
   Select,
@@ -177,7 +178,7 @@ import {
   FormLabel,
 } from "frappe-ui";
 import DurationPicker from "@/components/frappe-ui/DurationPicker.vue";
-import { TemplateOption } from "@/utils";
+import { getGridTemplateColumnsForTable, TemplateOption } from "@/utils";
 
 const props = defineProps({
   columns: {
@@ -323,18 +324,5 @@ function formatTimeHMS(seconds) {
   }
 
   return formattedTime.trim();
-}
-
-function getGridTemplateColumns(columns) {
-  let columnsWidth = columns
-    .map((col) => {
-      let width = col.width || 1;
-      if (typeof width === "number") {
-        return width + "fr";
-      }
-      return width;
-    })
-    .join(" ");
-  return columnsWidth + " 22px";
 }
 </script>

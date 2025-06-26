@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { createResource } from "frappe-ui";
+import { SlaValidationErrors } from "./types";
 
 export const slaPolicyListData = createResource({
   url: "frappe.client.get_list",
@@ -280,13 +281,11 @@ export function validateSlaData(): SlaValidationErrors {
       return slaDataErrors.value;
     }
 
-    // Check for valid time ranges
     const invalidTimeRanges = [];
     for (const day of validWorkdays) {
       const startTimeStr = day.start_time.trim();
       const endTimeStr = day.end_time.trim();
 
-      // Parse times to Date objects for comparison
       const parseTime = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(":").map(Number);
         const date = new Date();
@@ -316,7 +315,6 @@ export function validateSlaData(): SlaValidationErrors {
     }
   }
 
-  // Validate conditions
   if (
     Array.isArray(slaData.value.condition) &&
     slaData.value.condition.length > 0
@@ -327,50 +325,4 @@ export function validateSlaData(): SlaValidationErrors {
   }
 
   return slaDataErrors.value;
-}
-
-interface SlaData {
-  service_level?: string;
-  description?: string;
-  enabled?: boolean;
-  default_sla?: boolean;
-  apply_sla_for_resolution?: boolean;
-  priorities: Array<{
-    priority?: string;
-    response_time?: number;
-    resolution_time?: number;
-    default_priority?: boolean;
-    [key: string]: any;
-  }>;
-  statuses: Array<{
-    sla_behavior: string;
-    [key: string]: any;
-  }>;
-  support_and_resolution?: Array<{
-    is_holiday: boolean;
-    start_time: string;
-    end_time: string;
-    [key: string]: any;
-  }>;
-  condition?: any[];
-  start_date?: string;
-  end_date?: string;
-  [key: string]: any;
-}
-
-export interface SlaValidationErrors {
-  service_level: string;
-  description: string;
-  enabled: string;
-  default_sla: string;
-  apply_sla_for_resolution: string;
-  priorities: string;
-  statuses: string;
-  holiday_list: string;
-  default_priority: string;
-  start_date: string;
-  end_date: string;
-  support_and_resolution: string;
-  condition: string;
-  [key: string]: string;
 }

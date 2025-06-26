@@ -176,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { Select, FormLabel, Checkbox, toast, Dropdown } from "frappe-ui";
 import dayjs from "dayjs";
 import weekday from "dayjs/plugin/weekday";

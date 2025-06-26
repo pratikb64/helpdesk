@@ -267,3 +267,16 @@ export function TemplateOption({ active, option, variant, icon, onClick }) {
     ]
   );
 }
+
+export function getGridTemplateColumnsForTable(columns) {
+  let columnsWidth = columns
+    .map((col) => {
+      let width = col.width || 1;
+      if (typeof width === "number") {
+        return width + "fr";
+      }
+      return width;
+    })
+    .join(" ");
+  return columnsWidth + " 22px";
+}

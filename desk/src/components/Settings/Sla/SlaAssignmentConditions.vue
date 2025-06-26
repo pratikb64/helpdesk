@@ -64,7 +64,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
 import AssignmentConditions from "./AssignmentConditions/AssignmentConditions.vue";
 import { Button, Dropdown, FeatherIcon } from "frappe-ui";
 import { slaDataErrors, validateConditions, validateSlaData } from "./sla";
@@ -84,22 +83,7 @@ const props = defineProps({
   },
 });
 
-// const validateConditions = (conditions) => {
-//   return conditions.every((condition) => {
-//     if (condition.field === "group" && Array.isArray(condition.value)) {
-//       return validateConditions(condition.value);
-//     }
-//     return (
-//       condition.field !== null &&
-//       condition.field !== "" &&
-//       condition.operator !== "" &&
-//       condition.value !== ""
-//     );
-//   });
-// };
-
 const addCondition = () => {
-  // Check if all existing conditions have a field selected
   const isValid = validateConditions(props.conditions);
 
   if (!isValid) {

@@ -163,21 +163,19 @@
 
 <script setup lang="ts">
 import {
-  resetSlaData,
   slaActiveScreen,
   slaData,
   slaDataErrors,
   validateSlaData,
 } from "./sla";
 import { createResource, Switch, Checkbox, DatePicker, toast } from "frappe-ui";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onUnmounted } from "vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
 import SlaHolidays from "./SlaHolidays.vue";
 import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
 import { useDebounceFn } from "@vueuse/core";
 import { getFormat } from "@/utils";
-import { holidayListActiveScreen } from "../Holiday/holidayList";
 
 const debouncedValidateSlaData = useDebounceFn(() => {
   validateSlaData();
@@ -245,7 +243,6 @@ const saveSla = () => {
     support_and_resolution: "",
     condition: "",
   };
-  console.log("saveSla", slaData.value);
 
   const validationErrors = validateSlaData();
 

@@ -275,12 +275,10 @@ const onSave = () => {
 
   try {
     if (dialog.value.isEditing) {
-      // Find and update the existing workday
       const itemIndex = props.workDaysList.findIndex(
         (item) => item.workday === dialog.value.data?.workday
       );
       if (itemIndex !== -1) {
-        // Create a new object to trigger reactivity
         const updatedItem = {
           ...props.workDaysList[itemIndex],
           ...workDayData,
@@ -289,7 +287,6 @@ const onSave = () => {
         toast.success("Workday updated successfully");
       }
     } else {
-      // Check for duplicate workday
       const isDuplicate = props.workDaysList.some(
         (item) => item.workday === workDayData.workday
       );
@@ -300,7 +297,6 @@ const onSave = () => {
         return;
       }
 
-      // Add new workday
       const newWorkDay = { ...workDayData };
       props.workDaysList.push(newWorkDay);
       toast.success("Workday added successfully");

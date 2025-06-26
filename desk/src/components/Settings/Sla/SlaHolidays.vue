@@ -127,9 +127,6 @@ const holidayListData = createResource({
     parent: "HD Service Level Agreement",
   },
   auto: true,
-  onSuccess: (data) => {
-    // console.log("holidayList", data);
-  },
 });
 </script>
 
