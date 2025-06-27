@@ -119,7 +119,7 @@ const columns = computed(() => [
   {
     label: "Resolution time",
     key: "resolution_time",
-    isRequired: Boolean(props.applySlaForResolution),
+    isRequired: true,
   },
 ]);
 </script>

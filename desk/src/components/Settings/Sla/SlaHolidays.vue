@@ -14,7 +14,7 @@
             :label="holidayList"
           />
         </template>
-        <template #body="{ close }">
+        <template>
           <div
             class="my-2 p-1 min-w-40 rounded-lg bg-surface-modal shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
           >

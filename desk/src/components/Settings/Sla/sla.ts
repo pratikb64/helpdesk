@@ -16,7 +16,32 @@ export const slaData = ref({
   enabled: false,
   default_sla: false,
   apply_sla_for_resolution: false,
-  priorities: [],
+  priorities: [
+    {
+      priority: "Low",
+      response_time: 60 * 60,
+      resolution_time: 60 * 60,
+      default_priority: true,
+    },
+    {
+      priority: "Medium",
+      response_time: 60 * 60,
+      resolution_time: 60 * 60,
+      default_priority: false,
+    },
+    {
+      priority: "High",
+      response_time: 60 * 60,
+      resolution_time: 60 * 60,
+      default_priority: false,
+    },
+    {
+      priority: "Urgent",
+      response_time: 60 * 60,
+      resolution_time: 60 * 60,
+      default_priority: false,
+    },
+  ],
   statuses: [],
   holiday_list: "Default",
   default_priority: "",
