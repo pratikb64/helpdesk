@@ -47,7 +47,7 @@
           <Button
             icon="more-horizontal"
             variant="ghost"
-            onclick="(e) => e.stopPropagation()"
+            @click="isConfirmingDelete = false"
           />
         </Dropdown>
       </div>

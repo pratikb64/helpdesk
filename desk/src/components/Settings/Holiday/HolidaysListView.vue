@@ -58,7 +58,11 @@
               },
             ]"
           >
-            <Button icon="more-horizontal" variant="ghost" />
+            <Button
+              icon="more-horizontal"
+              variant="ghost"
+              @click="isConfirmingDelete = false"
+            />
           </Dropdown>
         </div>
       </div>
