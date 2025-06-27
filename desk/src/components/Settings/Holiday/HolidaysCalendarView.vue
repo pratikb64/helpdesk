@@ -7,13 +7,25 @@
           :startYear="dayjs(holidayData.from_date || new Date()).year()"
           :endYear="dayjs(holidayData.to_date || new Date()).year()"
         >
-          <template #trigger="{ toggle, isOpen, selectedYear }">
+          <template #trigger="{ toggle, selectedYear }">
             <div
               class="flex items-center gap-2 font-semibold text-xl cursor-pointer select-none"
-              @click="toggle"
+              @click="
+                dayjs(holidayData.from_date || new Date()).year() !==
+                dayjs(holidayData.to_date || new Date()).year()
+                  ? toggle
+                  : null
+              "
             >
               {{ selectedYear }}
-              <FeatherIcon name="chevron-down" class="size-4" />
+              <FeatherIcon
+                name="chevron-down"
+                class="size-4"
+                v-if="
+                  dayjs(holidayData.from_date || new Date()).year() !==
+                  dayjs(holidayData.to_date || new Date()).year()
+                "
+              />
             </div>
           </template>
         </YearsList>

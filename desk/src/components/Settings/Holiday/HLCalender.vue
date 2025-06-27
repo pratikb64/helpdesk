@@ -28,11 +28,11 @@
                 {{ date.getDate() }}
               </div>
             </template>
-            <template #body-main="{ close, open }">
+            <template #body-main="{ close: closePopover, open: openPopover }">
               <div
                 class="p-3 flex gap-2.5 text-ink-gray-9 w-80 border border-gray-200 rounded-md"
-                @mouseover="handleMouseEnter(getDateValue(date), open)"
-                @mouseleave="handleMouseLeave(getDateValue(date), close)"
+                @mouseover="handleMouseEnter(getDateValue(date), openPopover)"
+                @mouseleave="handleMouseLeave(getDateValue(date), closePopover)"
               >
                 <div class="w-[5%]">
                   <div class="size-3.5 bg-orange-500 rounded-sm mt-1" />
@@ -45,31 +45,73 @@
                     {{ date.toLocaleDateString() }}
                   </div>
                 </div>
-                <Dropdown
-                  placement="right"
-                  :options="[
-                    {
-                      label: 'Edit',
-                      onClick: () => editHoliday(date),
-                      icon: 'edit',
-                    },
-                    {
-                      label: 'Confirm Delete',
-                      component: (props) =>
-                        TemplateOption({
-                          option: isConfirmingDelete
-                            ? 'Confirm Delete'
-                            : 'Delete',
-                          icon: 'trash-2',
-                          active: props.active,
-                          variant: 'danger',
-                          onClick: (event) => deleteHoliday(event, date),
-                        }),
-                    },
-                  ]"
+                <Popover
+                  v-if="isHoliday(date)"
+                  @close="isConfirmingDelete = false"
                 >
-                  <Button icon="more-horizontal" variant="ghost" />
-                </Dropdown>
+                  <template #target="{ open, close }">
+                    <Button
+                      icon="more-horizontal"
+                      variant="ghost"
+                      @click="open"
+                      @mouseleave="
+                        handleMouseLeave(getDateValue(date) + 'dropdown', close)
+                      "
+                    />
+                  </template>
+                  <template
+                    #body-main="{ close: closeDropdown, open: openDropdown }"
+                  >
+                    <div
+                      class="p-2 flex flex-col gap-1 w-40 text-ink-gray-9 border border-gray-200 rounded-md"
+                      @mouseover="
+                        handleMouseEnter(getDateValue(date), openPopover);
+                        handleMouseEnter(
+                          getDateValue(date) + 'dropdown',
+                          openDropdown
+                        );
+                      "
+                      @mouseleave="
+                        handleMouseLeave(getDateValue(date), closePopover);
+                        handleMouseLeave(
+                          getDateValue(date) + 'dropdown',
+                          closeDropdown
+                        );
+                      "
+                    >
+                      <Button
+                        class="w-full flex !justify-start"
+                        icon-left="edit"
+                        variant="ghost"
+                        label="Edit"
+                        @click="
+                          () => {
+                            closePopover();
+                            closeDropdown();
+                            editHoliday(date);
+                          }
+                        "
+                      />
+                      <Button
+                        class="w-full flex !justify-start"
+                        icon-left="trash-2"
+                        variant="ghost"
+                        :label="
+                          isConfirmingDelete ? 'Confirm Delete' : 'Delete'
+                        "
+                        theme="red"
+                        @click="
+                          (e) => {
+                            deleteHoliday(e, date, () => {
+                              closePopover();
+                              closeDropdown();
+                            });
+                          }
+                        "
+                      />
+                    </div>
+                  </template>
+                </Popover>
               </div>
             </template>
           </Popover>
@@ -79,7 +121,7 @@
             :class="{
               'text-ink-gray-3': date.getMonth() !== currentMonth - 1,
               'text-ink-gray-9': getDateValue(date) === getDateValue(today),
-              'bg-black text-ink-white hover:bg-black/80 hover:text-ink-white':
+              'bg-black text-ink-white hover:!bg-black/80 hover:text-ink-white':
                 getDateValue(date) === dateValue,
               'text-orange-700 bg-yellow-100': isHoliday(date),
             }"
@@ -170,13 +212,18 @@ const props = defineProps({
 const dateValue = ref(getDateValue(today.value));
 
 const handleMouseEnter = (date, callback) => {
+  if (popoverTimeouts.value[date]) {
+    clearTimeout(popoverTimeouts.value[date]);
+  }
   popoverTimeouts.value[date] = setTimeout(() => {
     callback();
   }, 350);
 };
 
 const handleMouseLeave = (date, callback) => {
-  clearTimeout(popoverTimeouts.value[date]);
+  if (popoverTimeouts.value[date]) {
+    clearTimeout(popoverTimeouts.value[date]);
+  }
   popoverTimeouts.value[date] = setTimeout(() => {
     callback();
   }, 350);
@@ -225,7 +272,7 @@ const editHoliday = (date) => {
   editHolidayData.value = { ...holiday, isEditing: true };
 };
 
-const deleteHoliday = (event, date) => {
+const deleteHoliday = (event, date, callback) => {
   event.stopPropagation();
   event.preventDefault();
   if (!isConfirmingDelete.value) {
@@ -251,6 +298,7 @@ const deleteHoliday = (event, date) => {
     isEditing: false,
   };
   isConfirmingDelete.value = false;
+  callback();
 };
 
 const saveHoliday = () => {
