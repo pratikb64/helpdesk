@@ -1,5 +1,12 @@
 <template>
   <div
+    v-if="holidayData.loading"
+    class="flex items-center h-full justify-center"
+  >
+    <Spinner class="w-8" />
+  </div>
+  <div
+    v-if="!holidayData.loading"
     class="flex items-center justify-between sticky top-0 z-10 bg-white px-10 pt-8 pb-4"
   >
     <div>
@@ -185,6 +192,7 @@ import {
   Button,
   FormControl,
   toast,
+  Spinner,
 } from "frappe-ui";
 import { onUnmounted, ref } from "vue";
 import HolidaysListView from "./HolidaysListView.vue";

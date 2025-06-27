@@ -1,5 +1,11 @@
 <template>
-  <div class="sticky top-0 z-10 bg-white px-10 pt-8 pb-6">
+  <div v-if="slaData.loading" class="flex items-center h-full justify-center">
+    <Spinner class="w-8" />
+  </div>
+  <div
+    v-if="!slaData.loading"
+    class="sticky top-0 z-10 bg-white px-10 pt-8 pb-6"
+  >
     <div class="flex items-center justify-between w-full">
       <div>
         <div class="flex items-center gap-2">
@@ -168,7 +174,14 @@ import {
   slaDataErrors,
   validateSlaData,
 } from "./sla";
-import { createResource, Switch, Checkbox, DatePicker, toast } from "frappe-ui";
+import {
+  createResource,
+  Switch,
+  Checkbox,
+  DatePicker,
+  toast,
+  Spinner,
+} from "frappe-ui";
 import { onUnmounted } from "vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
