@@ -14,7 +14,7 @@
             :label="holidayList"
           />
         </template>
-        <template>
+        <template #body="{ close }">
           <div
             class="my-2 p-1 min-w-40 rounded-lg bg-surface-modal shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
           >
@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { createResource } from "frappe-ui";
+import { createResource, NestedPopover, Button } from "frappe-ui";
 import SlaWorkDaysList from "./SlaWorkDaysList.vue";
 import { activeTab, tabs } from "../settingsModal";
 import { holidayListActiveScreen } from "../Holiday/holidayList";
