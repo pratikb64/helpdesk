@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui";
+import { Button, toast } from "frappe-ui";
 import SlaStatusListItem from "./SlaStatusListItem.vue";
 import { slaDataErrors, validateSlaData } from "./sla";
 import { watchDebounced } from "@vueuse/core";
@@ -64,12 +64,34 @@ watchDebounced(
   { deep: true, debounce: 300 }
 );
 
+const statusOptions = ["Open", "Resolved", "Closed", "Replied"];
+
 const addRow = () => {
-  props.statusList.push({
-    status: "Open",
+  const existingStatuses = props.statusList.map((s) => s?.status);
+
+  const availableStatuses = statusOptions.filter(
+    (status) => !existingStatuses.includes(status)
+  );
+
+  if (availableStatuses.length === 0) {
+    toast.error("All available statuses have already been added");
+    return;
+  }
+
+  const newStatus = availableStatuses[0];
+
+  if (!newStatus) {
+    toast.error("No valid status available to add");
+    return;
+  }
+
+  const newStatusItem = {
+    status: newStatus,
     sla_behavior: "Fulfilled",
     id: Math.random().toString(36).substring(2, 9),
-  });
+  };
+
+  props.statusList.push(newStatusItem);
 };
 
 const columns = [
