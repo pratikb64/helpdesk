@@ -98,7 +98,9 @@ const onSave = () => {
   toDate.setHours(0, 0, 0, 0);
 
   if (holidayDate < fromDate || holidayDate > toDate) {
-    toast.error(`Holiday date must be between ${props.from_date} and ${props.to_date}`);
+    toast.error(
+      `Holiday date must be between ${props.from_date} and ${props.to_date}`
+    );
     return;
   }
 
@@ -110,7 +112,6 @@ const onSave = () => {
     toast.error("Holiday already exists");
     return;
   }
-
   props.holidays.push({ ...holidayData.value, weekly_off: 0 });
 
   holidayData.value = {

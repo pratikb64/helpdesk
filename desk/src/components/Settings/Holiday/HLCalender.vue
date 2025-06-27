@@ -18,10 +18,12 @@
           <Popover v-if="isHoliday(date)">
             <template #target="{ open, close }">
               <div
-                class="flex size-7 items-center justify-center rounded m-[1px] select-none"
+                class="flex size-7 cursor-pointer text-orange-700 bg-yellow-100 items-center justify-center rounded hover:bg-yellow-100 select-none m-[1px]"
                 :class="{
                   '!text-ink-gray-4 !bg-gray-100': isWeekOff(date),
                 }"
+                @mouseover="handleMouseEnter(getDateValue(date), open)"
+                @mouseleave="handleMouseLeave(getDateValue(date), close)"
               >
                 {{ date.getDate() }}
               </div>
@@ -97,7 +99,7 @@
                         :label="
                           isConfirmingDelete ? 'Confirm Delete' : 'Delete'
                         "
-                        theme="red"
+                        :theme="isConfirmingDelete ? 'red' : 'gray'"
                         @click="
                           (e) => {
                             deleteHoliday(e, date, () => {
@@ -125,7 +127,6 @@
                 isDateInRange(date),
               'bg-black text-ink-white hover:!bg-black/80 hover:text-ink-white':
                 getDateValue(date) === dateValue && isDateInRange(date),
-              'text-orange-700 bg-yellow-100': isHoliday(date),
               'opacity-50 cursor-not-allowed': !isDateInRange(date),
             }"
             @dblclick="isDateInRange(date) ? addHoliday(date) : null"

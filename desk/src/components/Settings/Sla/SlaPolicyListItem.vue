@@ -1,18 +1,20 @@
 <template>
-  <div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded">
+  <div
+    class="grid grid-cols-6 items-center gap-4 cursor-pointer hover:bg-gray-50 rounded"
+  >
     <div
       @click="slaActiveScreen = { screen: 'view', data: data, fetchData: true }"
-      class="w-4/5 py-3 pl-2"
+      class="w-full py-3 pl-2 col-span-5"
     >
       <div class="text-base">{{ data.name }}</div>
       <div
         v-if="data.description && data.description.length > 0"
-        class="text-sm w-11/12 text-gray-500 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"
+        class="text-sm w-full text-gray-500 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"
       >
         {{ data.description }}
       </div>
     </div>
-    <div class="flex justify-between items-center w-1/5 pr-2">
+    <div class="flex justify-between items-center w-full pr-2">
       <div>
         <Switch
           size="sm"
@@ -36,7 +38,7 @@
                   option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
                   icon: 'trash-2',
                   active: props.active,
-                  variant: 'danger',
+                  variant: isConfirmingDelete ? 'danger' : 'gray',
                   onClick: (event) => deleteSla(event),
                 }),
             },

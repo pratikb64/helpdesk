@@ -97,7 +97,7 @@
         <div v-if="dialog.isEditing">
           <Button
             variant="subtle"
-            theme="red"
+            :theme="isConfirmingDelete ? 'red' : 'gray'"
             :label="isConfirmingDelete ? 'Confirm Delete' : 'Delete'"
             @click="deleteWorkDay"
             icon-left="trash-2"

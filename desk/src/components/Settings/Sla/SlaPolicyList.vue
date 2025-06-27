@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="flex text-sm text-gray-600">
-      <div class="w-4/5 ml-2">Policy Name</div>
-      <div class="w-1/5">Enabled</div>
+    <div class="grid grid-cols-6 items-center gap-4 text-sm text-gray-600">
+      <div class="col-span-5">Policy Name</div>
+      <div class="col-span-1">Enabled</div>
     </div>
     <hr class="mt-2 mx-2" />
     <div>

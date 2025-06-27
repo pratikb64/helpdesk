@@ -37,7 +37,7 @@
                 option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
                 icon: 'trash-2',
                 active: props.active,
-                variant: 'danger',
+                variant: isConfirmingDelete ? 'danger' : 'gray',
                 onClick: (event) => deleteWorkDay(event),
               }),
           },

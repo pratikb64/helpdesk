@@ -41,7 +41,7 @@
                 option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
                 icon: 'trash-2',
                 active: props.active,
-                variant: 'danger',
+                variant: isConfirmingDelete ? 'danger' : 'gray',
                 onClick: (event) => deleteItem(event),
               }),
           },
@@ -85,7 +85,7 @@
         <div>
           <Button
             variant="subtle"
-            theme="red"
+            :theme="isConfirmingDelete ? 'red' : 'gray'"
             :label="isConfirmingDelete ? 'Confirm Delete' : 'Delete'"
             @click="deleteItem"
             icon-left="trash-2"
