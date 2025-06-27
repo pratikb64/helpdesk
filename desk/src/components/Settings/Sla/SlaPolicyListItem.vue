@@ -120,10 +120,10 @@ const onToggle = () => {
     },
     onSuccess: () => {
       slaPolicyListData.reload();
-      toast.success("SLA policy enabled");
+      toast.success("SLA policy status updated");
     },
     onError: () => {
-      toast.error("Failed to enable SLA policy");
+      toast.error("Failed to update SLA policy status");
     },
     auto: true,
   });

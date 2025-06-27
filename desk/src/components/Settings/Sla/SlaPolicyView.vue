@@ -34,7 +34,7 @@
       @click="slaData.enabled = !slaData.enabled"
     >
       <span class="text-sm"> Enable Policy </span>
-      <Switch size="sm" v-model="slaData.enabled" />
+      <Switch size="sm" :model-value="slaData.enabled" />
     </div>
     <hr class="mb-6 mt-3" />
     <div class="grid grid-cols-2 gap-2">
