@@ -18,7 +18,7 @@
     <hr class="my-0.5" />
     <SlaWorkDaysListItem
       v-for="(row, index) in workDaysList"
-      :key="row.name"
+      :key="index + row.workday + row.id"
       :row="row"
       :columns="columns"
       :isLast="index === workDaysList.length - 1"
@@ -66,6 +66,7 @@ const addWorkDay = () => {
     workday: "Monday",
     start_time: "09:00:00",
     end_time: "17:00:00",
+    id: Math.random().toString(36).substring(2, 9),
   });
 };
 

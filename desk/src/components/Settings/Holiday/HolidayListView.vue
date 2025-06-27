@@ -158,7 +158,12 @@
           @click="dialog = true"
           icon-left="plus"
         />
-        <AddHolidayModal v-model="dialog" :holidays="holidayData.holidays" />
+        <AddHolidayModal
+          v-model="dialog"
+          :holidays="holidayData.holidays"
+          :from_date="holidayData.from_date"
+          :to_date="holidayData.to_date"
+        />
       </div>
     </div>
   </div>

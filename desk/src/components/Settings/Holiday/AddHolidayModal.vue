@@ -62,6 +62,14 @@ const props = defineProps({
     type: Array<any>,
     required: true,
   },
+  from_date: {
+    type: String,
+    required: true,
+  },
+  to_date: {
+    type: String,
+    required: true,
+  },
 });
 
 const holidayData = ref({
@@ -77,6 +85,20 @@ const onSave = () => {
 
   if (!holidayData.value.holiday_date) {
     toast.error("Please select a date for the holiday");
+    return;
+  }
+
+  const holidayDate = new Date(holidayData.value.holiday_date);
+  const fromDate = new Date(props.from_date);
+  const toDate = new Date(props.to_date);
+
+  // Set time to midnight for accurate date comparison
+  holidayDate.setHours(0, 0, 0, 0);
+  fromDate.setHours(0, 0, 0, 0);
+  toDate.setHours(0, 0, 0, 0);
+
+  if (holidayDate < fromDate || holidayDate > toDate) {
+    toast.error(`Holiday date must be between ${props.from_date} and ${props.to_date}`);
     return;
   }
 

@@ -10,22 +10,10 @@
           <template #trigger="{ toggle, selectedYear }">
             <div
               class="flex items-center gap-2 font-semibold text-xl cursor-pointer select-none"
-              @click="
-                dayjs(holidayData.from_date || new Date()).year() !==
-                dayjs(holidayData.to_date || new Date()).year()
-                  ? toggle
-                  : null
-              "
+              @click="toggle"
             >
               {{ selectedYear }}
-              <FeatherIcon
-                name="chevron-down"
-                class="size-4"
-                v-if="
-                  dayjs(holidayData.from_date || new Date()).year() !==
-                  dayjs(holidayData.to_date || new Date()).year()
-                "
-              />
+              <FeatherIcon name="chevron-down" class="size-4" />
             </div>
           </template>
         </YearsList>
@@ -94,7 +82,12 @@
       />
     </div>
   </div>
-  <AddHolidayModal v-model="dialog" />
+  <AddHolidayModal
+    v-model="dialog"
+    :holidays="holidayData.holidays"
+    :from_date="holidayData.from_date"
+    :to_date="holidayData.to_date"
+  />
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from "vue";

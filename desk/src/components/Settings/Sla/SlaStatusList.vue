@@ -18,7 +18,7 @@
     <hr class="my-0.5" />
     <SlaStatusListItem
       v-for="(row, index) in statusList"
-      :key="row.name"
+      :key="index + row.status + row.id"
       :row="row"
       :columns="columns"
       :isLast="index === statusList.length - 1"
@@ -68,6 +68,7 @@ const addRow = () => {
   props.statusList.push({
     status: "Open",
     sla_behavior: "Fulfilled",
+    id: Math.random().toString(36).substring(2, 9),
   });
 };
 

@@ -468,7 +468,6 @@ function isSameTypeOperator(oldOperator, newOperator) {
 
 const turnIntoGroup = () => {
   const obj = Object.assign({}, props.condition);
-  obj.value = props.condition;
   props.condition.field = "group";
   props.condition.value = [obj];
 };

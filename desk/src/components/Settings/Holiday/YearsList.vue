@@ -15,18 +15,22 @@
         />
       </slot>
     </template>
-    <template #body-main>
-      <div class="w-32">
+    <template #body-main="{ togglePopover }">
+      <div class="w-24">
         <div ref="yearsContainer" class="max-h-60 overflow-y-auto py-1">
           <div
             v-for="year in years"
             :key="year"
             ref="yearItems"
-            class="cursor-pointer px-3 py-1.5 text-sm hover:bg-gray-100"
-            :class="{ 'bg-gray-100 font-medium': year === selectedYear }"
-            @click="selectYear(year)"
+            class="cursor-pointer px-3 py-1.5 text-sm hover:bg-gray-100 flex items-center justify-between"
+            @click="selectYear(year, togglePopover)"
           >
             {{ year }}
+            <FeatherIcon
+              name="check"
+              class="size-4"
+              v-if="year === selectedYear"
+            />
           </div>
         </div>
       </div>
@@ -108,8 +112,10 @@ const handleButtonClick = (togglePopover: () => void) => {
   });
 };
 
-const selectYear = (year: number) => {
+const selectYear = (year: number, togglePopover: () => void) => {
   selectedYear.value = year;
+  togglePopover();
+
   emit("update:modelValue", year);
 };
 
