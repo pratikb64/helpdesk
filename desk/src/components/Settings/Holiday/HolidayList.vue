@@ -6,10 +6,12 @@
     <hr class="mx-2 mt-2" />
     <div>
       <div
-        v-if="holidayListData.data"
-        v-for="holiday in holidayListData.data"
-        :key="holiday.name"
+        class="flex items-center justify-center mt-12"
+        v-if="holidayListData.loading"
       >
+        <Spinner class="w-6" />
+      </div>
+      <div v-else v-for="holiday in holidayListData.data" :key="holiday.name">
         <HolidayListItem :data="holiday" />
         <hr class="mx-2" />
       </div>
@@ -20,4 +22,5 @@
 <script setup lang="ts">
 import HolidayListItem from "./HolidayListItem.vue";
 import { holidayListData } from "./holidayList";
+import { Spinner } from "frappe-ui";
 </script>
