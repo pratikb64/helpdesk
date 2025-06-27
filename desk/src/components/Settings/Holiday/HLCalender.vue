@@ -46,7 +46,7 @@
                   </div>
                 </div>
                 <Popover
-                  v-if="isHoliday(date)"
+                  v-if="!isWeekOff(date)"
                   @close="isConfirmingDelete = false"
                 >
                   <template #target="{ open, close }">
