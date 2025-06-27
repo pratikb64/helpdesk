@@ -1,11 +1,12 @@
 <template>
   <div class="p-3 rounded-md border border-gray-300">
-    <div class="mb-4 flex justify-between items-center">
+    <div class="mb-6 flex justify-between items-center">
       <div class="ml-2">
         <YearsList
           v-model="currentYear"
           :startYear="dayjs(holidayData.from_date || new Date()).year()"
           :endYear="dayjs(holidayData.to_date || new Date()).year()"
+          @update:modelValue="visibleMonths = 'first-half'"
         >
           <template #trigger="{ toggle, selectedYear }">
             <div
@@ -22,20 +23,17 @@
         <Button
           variant="ghost"
           icon="chevron-left"
-          class="mt-4"
           :disabled="visibleMonths === 'first-half'"
           @click="visibleMonths = 'first-half'"
         />
         <Button
           variant="ghost"
           label="Today"
-          class="mt-4"
           @click="currentYear = new Date().getFullYear()"
         />
         <Button
           variant="ghost"
           icon="chevron-right"
-          class="mt-4"
           :disabled="visibleMonths === 'second-half'"
           @click="visibleMonths = 'second-half'"
         />

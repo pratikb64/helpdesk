@@ -18,12 +18,10 @@
           <Popover v-if="isHoliday(date)">
             <template #target="{ open, close }">
               <div
-                class="flex size-7 cursor-pointer text-orange-700 bg-yellow-100 items-center justify-center rounded hover:bg-surface-gray-2 select-none m-[1px]"
+                class="flex size-7 items-center justify-center rounded m-[1px] select-none"
                 :class="{
                   '!text-ink-gray-4 !bg-gray-100': isWeekOff(date),
                 }"
-                @mouseover="handleMouseEnter(getDateValue(date), open)"
-                @mouseleave="handleMouseLeave(getDateValue(date), close)"
               >
                 {{ date.getDate() }}
               </div>
@@ -117,15 +115,20 @@
           </Popover>
           <div
             v-else
-            class="flex size-7 cursor-pointer items-center justify-center rounded hover:bg-surface-gray-2 select-none m-[1px]"
+            class="flex size-7 items-center justify-center rounded m-[1px] select-none"
             :class="{
-              'text-ink-gray-3': date.getMonth() !== currentMonth - 1,
-              'text-ink-gray-9': getDateValue(date) === getDateValue(today),
+              'cursor-pointer hover:bg-surface-gray-2': isDateInRange(date),
+              'text-ink-gray-3':
+                date.getMonth() !== currentMonth - 1 || !isDateInRange(date),
+              'text-ink-gray-9':
+                getDateValue(date) === getDateValue(today) &&
+                isDateInRange(date),
               'bg-black text-ink-white hover:!bg-black/80 hover:text-ink-white':
-                getDateValue(date) === dateValue,
+                getDateValue(date) === dateValue && isDateInRange(date),
               'text-orange-700 bg-yellow-100': isHoliday(date),
+              'opacity-50 cursor-not-allowed': !isDateInRange(date),
             }"
-            @dblclick="addHoliday(date)"
+            @dblclick="isDateInRange(date) ? addHoliday(date) : null"
           >
             {{ date.getDate() }}
           </div>
@@ -182,6 +185,7 @@ import { toast, DatePicker, FormLabel, Popover, Dropdown } from "frappe-ui";
 import { useDatePicker } from "frappe-ui/src/components/DatePicker/useDatePicker";
 import { getDateValue } from "frappe-ui/src/components/DatePicker/utils";
 import { ref, watch } from "vue";
+import { holidayData } from "./holidayList";
 
 const dialog = ref(false);
 const editHolidayData = ref({
@@ -232,6 +236,21 @@ const handleMouseLeave = (date, callback) => {
 const addHoliday = (date) => {
   editHolidayData.value.holiday_date = date.toLocaleDateString();
   dialog.value = true;
+};
+
+const isDateInRange = (date: Date): boolean => {
+  if (!holidayData.value.from_date || !holidayData.value.to_date) return true;
+
+  const checkDate = new Date(date);
+  checkDate.setHours(0, 0, 0, 0);
+
+  const from = new Date(holidayData.value.from_date);
+  from.setHours(0, 0, 0, 0);
+
+  const to = new Date(holidayData.value.to_date);
+  to.setHours(23, 59, 59, 999);
+
+  return checkDate >= from && checkDate <= to;
 };
 
 const isHoliday = (date: Date): boolean => {
