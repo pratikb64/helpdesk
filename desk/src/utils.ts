@@ -1,6 +1,6 @@
 import { useClipboard, useDateFormat, useTimeAgo } from "@vueuse/core";
 import dayjs from "dayjs";
-import { toast } from "frappe-ui";
+import { FeatherIcon, toast } from "frappe-ui";
 import { gemoji } from "gemoji";
 import { h, markRaw, ref } from "vue";
 import zod from "zod";
@@ -218,4 +218,378 @@ export function getFontFamily(content: string) {
     lang = "arabic";
   }
   return langMap[lang];
+}
+
+/**
+ * Parses HTML string and returns the text content with preserved line breaks
+ * @param html - HTML string to parse
+ * @returns Plain text content with preserved line breaks
+ */
+export function htmlToText(html: string): string {
+  if (!html) return "";
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  const lineBreaks = doc.querySelectorAll("br, p, div, li");
+  lineBreaks.forEach((el) => {
+    el.after("\n");
+  });
+
+  let text = doc.body.textContent || "";
+
+  text = text.replace(/\s+/g, " ");
+
+  text = text.replace(/\n\s*\n/g, "\n");
+
+  return text.trim();
+}
+
+/**
+ * Format a date according to the user's system settings
+ * @param {Date|string} date - Date object or ISO date string
+ * @returns {string} Formatted date string in the user's locale and preferences
+ */
+export function getFormat(date) {
+  if (!date) return "";
+
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (isNaN(dateObj.getTime())) return "";
+
+  // Use the browser's default locale and options
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).format(dateObj);
+}
+
+export function TemplateOption({ active, option, variant, icon, onClick }) {
+  return h(
+    "button",
+    {
+      class: [
+        active ? "bg-surface-gray-2" : "text-ink-gray-8",
+        "group flex w-full gap-2 items-center rounded-md px-2 py-2 text-base",
+        variant == "danger" ? "text-ink-red-3 hover:bg-ink-red-1" : "",
+      ],
+      onClick: onClick,
+    },
+    [
+      icon
+        ? h(FeatherIcon, {
+            name: icon,
+            class: ["h-4 w-4 shrink-0"],
+            "aria-hidden": true,
+          })
+        : null,
+      h("span", { class: "whitespace-nowrap" }, option),
+    ]
+  );
+}
+
+export function getGridTemplateColumnsForTable(columns) {
+  let columnsWidth = columns
+    .map((col) => {
+      let width = col.width || 1;
+      if (typeof width === "number") {
+        return width + "fr";
+      }
+      return width;
+    })
+    .join(" ");
+  return columnsWidth + " 22px";
+}
+
+const OPERATOR_MAP: Record<string, string> = {
+  equals: "==",
+  "=": "==",
+  "!=": "!=",
+  "not equals": "!=",
+  "<": "<",
+  "<=": "<=",
+  ">": ">",
+  ">=": ">=",
+  in: "in",
+  "not in": "not in",
+  like: "like",
+  "not like": "not like",
+  is: "is",
+  "is not": "is not",
+  between: "between",
+  timespan: "timespan",
+} as const;
+
+interface FieldMetadata {
+  fieldname: string;
+  fieldtype?: string;
+  label?: string;
+  options?: string;
+}
+
+interface Condition {
+  field: FieldMetadata | string;
+  operator: string;
+  value: unknown;
+  conjunction?: "and" | "or";
+}
+
+/**
+ * Convert conditions object/array to a string representation
+ * @param conditions - Single condition or array of conditions
+ * @param isNested - Whether this is a nested condition (internal use)
+ * @returns String representation of the conditions
+ */
+export const convertToConditions = (
+  conditions: Condition | Condition[] | null,
+  isNested = false
+): string => {
+  if (!conditions) return "";
+
+  const conditionList = Array.isArray(conditions) ? conditions : [conditions];
+  const conditionsStr: string[] = [];
+
+  for (const { field, operator = "==", value } of conditionList) {
+    if (
+      typeof field === "string" &&
+      field === "group" &&
+      Array.isArray(value)
+    ) {
+      const nestedCondition = convertToConditions(value, true);
+      if (nestedCondition) {
+        conditionsStr.push(`(${nestedCondition})`);
+      }
+      continue;
+    }
+
+    if (typeof field !== "object" || !("fieldname" in field)) {
+      continue;
+    }
+
+    const { fieldname, fieldtype = "" } = field;
+    const normalizedOp = operator.toLowerCase();
+    const op = OPERATOR_MAP[normalizedOp] || normalizedOp;
+
+    if (op === "timespan") {
+      conditionsStr.push(`# Timespan: ${value} not implemented`);
+      continue;
+    }
+
+    let valueStr = formatValueForCondition(fieldname, fieldtype, op, value);
+    if (valueStr === null) continue;
+
+    let conditionStr = `${fieldname} ${op} ${valueStr}`;
+
+    if (
+      fieldtype === "Check" &&
+      op === "==" &&
+      (valueStr === "0" || valueStr === "1")
+    ) {
+      conditionStr = valueStr === "1" ? fieldname : `not ${fieldname}`;
+    }
+
+    conditionsStr.push(conditionStr);
+  }
+
+  if (!conditionsStr.length) return "";
+
+  const defaultConjunction = conditionList[0]?.conjunction || "and";
+  let result = conditionsStr.join(` ${defaultConjunction} `);
+
+  if (!isNested && conditionList.length === 1 && !/[\(\)]/.test(result)) {
+    return result;
+  }
+
+  result = result.replace(/\s+/g, " ").trim();
+  if (isNested && conditionList.length > 1) {
+    result = `(${result})`;
+  }
+
+  return result.replace(/\(\s*\(/g, "(").replace(/\)\s*\)/g, ")");
+};
+
+/**
+ * Format a value for use in a condition string
+ * @param fieldname - Name of the field
+ * @param fieldtype - Type of the field
+ * @param op - Operator being used
+ * @param value - Value to format
+ * @returns Formatted value string or null if special case was handled
+ */
+function formatValueForCondition(
+  fieldname: string,
+  fieldtype: string,
+  op: string,
+  value: unknown
+): string {
+  if (value === null || value === undefined) {
+    return "None";
+  }
+
+  if (typeof value === "string") {
+    if (fieldname === "_assign") {
+      if (op === "is") return "None";
+      if (op === "like" || op === "not like") return `'%${value}%'`;
+      return `'${value}'`;
+    }
+
+    if (op === "between" && value.includes(",")) {
+      const [start, end] = value.split(",").map((v) => v.trim());
+      return `'${start}' and '${end}'`;
+    }
+
+    if ((op === "in" || op === "not in") && value.includes(",")) {
+      const items = value.split(",").map((v) => `'${v.trim()}'`);
+      return `[${items.join(", ")}]`;
+    }
+
+    if (op === "like" || op === "not like") {
+      return `'%${value}%'`;
+    }
+
+    if (fieldtype === "Check") {
+      const boolValue = ["yes", "true", "1"].includes(value.toLowerCase());
+      return boolValue ? "1" : "0";
+    }
+
+    return `'${value}'`;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value).toLowerCase();
+  }
+
+  return String(value);
+}
+
+interface FieldInfo extends Omit<FieldMetadata, "fieldname"> {
+  value: string;
+  fieldname: string;
+}
+
+// Operator mapping for string to operator conversion
+const STRING_TO_OPERATOR: Record<string, string> = {
+  "==": "equals",
+  "!=": "not equals",
+  "<": "<",
+  "<=": "<=",
+  ">": ">",
+  ">=": ">=",
+  in: "in",
+  "not in": "not in",
+} as const;
+
+/**
+ * Convert a condition string back to a structured Condition object
+ * @param conditionStr - String representation of conditions
+ * @param fieldsMeta - Optional metadata about available fields
+ * @returns Array of Condition objects
+ */
+export const convertToObject = (
+  conditionStr: string,
+  fieldsMeta: Record<string, FieldMetadata> = {}
+): Condition[] => {
+  if (!conditionStr) return [];
+
+  /**
+   * Get field information from field name and metadata
+   */
+  const getFieldInfo = (fieldname: string): FieldInfo => {
+    const meta = fieldsMeta[fieldname];
+    const defaultLabel = fieldname
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+
+    return meta
+      ? {
+          ...meta,
+          value: fieldname,
+          fieldname: meta.fieldname || fieldname,
+          fieldtype: meta.fieldtype || "Data",
+          label: meta.label || defaultLabel,
+        }
+      : {
+          value: fieldname,
+          fieldname,
+          fieldtype: "Data",
+          label: defaultLabel,
+        };
+  };
+
+  try {
+    if (!conditionStr.trim()) return [];
+
+    const conditions: Condition[] = [];
+    const parts = conditionStr.split(/\s+(and|or)\s+/i);
+    let currentConjunction: "and" | "or" = "and";
+
+    for (let i = 0; i < parts.length; i += 2) {
+      const conditionPart = parts[i].trim();
+      const nextConjunction = parts[i + 1]?.toLowerCase() as "and" | "or";
+
+      const match = conditionPart.match(
+        /^(\w+)\s*([=!<>]+|not\s+in|in|like|not\s+like|is\s+not|is|between|timespan)\s*(.*)$/i
+      );
+
+      if (!match) continue;
+
+      const [, fieldname, operator, value] = match;
+      const normalizedOperator = operator.toLowerCase().replace(/\s+/g, " ");
+      const fieldInfo = getFieldInfo(fieldname);
+
+      const parsedValue = parseConditionValue(value.trim(), normalizedOperator);
+
+      const condition: Condition = {
+        field: fieldInfo,
+        operator: STRING_TO_OPERATOR[normalizedOperator] || normalizedOperator,
+        value: parsedValue,
+      };
+
+      if (i > 0) {
+        condition.conjunction = currentConjunction;
+      }
+
+      conditions.push(condition);
+
+      if (nextConjunction === "and" || nextConjunction === "or") {
+        currentConjunction = nextConjunction;
+      }
+    }
+
+    return conditions;
+  } catch (error) {
+    console.error("Error parsing condition string:", error);
+    return [];
+  }
+};
+
+/**
+ * Parse a condition value string into its appropriate type
+ */
+function parseConditionValue(value: string, operator: string): unknown {
+  if (
+    (value.startsWith("'") && value.endsWith("'")) ||
+    (value.startsWith('"') && value.endsWith('"'))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  if (["none", "null", "undefined"].includes(value.toLowerCase())) {
+    return null;
+  }
+
+  if (value === "true") return true;
+  if (value === "false") return false;
+
+  const numValue = Number(value);
+  if (!isNaN(numValue)) return numValue;
+
+  if (value.startsWith("[") && value.endsWith("]")) {
+    return value
+      .slice(1, -1)
+      .split(",")
+      .map((v) => v.trim().replace(/^['"]|['"]$/g, ""));
+  }
+
+  return value;
 }
