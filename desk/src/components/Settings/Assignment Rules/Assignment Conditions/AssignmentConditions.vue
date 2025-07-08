@@ -14,8 +14,8 @@
     </div>
     <div v-if="props.isChild" class="flex">
       <Dropdown v-slot="{ open }" :options="dropdownOptions">
-        <!-- :disabled="slaDataErrors.condition !== ''" -->
         <Button
+          :disabled="assignmentRulesErrors.assign_condition_error !== ''"
           label="Add condition"
           icon-left="plus"
           :icon-right="open ? 'chevron-up' : 'chevron-down'"
@@ -26,10 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import AssignmentCondition from "./AssignmentCondition.vue";
-// import { slaDataErrors } from "@/stores/sla";
+import {
+  assignmentRulesErrors,
+  filterableFields,
+} from "@/stores/assignmentRules";
 
 const props = defineProps({
   conditions: {
@@ -115,4 +118,11 @@ function updateConjunction(level) {
 
   updateConjunctions(props.conditions, level);
 }
+
+onMounted(() => {
+  if (!filterableFields.fetched) {
+    filterableFields.submit();
+    console.log("filterableFields.data", filterableFields);
+  }
+});
 </script>

@@ -128,6 +128,7 @@ import UnGroupIcon from "~icons/lucide/ungroup";
 import { h, defineEmits, ref, onMounted, computed } from "vue";
 import { TemplateOption } from "@/utils";
 import AssignmentConditions from "./AssignmentConditions.vue";
+import { filterableFields } from "@/stores/assignmentRules";
 
 const show = ref(false);
 const emit = defineEmits(["remove", "unGroupConditions", "updateConjunction"]);
@@ -216,25 +217,6 @@ const typeSelect = ["Select"];
 const typeString = ["Data", "Long Text", "Small Text", "Text Editor", "Text"];
 const typeDate = ["Date", "Datetime"];
 const typeRating = ["Rating"];
-
-const filterableFields = createResource({
-  url: "helpdesk.api.doc.get_filterable_fields",
-  cache: ["DocField", props.doctype],
-  auto: true,
-  params: {
-    doctype: props.doctype,
-  },
-  transform: (data) => {
-    data = data.map((field) => {
-      return {
-        label: field.label,
-        value: field.fieldname,
-        ...field,
-      };
-    });
-    return data;
-  },
-});
 
 function updateConjunction() {
   emit("updateConjunction");
@@ -550,8 +532,4 @@ const timespanOptions = [
     value: "next year",
   },
 ];
-
-onMounted(() => {
-  filterableFields.submit();
-});
 </script>

@@ -1,19 +1,20 @@
 <template>
   <AssignmentConditions
-    v-if="assignmentRuleData.condition.length > 0"
-    :conditions="assignmentRuleData.condition"
+    v-if="assignmentRuleData.assign_condition.length > 0"
+    :conditions="assignmentRuleData.assign_condition"
     :level="0"
   />
   <div
-    v-if="assignmentRuleData.condition.length == 0"
+    v-if="assignmentRuleData.assign_condition.length == 0"
     class="flex p-4 items-center cursor-pointer justify-center gap-2 text-sm border border-gray-300 text-gray-600 rounded-md"
     @click="
-      assignmentRuleData.condition.push({
+      assignmentRuleData.assign_condition.push({
         field: null,
         operator: 'equals',
         value: '',
         conjunction: 'and',
-      })
+      });
+      validateAssignmentRule('assign_condition');
     "
   >
     <FeatherIcon name="plus" class="h-4" />
@@ -21,7 +22,7 @@
   </div>
   <div class="flex items-center justify-between">
     <Dropdown
-      v-if="assignmentRuleData.condition.length > 0"
+      v-if="assignmentRuleData.assign_condition.length > 0"
       class="mt-2"
       v-slot="{ open }"
       :options="[
@@ -35,10 +36,10 @@
           label: 'Add condition group',
           onClick: () => {
             const conjunction =
-              assignmentRuleData.condition.length > 1
-                ? assignmentRuleData.condition[1]?.conjunction
+              assignmentRuleData.assign_condition.length > 1
+                ? assignmentRuleData.assign_condition[1]?.conjunction
                 : 'and';
-            assignmentRuleData.condition.push({
+            assignmentRuleData.assign_condition.push({
               field: 'group',
               operator: 'equals',
               value: [
@@ -55,15 +56,18 @@
         },
       ]"
     >
-      <!-- :disabled="slaDataErrors.condition !== ''" -->
       <Button
+        :disabled="assignmentRulesErrors.assign_condition_error !== ''"
         :icon-right="open ? 'chevron-up' : 'chevron-down'"
         label="Add condition"
       />
     </Dropdown>
-    <!-- <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
-        {{ slaDataErrors.condition }}
-      </div> -->
+    <div
+      v-if="assignmentRulesErrors.assign_condition_error"
+      class="text-red-500 text-xs mt-2"
+    >
+      {{ assignmentRulesErrors.assign_condition_error }}
+    </div>
   </div>
 </template>
 
@@ -75,7 +79,13 @@ import { Button, Dropdown, FeatherIcon } from "frappe-ui";
 //     validateSlaData,
 //   } from "@/stores/sla";
 import { watchDebounced } from "@vueuse/core";
-import { assignmentRuleData } from "../../../stores/assignmentRules";
+import {
+  assignmentRuleData,
+  assignmentRulesErrors,
+  validateAssignmentRule,
+  validateConditions,
+} from "../../../stores/assignmentRules";
+import AssignmentConditions from "./Assignment Conditions/AssignmentConditions.vue";
 
 type Conditions = {
   field: string | object | null;
@@ -85,18 +95,17 @@ type Conditions = {
 };
 
 const addCondition = () => {
-  // const isValid = validateConditions(assignmentRuleData.value.condition);
-  const isValid = true;
+  const isValid = validateConditions(assignmentRuleData.value.assign_condition);
 
   if (!isValid) {
     return;
   }
   const conjunction =
-    assignmentRuleData.value.condition.length > 1
-      ? assignmentRuleData.value.condition[1]?.conjunction
+    assignmentRuleData.value.assign_condition.length > 1
+      ? assignmentRuleData.value.assign_condition[1]?.conjunction
       : "and";
 
-  assignmentRuleData.value.condition.push({
+  assignmentRuleData.value.assign_condition.push({
     field: null,
     operator: "equals",
     value: "",
@@ -105,9 +114,9 @@ const addCondition = () => {
 };
 
 watchDebounced(
-  () => [...assignmentRuleData.value.condition],
+  () => [...assignmentRuleData.value.assign_condition],
   () => {
-    // validateSlaData("condition");
+    validateAssignmentRule("assign_condition");
   },
   { deep: true, debounce: 300 }
 );

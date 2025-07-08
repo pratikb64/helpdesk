@@ -22,12 +22,13 @@
           />
           <Badge
             :variant="'subtle'"
-            :theme="assignmentRuleData.enabled ? 'blue' : 'gray'"
+            :theme="assignmentRuleData.disabled ? 'gray' : 'blue'"
             size="sm"
-            :label="assignmentRuleData.enabled ? 'Enabled' : 'Disabled'"
+            :label="assignmentRuleData.disabled ? 'Disabled' : 'Enabled'"
           />
         </div>
       </div>
+      <!-- :disabled="getAssignmentRuleData.isDirty" -->
       <Button
         label="Save"
         theme="gray"
@@ -39,10 +40,10 @@
   <div v-if="!assignmentRuleData.loading" class="overflow-y-auto px-10 pb-8">
     <div
       class="flex items-center justify-between gap-2"
-      @click="assignmentRuleData.enabled = !assignmentRuleData.enabled"
+      @click="assignmentRuleData.disabled = !assignmentRuleData.disabled"
     >
       <span class="text-sm"> Enable Assignment Rule </span>
-      <Switch size="sm" :model-value="assignmentRuleData.enabled" />
+      <Switch size="sm" :model-value="!assignmentRuleData.disabled" />
     </div>
     <hr class="mb-6 mt-3" />
     <div class="grid grid-cols-2 gap-5">
@@ -55,7 +56,7 @@
           label="Name"
           v-model="assignmentRuleData.name"
           required
-          @change="debouncedValidateAssignmentRule()"
+          @change="debouncedValidateAssignmentRule('name')"
         />
         <span v-if="assignmentRulesErrors.name" class="text-red-500 text-xs">
           {{ assignmentRulesErrors.name }}
@@ -103,14 +104,24 @@
           </template>
         </Popover>
       </div>
-      <FormControl
-        :type="'textarea'"
-        size="sm"
-        variant="subtle"
-        placeholder="Description"
-        label="Description"
-        v-model="assignmentRuleData.description"
-      />
+      <div>
+        <FormControl
+          :type="'textarea'"
+          size="sm"
+          variant="subtle"
+          placeholder="Description"
+          label="Description"
+          required
+          @change="debouncedValidateAssignmentRule('description')"
+          v-model="assignmentRuleData.description"
+        />
+        <span
+          v-if="assignmentRulesErrors.description"
+          class="text-red-500 text-xs"
+        >
+          {{ assignmentRulesErrors.description }}
+        </span>
+      </div>
     </div>
     <hr class="my-6" />
     <div>
@@ -130,6 +141,12 @@
       </div>
       <div class="mt-4">
         <AssignmentRulesSection />
+        <div
+          v-if="assignmentRulesErrors.assign_condition"
+          class="text-red-500 text-xs mt-2"
+        >
+          {{ assignmentRulesErrors.assign_condition }}
+        </div>
       </div>
     </div>
     <hr class="my-6" />
@@ -156,6 +173,8 @@ import { onUnmounted } from "vue";
 import {
   assignmentRuleData,
   assignmentRulesErrors,
+  resetAssignmentRuleData,
+  resetAssignmentRuleErrors,
   validateAssignmentRule,
 } from "../../../stores/assignmentRules";
 import {
@@ -175,51 +194,35 @@ import { assignmentRulesActiveScreen } from "../../../stores/assignmentRules";
 import AssignmentRulesSection from "./AssignmentRulesSection.vue";
 import AssignmentSchedule from "./AssignmentSchedule.vue";
 import AssigneeRules from "./AssigneeRules.vue";
-import { convertToObject } from "@/utils";
+import { convertToConditions, convertToObject } from "@/utils";
 
-const debouncedValidateAssignmentRule = useDebounceFn(() => {
-  validateAssignmentRule();
+const debouncedValidateAssignmentRule = useDebounceFn((key?: string) => {
+  validateAssignmentRule(key);
 }, 300);
 
-// const getAssignmentRuleData = createResource({
-//   url: "helpdesk.api.assignment_rule.get_assignment_rule",
-//   params: {
-//     docname: assignmentRulesActiveScreen.value.data?.name,
-//   },
-//   onSuccess(data) {
-//     const conditions = JSON.parse(data.assign_condition || "[]");
-//     assignmentRuleData.value = {
-//       ...data,
-//       loading: false,
-//       condition: conditions,
-//     };
-//   },
-// });
+const createAssignmentRuleResource = (name: string) => {
+  return createDocumentResource({
+    doctype: "Assignment Rule",
+    name: name,
+    onSuccess() {
+      assignmentRuleData.value = getAssignmentRuleData.doc;
+      assignmentRuleData.value.loading = false;
+    },
+    transform(doc) {
+      doc.assign_condition = convertToObject(doc.assign_condition);
+      return doc;
+    },
+    auto: false,
+  });
+};
 
-const getAssignmentRuleData = createDocumentResource({
-  doctype: "Assignment Rule",
-  name: assignmentRulesActiveScreen.value.data?.name,
-  onSuccess(data) {
-    // const conditions = JSON.parse(data.assign_condition || "[]");
-    // assignmentRuleData.value.condition = [];
-    // assignmentRuleData.value.assign_condition =
-    //   data.assign_condition?.length > 0 ? conditions : [];
-    // console.log("assignmentRuleData.value", assignmentRuleData.value);
-    assignmentRuleData.value = getAssignmentRuleData.doc;
-    assignmentRuleData.value.loading = false;
-  },
-  transform(doc) {
-    // const condition = JSON.parse(doc.assign_condition || "[]");
-    doc.condition = convertToObject(doc.assign_condition);
-    // doc.assign_condition = JSON.parse(doc.assign_condition || "[]");
-    return doc;
-  },
-});
+let getAssignmentRuleData = createAssignmentRuleResource(
+  assignmentRulesActiveScreen.value.data?.name
+);
 
 if (assignmentRulesActiveScreen.value.data) {
   assignmentRuleData.value.loading = true;
-  getAssignmentRuleData.get.submit();
-  console.log("getAssignmentRuleDat", getAssignmentRuleData);
+  getAssignmentRuleData.get?.submit();
 }
 
 const goBack = () => {
@@ -230,11 +233,8 @@ const goBack = () => {
 };
 
 const saveAssignmentRule = () => {
-  // Reset all errors
-  assignmentRulesErrors.value = {
-    name: "",
-  };
   const validationErrors = validateAssignmentRule();
+
   if (Object.values(validationErrors).some((error) => error)) {
     toast.error("Please provide all required fields");
     return;
@@ -248,26 +248,32 @@ const saveAssignmentRule = () => {
 
 const createAssignmentRule = () => {
   createResource({
-    url: "helpdesk.api.assignment_rule.create_assignment_rule",
+    url: "frappe.client.insert",
     params: {
       doc: {
         doctype: "Assignment Rule",
-        enabled: assignmentRuleData.value.enabled,
+        name: assignmentRuleData.value.name,
         description: assignmentRuleData.value.description,
-        service_level: assignmentRuleData.value.service_level,
-        priorities: assignmentRuleData.value.priorities,
-        condition: assignmentRuleData.value.condition,
+        disabled: assignmentRuleData.value.disabled,
+        priority: assignmentRuleData.value.priority,
+        assign_condition: convertToConditions(
+          assignmentRuleData.value.assign_condition
+        ),
+        assignment_days: assignmentRuleData.value.assignment_days,
+        document_type: "HD Ticket",
+        rule: assignmentRuleData.value.rule,
+        users: assignmentRuleData.value.users,
       },
-      is_new: true,
     },
     auto: true,
     onSuccess(data) {
+      assignmentRulesActiveScreen.value = {
+        screen: "view",
+        data: data,
+      };
+      getAssignmentRuleData = createAssignmentRuleResource(data.name);
+      getAssignmentRuleData.get?.submit();
       toast.success("Assignment rule created");
-      assignmentRulesActiveScreen.value.data = data;
-      assignmentRulesActiveScreen.value.screen = "view";
-      getAssignmentRuleData.submit({
-        docname: data.name,
-      });
     },
   });
 };
@@ -280,39 +286,20 @@ const priorityOptions = [
   { label: "High", value: "4" },
 ];
 
-const updateAssignmentRule = () => {
-  createResource({
-    url: "helpdesk.api.assignment_rule.update_assignment_rule",
-    params: {
-      doc: {
-        doctype: "Assignment Rule",
-        name: assignmentRulesActiveScreen.value.data.name,
-        enabled: assignmentRuleData.value.enabled,
-        description: assignmentRuleData.value.description,
-        condition: assignmentRuleData.value.condition,
-      },
-      is_new: false,
-    },
-    auto: true,
-    onSuccess() {
-      getAssignmentRuleData.submit();
-      toast.success("Assignment rule updated");
-    },
+const updateAssignmentRule = async () => {
+  console.log("getAssignmentRuleData", getAssignmentRuleData);
+  console.log("getAssignmentRuleData", getAssignmentRuleData.save);
+  let convertedCondition = convertToConditions(
+    assignmentRuleData.value.assign_condition
+  );
+  await getAssignmentRuleData.setValue.submit({
+    ...assignmentRuleData.value,
+    assign_condition: convertedCondition,
   });
 };
 
 onUnmounted(() => {
-  assignmentRulesErrors.value = {
-    name: "",
-  };
-  assignmentRuleData.value = {
-    loading: false,
-    name: "",
-    enabled: false,
-    description: "",
-    rule: "Round Robin",
-    priority: 1,
-    condition: [],
-  };
+  resetAssignmentRuleErrors();
+  resetAssignmentRuleData();
 });
 </script>

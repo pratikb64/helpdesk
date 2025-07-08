@@ -16,28 +16,22 @@
       :day="day"
       :isLast="index === days.length - 1"
     />
-    <!-- <div
-      class="grid gap-2 px-2 items-center"
-      :style="{
-        gridTemplateColumns: 'grid-template-columns: 1fr 1fr 22px;',
-      }"
-      v-for="day in days"
-      :key="day.day"
-    >
-      <div>{{ day.day }}</div>
-      <div class="flex justify-start">
-        <Switch v-model="day.active" />
-      </div>
-    </div> -->
+  </div>
+  <div
+    v-if="assignmentRulesErrors.assignment_days"
+    class="text-red-500 text-xs mt-2"
+  >
+    {{ assignmentRulesErrors.assignment_days }}
   </div>
 </template>
 
 <script setup lang="ts">
-import { getGridTemplateColumnsForTable } from "@/utils";
-import { Switch } from "frappe-ui";
 import { onMounted, ref } from "vue";
 import AssignmentScheduleItem from "./AssignmentScheduleItem.vue";
-import { assignmentRuleData } from "../../../stores/assignmentRules";
+import {
+  assignmentRuleData,
+  assignmentRulesErrors,
+} from "../../../stores/assignmentRules";
 
 const columns = [
   {

@@ -63,78 +63,48 @@
           Choose who receives the tickets.
         </div>
       </div>
-      <!-- <Popover>
-        <template #target="{ togglePopover }">
-          <Button variant="solid" icon-left="plus" @click="togglePopover()"
-            >Add Assignee</Button
+      <AssigneeSearch @addAssignee="validateAssignmentRule('users')" />
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <div
+        v-for="user in assignmentRuleData.users"
+        :key="user.name"
+        class="flex items-center gap-2 text-sm bg-surface-gray-2 rounded-md p-1 w-max px-2"
+      >
+        <Avatar :image="user.user_image" :label="user.user" size="sm" />
+        <div class="text-ink-gray-7">
+          {{ user.user }}
+        </div>
+        <Tooltip
+          v-if="user.user == assignmentRuleData.last_user"
+          text="Last user assigned by this rule"
+          :hover-delay="0.35"
+          :placement="'top'"
+        >
+          <div
+            class="text-xs rounded-full select-none bg-blue-600 text-white p-0.5 px-2"
           >
-        </template>
-        <template #body-main>
-        </template>
-      </Popover> -->
-      <Autocomplete :options="usersList.data">
-        <!-- <template #target="{ option }">
-          <div class="flex gap-2">
-            <Avatar
-              :image="option.user_image"
-              :label="option.full_name"
-              size="xl"
-            />
-            <div class="flex flex-col gap-2">
-              <div>{{ option.full_name }}</div>
-              <div>{{ option.email }}</div>
-            </div>
+            Last
           </div>
-        </template> -->
-        <template #target="{ togglePopover }">
-          <Button variant="solid" icon-left="plus" @click="togglePopover()"
-            >Add Assignee</Button
-          >
-        </template>
-        <template #footer>
-          <Button variant="ghost" icon-left="plus" class="w-full"
-            >Invite agent</Button
-          >
-        </template>
-      </Autocomplete>
+        </Tooltip>
+        <Button variant="ghost" icon="x" @click="removeAssignedUser(user)" />
+      </div>
+    </div>
+    <div v-if="assignmentRulesErrors.users" class="text-red-500 text-xs mt-2">
+      {{ assignmentRulesErrors.users }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Avatar, Button, Popover, Tooltip } from "frappe-ui";
 import {
-  Popover,
-  Button,
-  Autocomplete,
-  createListResource,
-  Avatar,
-} from "frappe-ui";
-import { assignmentRuleData } from "../../../stores/assignmentRules";
-import { ref } from "vue";
+  assignmentRuleData,
+  assignmentRulesErrors,
+  validateAssignmentRule,
+} from "../../../stores/assignmentRules";
+import AssigneeSearch from "./AssigneeSearch.vue";
 
-const userFilter = ref("");
-
-let usersList = createListResource({
-  doctype: "User",
-  fields: ["*"],
-  start: 0,
-  pageLength: 5,
-  auto: true,
-  onSuccess(data) {
-    console.log(data);
-  },
-  transform(data) {
-    return data.map((user) => {
-      return {
-        label: user.full_name,
-        value: user.email,
-        description: user.email,
-        image: user.user_image,
-      };
-    });
-  },
-});
-console.log("usersList", usersList);
 const ticketRoutingOptions = [
   {
     label: "Round Robin",
@@ -149,4 +119,11 @@ const ticketRoutingOptions = [
     value: "Based on Field",
   },
 ];
+
+const removeAssignedUser = (user) => {
+  assignmentRuleData.value.users = assignmentRuleData.value.users.filter(
+    (u) => u.user !== user.user
+  );
+  validateAssignmentRule("users");
+};
 </script>
