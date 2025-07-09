@@ -1,20 +1,21 @@
 <template>
   <AssignmentConditions
-    v-if="assignmentRuleData.assign_condition.length > 0"
-    :conditions="assignmentRuleData.assign_condition"
+    v-if="props.conditions.length > 0"
+    :conditions="props.conditions"
     :level="0"
+    :errors="props.errors"
   />
   <div
-    v-if="assignmentRuleData.assign_condition.length == 0"
+    v-if="props.conditions.length == 0"
     class="flex p-4 items-center cursor-pointer justify-center gap-2 text-sm border border-gray-300 text-gray-600 rounded-md"
     @click="
-      assignmentRuleData.assign_condition.push({
+      props.conditions.push({
         field: null,
         operator: 'equals',
         value: '',
         conjunction: 'and',
       });
-      validateAssignmentRule('assign_condition');
+      validateAssignmentRule(props.name);
     "
   >
     <FeatherIcon name="plus" class="h-4" />
@@ -22,7 +23,7 @@
   </div>
   <div class="flex items-center justify-between">
     <Dropdown
-      v-if="assignmentRuleData.assign_condition.length > 0"
+      v-if="props.conditions.length > 0"
       class="mt-2"
       v-slot="{ open }"
       :options="[
@@ -36,10 +37,10 @@
           label: 'Add condition group',
           onClick: () => {
             const conjunction =
-              assignmentRuleData.assign_condition.length > 1
-                ? assignmentRuleData.assign_condition[1]?.conjunction
+              props.conditions.length > 1
+                ? props.conditions[1]?.conjunction
                 : 'and';
-            assignmentRuleData.assign_condition.push({
+            props.conditions.push({
               field: 'group',
               operator: 'equals',
               value: [
@@ -57,16 +58,13 @@
       ]"
     >
       <Button
-        :disabled="assignmentRulesErrors.assign_condition_error !== ''"
+        :disabled="props.errors !== ''"
         :icon-right="open ? 'chevron-up' : 'chevron-down'"
         label="Add condition"
       />
     </Dropdown>
-    <div
-      v-if="assignmentRulesErrors.assign_condition_error"
-      class="text-red-500 text-xs mt-2"
-    >
-      {{ assignmentRulesErrors.assign_condition_error }}
+    <div v-if="props.errors" class="text-red-500 text-xs mt-2">
+      {{ props.errors }}
     </div>
   </div>
 </template>
@@ -75,25 +73,27 @@
 import { Button, Dropdown, FeatherIcon } from "frappe-ui";
 import { watchDebounced } from "@vueuse/core";
 import {
-  assignmentRuleData,
-  assignmentRulesErrors,
   validateAssignmentRule,
   validateConditions,
 } from "../../../stores/assignmentRules";
 import AssignmentConditions from "./Assignment Conditions/AssignmentConditions.vue";
 
+const props = defineProps({
+  conditions: Array<any>,
+  name: String,
+  errors: String,
+});
+
 const addCondition = () => {
-  const isValid = validateConditions(assignmentRuleData.value.assign_condition);
+  const isValid = validateConditions(props.conditions);
 
   if (!isValid) {
     return;
   }
   const conjunction =
-    assignmentRuleData.value.assign_condition.length > 1
-      ? assignmentRuleData.value.assign_condition[1]?.conjunction
-      : "and";
+    props.conditions.length > 1 ? props.conditions[1]?.conjunction : "and";
 
-  assignmentRuleData.value.assign_condition.push({
+  props.conditions.push({
     field: null,
     operator: "equals",
     value: "",
@@ -102,9 +102,9 @@ const addCondition = () => {
 };
 
 watchDebounced(
-  () => [...assignmentRuleData.value.assign_condition],
+  () => [...props.conditions],
   () => {
-    validateAssignmentRule("assign_condition");
+    validateAssignmentRule(props.name);
   },
   { deep: true, debounce: 300 }
 );

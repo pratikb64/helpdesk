@@ -15,7 +15,7 @@
     <div v-if="props.isChild" class="flex">
       <Dropdown v-slot="{ open }" :options="dropdownOptions">
         <Button
-          :disabled="assignmentRulesErrors.assign_condition_error !== ''"
+          :disabled="props.errors !== ''"
           label="Add condition"
           icon-left="plus"
           :icon-right="open ? 'chevron-up' : 'chevron-down'"
@@ -29,10 +29,7 @@
 import { computed, onMounted } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import AssignmentCondition from "./AssignmentCondition.vue";
-import {
-  assignmentRulesErrors,
-  filterableFields,
-} from "@/stores/assignmentRules";
+import { filterableFields } from "@/stores/assignmentRules";
 
 const props = defineProps({
   conditions: {
@@ -46,6 +43,10 @@ const props = defineProps({
   level: {
     type: Number,
     default: 0,
+  },
+  errors: {
+    type: String,
+    default: "",
   },
 });
 

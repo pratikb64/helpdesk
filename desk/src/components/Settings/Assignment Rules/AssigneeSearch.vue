@@ -1,6 +1,6 @@
 <template>
-  <Combobox nullable>
-    <Popover>
+  <Combobox :multiple="true">
+    <Popover :hideOnBlur="true" placement="bottom-end">
       <template #target="{ togglePopover }">
         <Button
           variant="solid"
@@ -34,32 +34,30 @@
           </div>
           <ComboboxOptions class="my-2 max-h-64 overflow-y-auto px-1.5" static>
             <ComboboxOption
-              v-show="usersList.data?.length > 0"
-              v-for="user in usersList.data"
+              v-show="users.length > 0"
+              v-for="user in users"
               :key="user.username"
               :value="user"
               as="template"
               v-slot="{ active }"
+              @click="
+                (e) => {
+                  e.stopPropagation();
+                  addAssignee(user);
+                }
+              "
             >
               <li
                 class="flex items-center rounded p-1.5 w-full text-base"
                 :class="{ 'bg-gray-100': active }"
-                @click="addAssignee(user)"
               >
                 <div class="flex gap-2 items-center w-full select-none">
                   <Avatar
-                    v-if="!checkIfUserExists(user)"
                     :shape="'circle'"
                     :image="user.user_image"
                     :label="user.full_name"
                     size="lg"
                   />
-                  <div
-                    v-else
-                    class="size-7 flex items-center justify-center rounded-full bg-gray-200"
-                  >
-                    <FeatherIcon name="check" class="w-4" />
-                  </div>
                   <div class="flex flex-col gap-1">
                     <div class="font-semibold text-ink-gray-7">
                       {{ user.full_name }}
@@ -70,7 +68,7 @@
               </li>
             </ComboboxOption>
             <li
-              v-if="usersList.data?.length == 0"
+              v-if="users.length == 0"
               class="mt-1.5 rounded-md p-1.5 text-base text-gray-600"
             >
               No results found
@@ -94,6 +92,7 @@
       </template>
     </Popover>
   </Combobox>
+
   <AddNewAgentsDialog
     title="Invite Agent"
     @close="showNewAgentsDialog = false"
@@ -115,7 +114,7 @@ import {
 } from "@headlessui/vue";
 import { watchDebounced } from "@vueuse/core";
 import { Avatar, createListResource, Popover } from "frappe-ui";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const emit = defineEmits(["addAssignee"]);
 const query = ref("");
@@ -161,6 +160,15 @@ const usersList = createListResource({
   },
 });
 
+const users = computed(() => {
+  return (
+    usersList.data?.filter(
+      (user) =>
+        !assignmentRuleData.value.users.some((u) => u.user === user.email)
+    ) || []
+  );
+});
+
 const addInvitedAgents = (users) => {
   users.forEach((user) => {
     addAssignee({ user });
@@ -175,9 +183,5 @@ const addAssignee = (user) => {
     assignmentRuleData.value.users.push({ user: user.user });
     emit("addAssignee", user);
   }
-};
-
-const checkIfUserExists = (user) => {
-  return assignmentRuleData.value.users.some((u) => u.user === user.email);
 };
 </script>

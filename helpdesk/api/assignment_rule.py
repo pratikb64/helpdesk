@@ -19,6 +19,8 @@ def get_assignment_rule(docname):
     doc = frappe.get_doc("Assignment Rule", docname)
     if doc.assign_condition:
         doc.assign_condition = json.dumps(convert_to_object(doc.assign_condition))
+    if doc.unassign_condition:
+        doc.unassign_condition = json.dumps(convert_to_object(doc.unassign_condition))
     return doc
 
 @frappe.whitelist()
@@ -31,6 +33,7 @@ def save_assignment_rule(doc, is_new):
                 "name": doc["assignment_rule_name"],
                 "doctype": "Assignment Rule",
                 "assign_condition": convert_to_conditions(doc["assign_condition"]),
+                "unassign_condition": convert_to_conditions(doc["unassign_condition"]),
             }
         )
     else:
@@ -39,6 +42,7 @@ def save_assignment_rule(doc, is_new):
             {
                 **doc,
                 "assign_condition": convert_to_conditions(doc["assign_condition"]),
+                'unassign_condition': convert_to_conditions(doc['unassign_condition']),
             }
         )
         assignment_rule.save()

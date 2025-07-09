@@ -34,6 +34,7 @@ const defaultAssignmentDays = [
 export const assignmentRuleData = ref<Record<string, any> | null>({
   loading: false,
   assign_condition: [],
+  unassign_condition: [],
   rule: "Round Robin",
   priority: 1,
   users: [],
@@ -48,6 +49,7 @@ export const resetAssignmentRuleData = () => {
   assignmentRuleData.value = {
     loading: false,
     assign_condition: [],
+    unassign_condition: [],
     rule: "Round Robin",
     priority: 1,
     users: [],
@@ -113,6 +115,14 @@ export const validateAssignmentRule = (key?: string) => {
         }
 
         break;
+      case "unassign_condition":
+        if (!validateConditions(assignmentRuleData.value.unassign_condition)) {
+          assignmentRulesErrors.value.unassign_condition_error =
+            "Unassign conditions are invalid";
+        } else {
+          assignmentRulesErrors.value.unassign_condition_error = "";
+        }
+        break;
       case "users":
         assignmentRulesErrors.value.users =
           assignmentRuleData.value.users?.length > 0
@@ -145,6 +155,7 @@ export const assignmentRulesErrors = ref<Record<string, any> | null>({
   assignment_rule_name: "",
   assign_condition: "",
   assign_condition_error: "",
+  unassign_condition_error: "",
   users: "",
   description: "",
   assignment_days: "",

@@ -154,13 +154,41 @@
         </span>
       </div>
       <div class="mt-4">
-        <AssignmentRulesSection />
+        <AssignmentRulesSection
+          :conditions="assignmentRuleData.assign_condition"
+          name="assign_condition"
+          :errors="assignmentRulesErrors.assign_condition_error"
+        />
         <div
           v-if="assignmentRulesErrors.assign_condition"
           class="text-red-500 text-xs mt-2"
         >
           {{ assignmentRulesErrors.assign_condition }}
         </div>
+      </div>
+    </div>
+    <hr class="my-6" />
+    <div>
+      <div class="flex flex-col gap-2">
+        <span class="text-lg font-semibold text-ink-gray-7"
+          >Unassignment rule</span
+        >
+        <span class="text-sm text-ink-gray-6">
+          Choose which tickets are affected by this un-assignment rule.
+          <a
+            class="font-medium underline"
+            href="https://docs.frappe.io/helpdesk/assignment-rule"
+            target="_blank"
+            >Learn about conditions</a
+          >
+        </span>
+      </div>
+      <div class="mt-4">
+        <AssignmentRulesSection
+          :conditions="assignmentRuleData.unassign_condition"
+          name="unassign_condition"
+          :errors="assignmentRulesErrors.unassign_condition_error"
+        />
       </div>
     </div>
     <hr class="my-6" />
@@ -237,6 +265,7 @@ const getAssignmentRuleData = createResource({
   },
   transform(data) {
     data.assign_condition = JSON.parse(data.assign_condition || "[]");
+    data.unassign_condition = JSON.parse(data.unassign_condition || "[]");
     data.assignment_rule_name = data.name;
     return data;
   },
@@ -289,6 +318,7 @@ const createAssignmentRule = () => {
         disabled: assignmentRuleData.value.disabled,
         priority: assignmentRuleData.value.priority,
         assign_condition: assignmentRuleData.value.assign_condition,
+        unassign_condition: assignmentRuleData.value.unassign_condition,
         assignment_days: assignmentRuleData.value.assignment_days,
         document_type: "HD Ticket",
         rule: assignmentRuleData.value.rule,
@@ -330,6 +360,7 @@ const updateAssignmentRule = async () => {
         disabled: assignmentRuleData.value.disabled,
         priority: assignmentRuleData.value.priority,
         assign_condition: assignmentRuleData.value.assign_condition,
+        unassign_condition: assignmentRuleData.value.unassign_condition,
         assignment_days: assignmentRuleData.value.assignment_days,
         document_type: "HD Ticket",
         rule: assignmentRuleData.value.rule,
