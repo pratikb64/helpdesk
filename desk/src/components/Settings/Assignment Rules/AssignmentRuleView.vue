@@ -15,7 +15,9 @@
           <Button
             variant="ghost"
             icon-left="chevron-left"
-            :label="assignmentRuleData.name || 'New Assignment Rule'"
+            :label="
+              assignmentRuleData.assignment_rule_name || 'New Assignment Rule'
+            "
             size="md"
             @click="goBack()"
             class="cursor-pointer -ml-4 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:none active:bg-transparent active:outline-none active:ring-0 active:ring-offset-0 active:text-ink-gray-5"
@@ -28,13 +30,22 @@
           />
         </div>
       </div>
-      <!-- :disabled="getAssignmentRuleData.isDirty" -->
-      <Button
-        label="Save"
-        theme="gray"
-        variant="solid"
-        @click="saveAssignmentRule()"
-      />
+      <div class="flex items-center gap-2">
+        <Badge
+          :variant="'subtle'"
+          :theme="'orange'"
+          size="sm"
+          label="Unsaved changes"
+          v-if="isDirty"
+        />
+        <Button
+          :disabled="Boolean(!isDirty && assignmentRulesActiveScreen.data)"
+          label="Save"
+          theme="gray"
+          variant="solid"
+          @click="saveAssignmentRule()"
+        />
+      </div>
     </div>
   </div>
   <div v-if="!assignmentRuleData.loading" class="overflow-y-auto px-10 pb-8">
@@ -54,7 +65,7 @@
           variant="subtle"
           placeholder="Name"
           label="Name"
-          v-model="assignmentRuleData.name"
+          v-model="assignmentRuleData.assignment_rule_name"
           required
           @change="debouncedValidateAssignmentRule('name')"
         />
@@ -166,10 +177,17 @@
     <hr class="my-6" />
     <AssigneeRules />
   </div>
+  <ConfirmDialog
+    v-model="showConfirmDialog"
+    title="Unsaved changes"
+    message="Are you sure you want to go back? Unsaved changes will be lost."
+    :onConfirm="goBack"
+    :onCancel="() => (showConfirmDialog = false)"
+  />
 </template>
 
 <script setup lang="ts">
-import { onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import {
   assignmentRuleData,
   assignmentRulesErrors,
@@ -187,45 +205,55 @@ import {
   FormControl,
   FormLabel,
   Popover,
-  createDocumentResource,
 } from "frappe-ui";
 import { useDebounceFn } from "@vueuse/core";
 import { assignmentRulesActiveScreen } from "../../../stores/assignmentRules";
 import AssignmentRulesSection from "./AssignmentRulesSection.vue";
 import AssignmentSchedule from "./AssignmentSchedule.vue";
 import AssigneeRules from "./AssigneeRules.vue";
-import { convertToConditions, convertToObject } from "@/utils";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+
+const isDirty = ref(false);
+const initialData = ref(null);
+
+const showConfirmDialog = ref(false);
 
 const debouncedValidateAssignmentRule = useDebounceFn((key?: string) => {
   validateAssignmentRule(key);
 }, 300);
 
-const createAssignmentRuleResource = (name: string) => {
-  return createDocumentResource({
-    doctype: "Assignment Rule",
-    name: name,
-    onSuccess() {
-      assignmentRuleData.value = getAssignmentRuleData.doc;
-      assignmentRuleData.value.loading = false;
-    },
-    transform(doc) {
-      doc.assign_condition = convertToObject(doc.assign_condition);
-      return doc;
-    },
-    auto: false,
-  });
-};
-
-let getAssignmentRuleData = createAssignmentRuleResource(
-  assignmentRulesActiveScreen.value.data?.name
-);
+let getAssignmentRuleData = createResource({
+  url: "helpdesk.api.assignment_rule.get_assignment_rule",
+  params: {
+    docname: assignmentRulesActiveScreen.value.data?.name,
+  },
+  onSuccess(data) {
+    assignmentRuleData.value = data;
+    assignmentRuleData.value.loading = false;
+    initialData.value = JSON.parse(JSON.stringify(assignmentRuleData.value));
+  },
+  transform(data) {
+    data.assign_condition = JSON.parse(data.assign_condition || "[]");
+    data.assignment_rule_name = data.name;
+    return data;
+  },
+  auto: false,
+});
 
 if (assignmentRulesActiveScreen.value.data) {
   assignmentRuleData.value.loading = true;
-  getAssignmentRuleData.get?.submit();
+  getAssignmentRuleData.submit();
 }
 
 const goBack = () => {
+  if (isDirty.value && !showConfirmDialog.value) {
+    showConfirmDialog.value = true;
+    return;
+  }
+  if (!assignmentRulesActiveScreen.value.data && !showConfirmDialog.value) {
+    showConfirmDialog.value = true;
+    return;
+  }
   assignmentRulesActiveScreen.value = {
     screen: "list",
     data: null,
@@ -248,31 +276,32 @@ const saveAssignmentRule = () => {
 
 const createAssignmentRule = () => {
   createResource({
-    url: "frappe.client.insert",
+    url: "helpdesk.api.assignment_rule.save_assignment_rule",
     params: {
       doc: {
         doctype: "Assignment Rule",
         name: assignmentRuleData.value.name,
+        assignment_rule_name: assignmentRuleData.value.assignment_rule_name,
         description: assignmentRuleData.value.description,
         disabled: assignmentRuleData.value.disabled,
         priority: assignmentRuleData.value.priority,
-        assign_condition: convertToConditions(
-          assignmentRuleData.value.assign_condition
-        ),
+        assign_condition: assignmentRuleData.value.assign_condition,
         assignment_days: assignmentRuleData.value.assignment_days,
         document_type: "HD Ticket",
         rule: assignmentRuleData.value.rule,
         users: assignmentRuleData.value.users,
       },
+      is_new: true,
     },
     auto: true,
     onSuccess(data) {
+      getAssignmentRuleData.submit({
+        docname: data.name,
+      });
       assignmentRulesActiveScreen.value = {
         screen: "view",
         data: data,
       };
-      getAssignmentRuleData = createAssignmentRuleResource(data.name);
-      getAssignmentRuleData.get?.submit();
       toast.success("Assignment rule created");
     },
   });
@@ -287,19 +316,58 @@ const priorityOptions = [
 ];
 
 const updateAssignmentRule = async () => {
-  console.log("getAssignmentRuleData", getAssignmentRuleData);
-  console.log("getAssignmentRuleData", getAssignmentRuleData.save);
-  let convertedCondition = convertToConditions(
-    assignmentRuleData.value.assign_condition
-  );
-  await getAssignmentRuleData.setValue.submit({
-    ...assignmentRuleData.value,
-    assign_condition: convertedCondition,
+  createResource({
+    url: "helpdesk.api.assignment_rule.save_assignment_rule",
+    params: {
+      doc: {
+        doctype: "Assignment Rule",
+        name: assignmentRuleData.value.name,
+        assignment_rule_name: assignmentRuleData.value.assignment_rule_name,
+        description: assignmentRuleData.value.description,
+        disabled: assignmentRuleData.value.disabled,
+        priority: assignmentRuleData.value.priority,
+        assign_condition: assignmentRuleData.value.assign_condition,
+        assignment_days: assignmentRuleData.value.assignment_days,
+        document_type: "HD Ticket",
+        rule: assignmentRuleData.value.rule,
+        users: assignmentRuleData.value.users,
+      },
+      is_new: false,
+    },
+    auto: true,
+    onSuccess(data) {
+      getAssignmentRuleData.submit({
+        docname: data.name,
+      });
+      toast.success("Assignment rule updated");
+    },
   });
 };
+
+watch(
+  assignmentRuleData,
+  (newVal) => {
+    if (!initialData.value) return;
+    isDirty.value =
+      JSON.stringify(Object.assign({}, newVal)) !=
+      JSON.stringify(Object.assign({}, initialData.value));
+  },
+  { deep: true }
+);
+
+const beforeUnloadHandler = (event) => {
+  if (!isDirty.value) return;
+  event.preventDefault();
+  event.returnValue = true;
+};
+
+onMounted(() => {
+  addEventListener("beforeunload", beforeUnloadHandler);
+});
 
 onUnmounted(() => {
   resetAssignmentRuleErrors();
   resetAssignmentRuleData();
+  removeEventListener("beforeunload", beforeUnloadHandler);
 });
 </script>

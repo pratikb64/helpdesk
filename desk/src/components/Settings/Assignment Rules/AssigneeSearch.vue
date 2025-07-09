@@ -9,7 +9,7 @@
           label="Add Assignee"
         />
       </template>
-      <template #body>
+      <template #body="{ togglePopover }">
         <div class="mt-1 rounded-lg bg-white py-1 text-base shadow-2xl w-60">
           <div class="relative px-1.5 pt-0.5">
             <ComboboxInput
@@ -32,10 +32,7 @@
               <FeatherIcon name="x" class="w-4" />
             </button>
           </div>
-          <ComboboxOptions
-            class="my-2 max-h-[12rem] overflow-y-auto px-1.5"
-            static
-          >
+          <ComboboxOptions class="my-2 max-h-64 overflow-y-auto px-1.5" static>
             <ComboboxOption
               v-show="usersList.data?.length > 0"
               v-for="user in usersList.data"
@@ -85,15 +82,30 @@
               class="w-full"
               icon-left="plus"
               label="Invite agent"
+              @click="
+                () => {
+                  showNewAgentsDialog = true;
+                  togglePopover();
+                }
+              "
             />
           </div>
         </div>
       </template>
     </Popover>
   </Combobox>
+  <AddNewAgentsDialog
+    title="Invite Agent"
+    @close="showNewAgentsDialog = false"
+    :modelValue="showNewAgentsDialog"
+    :show="showNewAgentsDialog"
+    @update:modelValue="showNewAgentsDialog = $event"
+    @invitedAgents="addInvitedAgents"
+  />
 </template>
 
 <script setup lang="ts">
+import AddNewAgentsDialog from "@/components/desk/global/AddNewAgentsDialog.vue";
 import { assignmentRuleData } from "@/stores/assignmentRules";
 import {
   Combobox,
@@ -107,6 +119,7 @@ import { ref } from "vue";
 
 const emit = defineEmits(["addAssignee"]);
 const query = ref("");
+const showNewAgentsDialog = ref(false);
 
 watchDebounced(
   () => query.value,
@@ -132,8 +145,11 @@ watchDebounced(
 const usersList = createListResource({
   doctype: "User",
   fields: ["*"],
+  filters: {
+    full_name: ["not in", ["Administrator", "Guest"]],
+  },
   start: 0,
-  pageLength: 6,
+  pageLength: 5,
   auto: true,
   transform: (data) => {
     return data.map((user) => {
@@ -145,18 +161,18 @@ const usersList = createListResource({
   },
 });
 
+const addInvitedAgents = (users) => {
+  users.forEach((user) => {
+    addAssignee({ user });
+  });
+};
+
 const addAssignee = (user) => {
   const userExists = assignmentRuleData.value.users.some(
     (u) => u.user === user.user
   );
   if (!userExists) {
-    if (user.full_name == "Administrator") {
-      user.user = "Administrator";
-    }
-    if (user.full_name == "Guest") {
-      user.user = "Guest";
-    }
-    assignmentRuleData.value.users.push(user);
+    assignmentRuleData.value.users.push({ user: user.user });
     emit("addAssignee", user);
   }
 };

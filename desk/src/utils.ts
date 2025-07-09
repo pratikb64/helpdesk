@@ -367,7 +367,7 @@ export const convertToConditions = (
     }
 
     const { fieldname, fieldtype = "" } = field;
-    const normalizedOp = operator.toLowerCase();
+    const normalizedOp = operator.toLowerCase().replace(/\s+/g, " ");
     const op = OPERATOR_MAP[normalizedOp] || normalizedOp;
 
     if (op === "timespan") {
@@ -378,14 +378,24 @@ export const convertToConditions = (
     let valueStr = formatValueForCondition(fieldname, fieldtype, op, value);
     if (valueStr === null) continue;
 
-    let conditionStr = `${fieldname} ${op} ${valueStr}`;
+    let conditionStr: string;
 
-    if (
-      fieldtype === "Check" &&
-      op === "==" &&
-      (valueStr === "0" || valueStr === "1")
-    ) {
-      conditionStr = valueStr === "1" ? fieldname : `not ${fieldname}`;
+    if (op === "like" || op === "not like") {
+      const pythonOp = op === "like" ? "in" : "not in";
+      const quotedValue = valueStr.slice(1, -1); // remove outer quotes
+      const pattern = quotedValue.replace(/^%|%$/g, "");
+      const cleanValue = `'${pattern}'`;
+      conditionStr = `${cleanValue} ${pythonOp} ${fieldname}`;
+    } else {
+      conditionStr = `${fieldname} ${op} ${valueStr}`;
+
+      if (
+        fieldtype === "Check" &&
+        op === "==" &&
+        (valueStr === "0" || valueStr === "1")
+      ) {
+        conditionStr = valueStr === "1" ? fieldname : `not ${fieldname}`;
+      }
     }
 
     conditionsStr.push(conditionStr);
@@ -467,7 +477,6 @@ interface FieldInfo extends Omit<FieldMetadata, "fieldname"> {
   fieldname: string;
 }
 
-// Operator mapping for string to operator conversion
 const STRING_TO_OPERATOR: Record<string, string> = {
   "==": "equals",
   "!=": "not equals",
@@ -475,8 +484,8 @@ const STRING_TO_OPERATOR: Record<string, string> = {
   "<=": "<=",
   ">": ">",
   ">=": ">=",
-  in: "in",
-  "not in": "not in",
+  in: "like",
+  "not in": "not like",
 } as const;
 
 /**
@@ -491,9 +500,6 @@ export const convertToObject = (
 ): Condition[] => {
   if (!conditionStr) return [];
 
-  /**
-   * Get field information from field name and metadata
-   */
   const getFieldInfo = (fieldname: string): FieldInfo => {
     const meta = fieldsMeta[fieldname];
     const defaultLabel = fieldname
@@ -532,16 +538,32 @@ export const convertToObject = (
       );
 
       if (!match) continue;
+      const lhs = match[1].trim();
+      const rawOperator = match[2].trim();
+      const rhs = match[3].trim();
 
-      const [, fieldname, operator, value] = match;
-      const normalizedOperator = operator.toLowerCase().replace(/\s+/g, " ");
+      const normalizedOperator = rawOperator.toLowerCase().replace(/\s+/g, " ");
+      let parsedOperator =
+        STRING_TO_OPERATOR[normalizedOperator] || normalizedOperator;
+      let fieldname = lhs;
+      let value = rhs;
+
+      if (
+        (normalizedOperator === "in" || normalizedOperator === "not in") &&
+        /^['"]/.test(lhs)
+      ) {
+        const pattern = lhs.slice(1, -1);
+        parsedOperator = normalizedOperator === "in" ? "like" : "not like";
+        fieldname = rhs;
+        value = `%${pattern}%`;
+      }
+
       const fieldInfo = getFieldInfo(fieldname);
-
-      const parsedValue = parseConditionValue(value.trim(), normalizedOperator);
+      const parsedValue = parseConditionValue(value.trim(), parsedOperator);
 
       const condition: Condition = {
         field: fieldInfo,
-        operator: STRING_TO_OPERATOR[normalizedOperator] || normalizedOperator,
+        operator: parsedOperator,
         value: parsedValue,
       };
 

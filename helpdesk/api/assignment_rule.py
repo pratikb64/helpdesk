@@ -1,13 +1,14 @@
-import frappe
 import ast
+import frappe
 import json
-# from frappe.model.rename_doc import update_document_title
+
+from frappe.model.rename_doc import update_document_title
 
 
 @frappe.whitelist()
 def duplicate_assignment_rule(docname, new_name):
     doc = frappe.get_doc("Assignment Rule", docname)
-    doc.name = new_name 
+    doc.name = new_name
     doc.document_type = "HD Ticket"
     doc.insert(ignore_permissions=True)
     return "success"
@@ -19,6 +20,43 @@ def get_assignment_rule(docname):
     if doc.assign_condition:
         doc.assign_condition = json.dumps(convert_to_object(doc.assign_condition))
     return doc
+
+@frappe.whitelist()
+def save_assignment_rule(doc, is_new):
+    assignment_rule = None
+    if is_new:
+        assignment_rule = frappe.client.insert(
+            {
+                **doc,
+                "name": doc["assignment_rule_name"],
+                "doctype": "Assignment Rule",
+                "assign_condition": convert_to_conditions(doc["assign_condition"]),
+            }
+        )
+    else:
+        assignment_rule = frappe.get_doc("Assignment Rule", doc["name"])
+        assignment_rule.update(
+            {
+                **doc,
+                "assign_condition": convert_to_conditions(doc["assign_condition"]),
+            }
+        )
+        assignment_rule.save()
+
+        if assignment_rule.name != doc["assignment_rule_name"]:
+            update_document_title(**{
+                "doctype": "Assignment Rule",
+                "docname": doc["name"],
+                "enqueue": False,
+                "merge": 0,
+                "freeze": True,
+                "name": doc["assignment_rule_name"],
+                "freeze_message": "Updating assignment rule name",
+            })
+        assignment_rule = frappe.get_doc("Assignment Rule", doc["assignment_rule_name"])
+        
+
+    return assignment_rule
 
 
 # @frappe.whitelist()
@@ -183,7 +221,7 @@ def convert_to_conditions(conditions, is_nested=False):
 
 
 def convert_to_object(condition_str):
-    if not condition_str:
+    if not condition_str or not isinstance(condition_str, str):
         return []
 
     fields_meta = {f.fieldname: f for f in frappe.get_meta("HD Ticket").fields}

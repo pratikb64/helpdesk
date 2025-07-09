@@ -40,6 +40,7 @@ export const assignmentRuleData = ref<Record<string, any> | null>({
   disabled: true,
   description: "",
   name: "",
+  assignment_rule_name: "",
   assignment_days: defaultAssignmentDays,
 });
 
@@ -53,6 +54,7 @@ export const resetAssignmentRuleData = () => {
     disabled: true,
     description: "",
     name: "",
+    assignment_rule_name: "",
     assignment_days: defaultAssignmentDays,
   };
 };

@@ -69,7 +69,7 @@
       <div
         v-for="user in assignmentRuleData.users"
         :key="user.name"
-        class="flex items-center gap-2 text-sm bg-surface-gray-2 rounded-md p-1 w-max px-2"
+        class="flex items-center gap-2 text-sm bg-surface-gray-2 rounded-md p-1 w-max px-2 select-none"
       >
         <Avatar :image="user.user_image" :label="user.user" size="sm" />
         <div class="text-ink-gray-7">
@@ -113,10 +113,6 @@ const ticketRoutingOptions = [
   {
     label: "Load Balancing",
     value: "Load Balancing",
-  },
-  {
-    label: "Based on Field",
-    value: "Based on Field",
   },
 ];
 

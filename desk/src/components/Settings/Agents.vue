@@ -129,6 +129,7 @@
     </div>
   </div>
   <AddNewAgentsDialog
+    title="Add Agents"
     @close="showNewAgentsDialog = false"
     :modelValue="showNewAgentsDialog"
     :show="showNewAgentsDialog"
