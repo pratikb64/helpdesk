@@ -1,6 +1,7 @@
 import ast
 import frappe
 import json
+import re
 
 from frappe.model.rename_doc import update_document_title
 
@@ -81,269 +82,186 @@ def save_assignment_rule(doc, is_new):
 
 
 def convert_to_conditions(conditions, is_nested=False):
-    """
-    Convert conditions array to Python string
+    condition_str = ""
+    for i, condition in enumerate(conditions):
+        if i > 0:
+            condition_str += f" {condition.get('conjunction', 'and')} "
 
-    Args:
-        conditions (list/dict): List of conditions or a single condition dict
-        is_nested (bool): Whether this is a nested condition (for internal use)
+        if condition.get("field") == "group":
+            condition_str += f"({convert_to_conditions(condition.get('value', []), is_nested=True)})"
+            continue
 
-    Returns:
-        str: Python condition string
-    """
-    if not conditions:
-        return ""
-
-    if isinstance(conditions, dict):
-        conditions = [conditions]
-
-    conditions_str = []
-
-    for condition in conditions:
-        field = condition.get("field")
-        operator = condition.get("operator", "==").lower()
+        field = condition.get("field", {})
+        fieldname = field.get("fieldname")
+        operator = condition.get("operator")
         value = condition.get("value")
-        conjunction = condition.get("conjunction", "and").lower()
 
-        # Handle nested conditions
-        if field == "group" and isinstance(value, list):
-            nested_condition = convert_to_conditions(value, is_nested=True)
-            conditions_str.append(f"({nested_condition})")
+        if not fieldname or not operator:
             continue
 
-        # Skip if field is not properly defined
-        if not isinstance(field, dict) or "fieldname" not in field:
-            continue
+        # Get fieldtype to handle value quoting
+        meta = frappe.get_meta("HD Ticket")
+        field_meta = meta.get_field(fieldname)
+        fieldtype = field_meta.fieldtype if field_meta else "Data"
 
-        fieldname = field["fieldname"]
-        fieldtype = field.get("fieldtype", "")
-
-        # Format field access
-        field_access = fieldname
-
-        # Format operator
-        operator_map = {
-            # Basic comparisons
-            "equals": "==",
-            "=": "==",
-            "!=": "!=",
-            "not equals": "!=",
-            "<": "<",
-            "<=": "<=",
-            ">": ">",
-            ">=": ">=",
-            # Membership
-            "in": "in",
-            "not in": "not in",
-            # String matching
-            "like": "like",
-            "not like": "not like",
-            # Identity
-            "is": "is",
-            "is not": "is not",
-            # Date specific
-            "between": "between",
-            "timespan": "timespan",
-        }
-
-        op = operator_map.get(operator, operator)
-
-        if isinstance(value, str):
-            if fieldname == "_assign":
-                if op == "like":
-                    op = "like"
-                    value_str = f"'%{value}%'"
-                elif op == "not like":
-                    op = "not like"
-                    value_str = f"'%{value}%'"
-                elif op == "is":
-                    value_str = "None"
-            elif fieldtype == "Check":
-                if value.lower() in ("yes", "true", "1"):
-                    value_str = "1"
-                else:
-                    value_str = "0"
-                if op == "==" and value_str == "1":
-                    conditions_str.append(field_access)
-                    continue
-                elif op == "==" and value_str == "0":
-                    conditions_str.append(f"not {field_access}")
-                    continue
-            elif op == "timespan":
-                conditions_str.append(f"# Timespan: {value} not implemented")
-                continue
-            elif op == "between" and "," in value:
-                start, end = [v.strip() for v in value.split(",")]
-                conditions_str.append(
-                    f"({field_access} >= '{start}' and {field_access} <= '{end}')"
-                )
-                continue
-            elif op in ("in", "not in") and "," in value:
-                items = [f"'{v.strip()}'" for v in value.split(",")]
-                value_str = f"[{', '.join(items)}]"
-            elif op in ("like", "not like"):
-                value_str = f"'%{value}%'"
-            else:
-                value_str = f"'{value}'"
-        elif isinstance(value, (int, float, bool)):
-            value_str = str(value).lower() if isinstance(value, bool) else str(value)
-        elif value is None:
-            value_str = "None"
+        # Handle different operators
+        if operator == "equals":
+            op_str = "=="
+        elif operator == "not equals":
+            op_str = "!="
+        elif operator == "like":
+            op_str = "in"
+        elif operator == "not like":
+            op_str = "not in"
         else:
-            value_str = str(value)
+            op_str = operator
 
-        condition_str = f"{field_access} {op} {value_str}"
+        # Handle value formatting
+        if operator in ["in", "not in"] and isinstance(value, str):
+            value_str = f"[{', '.join([f'{repr(v.strip())}' for v in value.split(',')])}]"
+        elif operator in ["is", "is not"] and value in ["set", "not set"]:
+            value_str = "None" if value == "not set" else "not None"
+        elif fieldtype in ["Select", "Link", "Data", "Text Editor", "Small Text", "Text"]:
+            value_str = repr(value)
+        else:
+            value_str = value
 
-        if fieldtype == "Check" and op == "==" and value_str in ("0", "1"):
-            if value_str == "1":
-                condition_str = field_access
-            else:
-                condition_str = f"not {field_access}"
+        if operator in ["like", "not like"]:
+            condition_str += f"{value_str} {op_str} {fieldname}"
+        else:
+            condition_str += f"{fieldname} {op_str} {value_str}"
 
-        conditions_str.append(condition_str)
+    return condition_str
 
-    if not conditions_str:
-        return ""
+def convert_to_object(condition_str):
+    if not condition_str:
+        return []
 
-    result = f" {conjunction} ".join(conditions_str)
+    # This is a simplified parser. For complex scenarios, a proper parsing library would be more robust.
+    groups = {}
+    processed_str = list(condition_str)
+    i = 0
+    while i < len(processed_str):
+        if processed_str[i] == '(':
+            start = i
+            balance = 1
+            i += 1
+            while i < len(processed_str) and balance > 0:
+                if processed_str[i] == '(':
+                    balance += 1
+                elif processed_str[i] == ')':
+                    balance -= 1
+                i += 1
+            
+            if balance == 0:
+                group_content = "".join(processed_str[start+1:i-1])
+                group_id = f"__group_{len(groups)}__"
+                groups[group_id] = group_content
+                # Replace the group with its ID
+                processed_str = processed_str[:start] + list(group_id) + processed_str[i:]
+                # Reset index to re-scan from the beginning of the modified string
+                i = -1 
+        i += 1
+    
+    processed_str = "".join(processed_str)
 
-    if (
-        not is_nested
-        and len(conditions) == 1
-        and not any(c in result for c in ["(", ")"])
-    ):
-        return result
+    # Split by conjunctions
+    conditions = re.split(r'\s+(and|or)\s+', processed_str)
+    
+    result = []
+    i = 0
+    while i < len(conditions):
+        part = conditions[i].strip()
+        if not part:
+            i += 1
+            continue
 
-    result = result.replace("  ", " ").replace("  ", " ").strip()
+        conjunction = conditions[i-1].strip() if i > 0 else None
 
-    if is_nested and len(conditions) > 1:
-        result = f"({result})"
-
-    # Remove any double parentheses that might have been added
-    while "((" in result and "))" in result:
-        result = result.replace("((", "(").replace("))", ")")
+        if part in groups:
+            # This is a nested group
+            nested_conditions = convert_to_object(groups[part])
+            group_obj = {
+                "field": "group",
+                "operator": "equals", # This seems to be the default for groups in the example
+                "value": nested_conditions,
+            }
+            if conjunction:
+                group_obj["conjunction"] = conjunction
+            result.append(group_obj)
+        else:
+            # This is a simple condition
+            obj = _parse_simple_condition(part)
+            if obj:
+                if conjunction:
+                    obj["conjunction"] = conjunction
+                result.append(obj)
+        i += 1
 
     return result
 
+def _parse_simple_condition(condition_part):
+    # This helper function will parse a single condition like 'status == "Open"'
+    # It's a simplified implementation.
+    match = re.match(r"'([^']*)'\s+(in|not in)\s+([a-zA-Z0-9_]+)", condition_part)  # like, not like
+    if not match:
+        match = re.match(r"([a-zA-Z0-9_]+)\s+(==|!=|in|not in|is|is not|<|>|<=|>=)\s+(.*)", condition_part)
 
-def convert_to_object(condition_str):
-    if not condition_str or not isinstance(condition_str, str):
-        return []
-
-    fields_meta = {f.fieldname: f for f in frappe.get_meta("HD Ticket").fields}
-
-    def get_field_info(fieldname):
-        meta = fields_meta.get(fieldname)
-        if not meta:
-            return {
-                "value": fieldname,
-                "fieldname": fieldname,
-                "fieldtype": "Data",
-                "label": fieldname.replace("_", " ").title(),
-            }
-        return {
-            "value": fieldname,
-            "fieldname": meta.fieldname,
-            "fieldtype": meta.fieldtype,
-            "label": meta.label,
-            "options": meta.options,
-        }
-
-    def get_operator_str(op):
-        return {
-            ast.Eq: "equals",
-            ast.NotEq: "not equals",
-            ast.Lt: "<",
-            ast.LtE: "<=",
-            ast.Gt: ">",
-            ast.GtE: ">=",
-            ast.In: "in",
-            ast.NotIn: "not in",
-        }.get(type(op), "")
-
-    def parse_node(node, is_top_level=False):
-        if isinstance(node, ast.BoolOp):
-            conjunction = "and" if isinstance(node.op, ast.And) else "or"
-
-            child_results = [parse_node(v) for v in node.values]
-
-            for i in range(1, len(child_results)):
-                child = child_results[i]
-                if child and child[0]:
-                    child[0]["conjunction"] = conjunction
-
-            flat_conditions = []
-            for child in child_results:
-                if child:
-                    flat_conditions.extend(child)
-
-            if len(node.values) > 1 and not is_top_level:
-                return [
-                    {
-                        "field": "group",
-                        "operator": "equals",
-                        "value": flat_conditions,
-                    }
-                ]
-
-            return flat_conditions
-
-        elif isinstance(node, ast.Compare):
-            # Handle both Attribute (doc.field) and Name (field) nodes
-            if isinstance(node.left, ast.Attribute):
-                fieldname = node.left.attr
-            elif isinstance(node.left, ast.Name):
-                fieldname = node.left.id
-            else:
-                return None
-
-            op = get_operator_str(node.ops[0])
-            val = ast.literal_eval(node.comparators[0])
-
-            if fields_meta.get(fieldname, {}).get("fieldtype") == "Check":
-                value = "Yes" if val else "No"
-            elif isinstance(val, list):
-                value = ", ".join(map(str, val))
-            else:
-                value = str(val)
-
-            return [
-                {
-                    "field": get_field_info(fieldname),
-                    "operator": op,
-                    "value": value,
-                }
-            ]
-
-        elif isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
-            condition = parse_node(node.operand)
-            if condition and condition[0]:
-                condition[0]["value"] = "No"
-                return condition
-            return None
-
-        elif isinstance(node, ast.Attribute):
-            fieldname = node.attr
-            if fields_meta.get(fieldname, {}).get("fieldtype") == "Check":
-                return [
-                    {
-                        "field": get_field_info(fieldname),
-                        "operator": "equals",
-                        "value": "Yes",
-                    }
-                ]
-            return None
-
-        elif isinstance(node, ast.Expr):
-            return parse_node(node.value, is_top_level)
-
+    if not match:
         return None
 
-    try:
-        parsed_ast = ast.parse(condition_str.strip(), mode="eval")
-        conditions = parse_node(parsed_ast.body, is_top_level=True)
-        return conditions or []
+    meta = frappe.get_meta("HD Ticket")
 
-    except (SyntaxError, ValueError) as e:
-        frappe.log_error(f"Error parsing condition string: {e}", "SLA API Error")
-        return []
+    if "'" in condition_part and (' in ' in condition_part or ' not in ' in condition_part) and condition_part.startswith("'"):
+        # like / not like
+        value, py_operator, fieldname = match.groups()
+        operator = 'like' if py_operator == 'in' else 'not like'
+    else:
+        fieldname, py_operator, value_str = match.groups()
+        value_str = value_str.strip()
+
+        operator_map = {
+            "==": "equals",
+            "!=": "not equals",
+            "in": "in",
+            "not in": "not in",
+            "is": "is",
+            "is not": "is",  # 'is not' also maps to 'is', but value becomes 'not set'
+            "<": "<",
+            ">": ">",
+            "<=": "<=",
+            ">=": ">=",
+        }
+        operator = operator_map.get(py_operator, py_operator)
+
+        # Convert value from string back to original type
+        if value_str.startswith('[') and value_str.endswith(']'):
+            # List value for 'in' or 'not in'
+            value = [v.strip().strip("'") for v in value_str[1:-1].split(',')]
+            value = ", ".join(value)
+        elif value_str == 'None':
+            value = 'not set' if py_operator == 'is not' else 'set'
+        elif value_str.startswith("'") and value_str.endswith("'"):
+            value = value_str[1:-1]
+        else:
+            try:
+                value = int(value_str)
+            except ValueError:
+                try:
+                    value = float(value_str)
+                except ValueError:
+                    value = value_str # Keep as string if not a number
+
+    field_meta = meta.get_field(fieldname)
+    
+    return {
+        "field": {
+            "value": fieldname,
+            "fieldname": fieldname,
+            "fieldtype": field_meta.fieldtype if field_meta else "Data",
+            "label": field_meta.label if field_meta else fieldname,
+            "options": field_meta.options if field_meta else None
+        },
+        "operator": operator,
+        "value": value
+    }
