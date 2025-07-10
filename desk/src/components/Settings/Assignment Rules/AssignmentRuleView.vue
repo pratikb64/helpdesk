@@ -267,6 +267,15 @@ const getAssignmentRuleData = createResource({
     data.assign_condition = JSON.parse(data.assign_condition || "[]");
     data.unassign_condition = JSON.parse(data.unassign_condition || "[]");
     data.assignment_rule_name = data.name;
+    data.users = data.users.map((user) => {
+      return {
+        ...user,
+        ticketCount:
+          data.ticket_counts.find(
+            (ticketCount) => ticketCount.user == user.user
+          )?.count || 0,
+      };
+    });
     return data;
   },
   auto: false,

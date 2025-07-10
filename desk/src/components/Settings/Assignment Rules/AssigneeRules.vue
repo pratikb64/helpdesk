@@ -79,6 +79,11 @@
         <div class="text-ink-gray-7">
           {{ user.user }}
         </div>
+        <div
+          class="text-xs size-4 flex items-center justify-center rounded-full bg-white text-ink-gray-7"
+        >
+          {{ user.ticketCount }}
+        </div>
         <Tooltip
           v-if="user.user == assignmentRuleData.last_user"
           text="Last user assigned by this rule"

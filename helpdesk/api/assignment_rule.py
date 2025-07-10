@@ -21,7 +21,23 @@ def get_assignment_rule(docname):
         doc.assign_condition = json.dumps(convert_to_object(doc.assign_condition))
     if doc.unassign_condition:
         doc.unassign_condition = json.dumps(convert_to_object(doc.unassign_condition))
-    return doc
+    ticket_counts = [
+        dict(
+            user=d.user,
+            count=frappe.db.count(
+                "ToDo",
+                dict(
+                    reference_type="HD Ticket",
+                    allocated_to=d.user,
+                    status="Open",
+                ),
+            ),
+        )
+        for d in doc.users
+    ]
+
+    return {**doc.as_dict(), "ticket_counts": ticket_counts}
+
 
 @frappe.whitelist()
 def save_assignment_rule(doc, is_new):
@@ -42,23 +58,24 @@ def save_assignment_rule(doc, is_new):
             {
                 **doc,
                 "assign_condition": convert_to_conditions(doc["assign_condition"]),
-                'unassign_condition': convert_to_conditions(doc['unassign_condition']),
+                "unassign_condition": convert_to_conditions(doc["unassign_condition"]),
             }
         )
         assignment_rule.save()
 
         if assignment_rule.name != doc["assignment_rule_name"]:
-            update_document_title(**{
-                "doctype": "Assignment Rule",
-                "docname": doc["name"],
-                "enqueue": False,
-                "merge": 0,
-                "freeze": True,
-                "name": doc["assignment_rule_name"],
-                "freeze_message": "Updating assignment rule name",
-            })
+            update_document_title(
+                **{
+                    "doctype": "Assignment Rule",
+                    "docname": doc["name"],
+                    "enqueue": False,
+                    "merge": 0,
+                    "freeze": True,
+                    "name": doc["assignment_rule_name"],
+                    "freeze_message": "Updating assignment rule name",
+                }
+            )
         assignment_rule = frappe.get_doc("Assignment Rule", doc["assignment_rule_name"])
-        
 
     return assignment_rule
 
@@ -279,7 +296,7 @@ def convert_to_object(condition_str):
                 fieldname = node.left.id
             else:
                 return None
-                
+
             op = get_operator_str(node.ops[0])
             val = ast.literal_eval(node.comparators[0])
 
