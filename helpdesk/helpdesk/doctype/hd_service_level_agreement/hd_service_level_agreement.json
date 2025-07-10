@@ -13,8 +13,10 @@
   "enabled",
   "filters_section",
   "default_sla",
+  "condition_type",
   "column_break_15",
   "condition",
+  "condition_json",
   "agreement_details_section",
   "start_date",
   "column_break_7",
@@ -148,7 +150,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: !doc.default_sla",
+   "depends_on": "eval: !doc.default_sla && doc.condition_type == 'Python'",
    "description": "Simple Python Expression, Example: doc.status == 'Open' and doc.ticket_type == 'Bug'",
    "fieldname": "condition",
    "fieldtype": "Code",
@@ -164,10 +166,24 @@
    "fieldname": "description",
    "fieldtype": "Data",
    "label": "Description"
+  },
+  {
+   "depends_on": "eval: !doc.default_sla  && doc.condition_type=='Json'",
+   "description": "Modify condition from portal view, not from here.",
+   "fieldname": "condition_json",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "max_height": "7rem"
+  },
+  {
+   "fieldname": "condition_type",
+   "fieldtype": "Select",
+   "label": "Conditions type",
+   "options": "Python\nJson"
   }
  ],
  "links": [],
- "modified": "2025-06-02 11:34:00.755269",
+ "modified": "2025-07-10 21:32:43.234490",
  "modified_by": "Administrator",
  "module": "Helpdesk",
  "name": "HD Service Level Agreement",

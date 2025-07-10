@@ -98,9 +98,11 @@ import {
   Dialog,
   Badge,
 } from "frappe-ui";
-import { ref } from "vue";
-import { slaActiveScreen, slaPolicyListData } from "@/stores/sla";
+import { ref, inject } from "vue";
+import { slaActiveScreen } from "@/stores/sla";
 import { TemplateOption } from "@/utils";
+
+const slaPolicyList = inject<any>("slaPolicyList");
 
 const duplicateDialog = ref({
   show: false,
@@ -124,7 +126,7 @@ const duplicate = () => {
       new_name: duplicateDialog.value.name,
     },
     onSuccess: (data) => {
-      slaPolicyListData.reload();
+      slaPolicyList.reload();
       toast.success("SLA policy duplicated");
       duplicateDialog.value = {
         show: false,
@@ -154,7 +156,7 @@ const deleteSla = (event) => {
       name: props.data.name,
     },
     onSuccess: () => {
-      slaPolicyListData.reload();
+      slaPolicyList.reload();
       isConfirmingDelete.value = false;
       toast.success("SLA policy deleted");
     },
@@ -176,7 +178,7 @@ const onToggle = () => {
       value: !props.data.enabled,
     },
     onSuccess: () => {
-      slaPolicyListData.reload();
+      slaPolicyList.reload();
       toast.success("SLA policy status updated");
     },
     auto: true,
