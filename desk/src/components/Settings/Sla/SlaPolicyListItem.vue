@@ -98,9 +98,11 @@ import {
   Dialog,
   Badge,
 } from "frappe-ui";
-import { ref } from "vue";
-import { slaActiveScreen, slaPolicyListData } from "@/stores/sla";
+import { ref, inject } from "vue";
+import { slaActiveScreen } from "@/stores/sla";
 import { TemplateOption } from "@/utils";
+
+const slaPolicyList = inject<any>("slaPolicyList");
 
 const duplicateDialog = ref({
   show: false,
@@ -124,7 +126,7 @@ const duplicate = () => {
       new_name: duplicateDialog.value.name,
     },
     onSuccess: (data) => {
-      slaPolicyListData.reload();
+      slaPolicyList.reload();
       toast.success("SLA policy duplicated");
       duplicateDialog.value = {
         show: false,
@@ -147,18 +149,13 @@ const deleteSla = (event) => {
     return;
   }
 
-  createResource({
-    url: "frappe.client.delete",
-    params: {
-      doctype: "HD Service Level Agreement",
-      name: props.data.name,
-    },
+  slaPolicyList.delete.submit(props.data.name, {
     onSuccess: () => {
-      slaPolicyListData.reload();
-      isConfirmingDelete.value = false;
       toast.success("SLA policy deleted");
     },
-    auto: true,
+    onError: (error) => {
+      toast.error(error.messages[0] || "Failed to delete SLA policy");
+    },
   });
 };
 
@@ -167,19 +164,19 @@ const onToggle = () => {
     toast.error("SLA set as default cannot be disabled");
     return;
   }
-  createResource({
-    url: "frappe.client.set_value",
-    params: {
-      doctype: "HD Service Level Agreement",
+  slaPolicyList.setValue.submit(
+    {
       name: props.data.name,
-      fieldname: "enabled",
-      value: !props.data.enabled,
+      enabled: !props.data.enabled,
     },
-    onSuccess: () => {
-      slaPolicyListData.reload();
-      toast.success("SLA policy status updated");
-    },
-    auto: true,
-  });
+    {
+      onSuccess: () => {
+        toast.success("SLA policy status updated");
+      },
+      onError: (error) => {
+        toast.error(error.messages[0] || "Failed to update SLA policy");
+      },
+    }
+  );
 };
 </script>

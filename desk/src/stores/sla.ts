@@ -2,15 +2,6 @@ import { ref } from "vue";
 import { createResource } from "frappe-ui";
 import { SlaValidationErrors } from "@/components/Settings/Sla/types";
 
-export const slaPolicyListData = createResource({
-  url: "frappe.client.get_list",
-  params: {
-    doctype: "HD Service Level Agreement",
-    fields: ["*"],
-    order_by: "modified desc",
-  },
-});
-
 export const slaData = ref({
   service_level: "",
   description: "",
@@ -113,6 +104,7 @@ export function validateSlaData(key?: SlaField): SlaValidationErrors {
     apply_sla_for_resolution: "",
     priorities: "",
     statuses: "",
+    statuses_conflict: "",
     holiday_list: "",
     default_priority: "",
     start_date: "",

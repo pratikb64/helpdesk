@@ -50,12 +50,8 @@
       />
     </div>
     <div>
-      <div v-if="slaDataErrors.default_priority" class="text-red-500 text-xs">
-        {{ slaDataErrors.default_priority }}
-      </div>
-      <div v-if="slaDataErrors.priorities" class="text-red-500 text-xs">
-        {{ slaDataErrors.priorities }}
-      </div>
+      <ErrorMessage :message="slaDataErrors.default_priority" />
+      <ErrorMessage :message="slaDataErrors.priorities" />
     </div>
   </div>
 </template>

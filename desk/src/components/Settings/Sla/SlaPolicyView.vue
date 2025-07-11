@@ -62,9 +62,7 @@
           @change="debouncedValidateSlaData('service_level')"
           :disabled="slaActiveScreen.data"
         />
-        <span v-if="slaDataErrors.service_level" class="text-red-500 text-xs">
-          {{ slaDataErrors.service_level }}
-        </span>
+        <ErrorMessage :message="slaDataErrors.service_level" />
       </div>
       <FormControl
         :type="'textarea'"
@@ -117,9 +115,7 @@
             @change="debouncedValidateSlaData('start_date')"
             :formatter="(date) => getFormattedDate(date)"
           />
-          <span v-if="slaDataErrors.start_date" class="text-red-500 text-xs">
-            {{ slaDataErrors.start_date }}
-          </span>
+          <ErrorMessage :message="slaDataErrors.start_date" />
         </div>
         <div class="w-full space-y-1.5">
           <label for="to_date" class="text-sm text-gray-600">To date</label>
@@ -132,9 +128,7 @@
             @change="debouncedValidateSlaData('end_date')"
             :formatter="(date) => getFormattedDate(date)"
           />
-          <span v-if="slaDataErrors.end_date" class="text-red-500 text-xs">
-            {{ slaDataErrors.end_date }}
-          </span>
+          <ErrorMessage :message="slaDataErrors.end_date" />
         </div>
       </div>
     </div>
@@ -210,6 +204,7 @@ import {
   LoadingIndicator,
   Badge,
   Button,
+  ErrorMessage,
 } from "frappe-ui";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
@@ -423,6 +418,7 @@ onUnmounted(() => {
     apply_sla_for_resolution: "",
     priorities: "",
     statuses: "",
+    statuses_conflict: "",
     holiday_list: "",
     default_priority: "",
     start_date: "",

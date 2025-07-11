@@ -38,7 +38,6 @@
       />
     </div>
   </div>
-
   <div v-if="!holidayData.loading" class="px-10 pb-8 overflow-y-scroll h-full">
     <div class="flex items-center gap-2 mt-2">
       <span class="text-sm">
@@ -178,6 +177,7 @@ import {
   holidayData,
   holidayDataErrors,
   holidayListActiveScreen,
+  resetHolidayData,
   updateWeeklyOffDates,
   validateHoliday,
 } from "@/stores/holidayList";
@@ -189,12 +189,15 @@ import {
   FormControl,
   toast,
   LoadingIndicator,
+  ErrorMessage,
+  createDocumentResource,
 } from "frappe-ui";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import HolidaysListView from "./HolidaysListView.vue";
 import RecurringHolidaysList from "./RecurringHolidaysList.vue";
 
 import HolidaysCalendarView from "./HolidaysCalendarView.vue";
+import AddHolidayModal from "./Modals/AddHolidayModal.vue";
 import { getFormattedDate, htmlToText } from "@/utils";
 import FormLabel from "frappe-ui/src/components/FormLabel.vue";
 import { useDebounceFn } from "@vueuse/core";
@@ -202,7 +205,8 @@ import dayjs from "dayjs";
 import { activeTab, tabs } from "../settingsModal";
 import { slaActiveScreen } from "@/stores/sla";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import AddHolidayModal from "./Modals/AddHolidayModal.vue";
+
+const showConfirmDialog = ref(false);
 
 const dialog = ref({
   show: false,
@@ -215,13 +219,10 @@ const isDirty = ref(false);
 const initialData = ref(null);
 const holidayListView = ref("calendar");
 
-const showConfirmDialog = ref(false);
-
-const getHolidayData = createResource({
-  url: "helpdesk.api.holiday_list.get_holiday_list",
-  params: {
-    docname: holidayListActiveScreen.value.data?.name,
-  },
+const getHolidayData = createDocumentResource({
+  doctype: "HD Service Holiday List",
+  name: holidayListActiveScreen.value.data?.name,
+  auto: false,
   onSuccess(data) {
     holidayData.value = data;
     initialData.value = JSON.parse(JSON.stringify(data));
@@ -237,7 +238,7 @@ const getHolidayData = createResource({
 
 if (holidayListActiveScreen.value.data?.name) {
   holidayData.value.loading = true;
-  getHolidayData.fetch();
+  getHolidayData.get.fetch();
 }
 
 const debouncedValidateHoliday = useDebounceFn(
@@ -325,7 +326,7 @@ const createHoliday = () => {
       toast.success("Holiday list created");
       holidayListActiveScreen.value.data = data;
       holidayListActiveScreen.value.screen = "view";
-      getHolidayData.submit({
+      getHolidayData.get.submit({
         docname: data.name,
       });
     },
@@ -357,9 +358,7 @@ const updateHoliday = () => {
     auto: true,
     onSuccess(data) {
       holidayListActiveScreen.value.data = data;
-      getHolidayData.submit({
-        docname: data.name,
-      });
+      getHolidayData.reload();
       toast.success("Holiday list updated");
     },
   });
@@ -372,6 +371,7 @@ watch(
     isDirty.value =
       JSON.stringify(Object.assign({}, newVal)) !=
       JSON.stringify(Object.assign({}, initialData.value));
+    console.log("isDirty", isDirty.value);
   },
   { deep: true }
 );

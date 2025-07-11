@@ -24,16 +24,23 @@
 
 <script setup lang="ts">
 import {
-  holidayListData,
   holidayListActiveScreen,
   resetHolidayData,
 } from "@/stores/holidayList";
 import HolidayList from "./HolidayList.vue";
-import { onMounted } from "vue";
+import { createListResource } from "frappe-ui";
+import { provide } from "vue";
 
-onMounted(() => {
-  holidayListData.fetch();
+const holidayListData = createListResource({
+  doctype: "HD Service Holiday List",
+  fields: ["*"],
+  orderBy: "creation desc",
+  start: 0,
+  pageLength: 99999,
+  auto: true,
 });
+
+provide("holidayList", holidayListData);
 
 const goToNew = () => {
   resetHolidayData();

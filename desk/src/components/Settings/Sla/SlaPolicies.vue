@@ -31,14 +31,22 @@
 </template>
 
 <script setup lang="ts">
-import { slaPolicyListData, slaActiveScreen, resetSlaData } from "@/stores/sla";
+import { slaActiveScreen, resetSlaData } from "@/stores/sla";
 import SlaPolicyList from "./SlaPolicyList.vue";
-import { onMounted } from "vue";
 import { Button } from "frappe-ui";
+import { provide } from "vue";
+import { createListResource } from "frappe-ui";
 
-onMounted(() => {
-  slaPolicyListData.fetch();
+const slaPolicyListData = createListResource({
+  doctype: "HD Service Level Agreement",
+  fields: ["*"],
+  orderBy: "creation desc",
+  start: 0,
+  pageLength: 99999,
+  auto: true,
 });
+
+provide("slaPolicyList", slaPolicyListData);
 
 const goToNew = () => {
   resetSlaData();

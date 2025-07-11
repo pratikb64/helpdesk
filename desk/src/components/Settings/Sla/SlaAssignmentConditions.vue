@@ -61,15 +61,13 @@
         label="Add condition"
       />
     </Dropdown>
-    <div v-if="slaDataErrors.condition" class="text-red-500 text-xs mt-2">
-      {{ slaDataErrors.condition }}
-    </div>
+    <ErrorMessage :message="slaDataErrors.condition" />
   </div>
 </template>
 
 <script setup lang="ts">
 import AssignmentConditions from "./AssignmentConditions/AssignmentConditions.vue";
-import { Button, Dropdown, FeatherIcon } from "frappe-ui";
+import { Button, Dropdown, ErrorMessage, FeatherIcon } from "frappe-ui";
 import {
   slaDataErrors,
   validateConditions,

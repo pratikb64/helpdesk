@@ -14,30 +14,7 @@
     </div>
     <div class="flex justify-between items-center pr-2">
       <div>
-        <Dropdown
-          placement="right"
-          :options="[
-            {
-              label: 'Duplicate',
-              onClick: () => {
-                duplicateDialog.show = true;
-                duplicateDialog.name = props.data.name + ' (Copy)';
-              },
-              icon: 'copy',
-            },
-            {
-              label: 'Confirm Delete',
-              component: (props) =>
-                TemplateOption({
-                  option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-                  icon: 'trash-2',
-                  active: props.active,
-                  variant: isConfirmingDelete ? 'danger' : 'gray',
-                  onClick: (event) => deleteHolidayList(event),
-                }),
-            },
-          ]"
-        >
+        <Dropdown placement="right" :options="dropdownOptions">
           <Button
             icon="more-horizontal"
             variant="ghost"
@@ -74,8 +51,8 @@
 </template>
 <script setup lang="ts">
 import { Button, Dropdown, createResource, toast } from "frappe-ui";
-import { ref } from "vue";
-import { holidayListActiveScreen, holidayListData } from "@/stores/holidayList";
+import { inject, ref } from "vue";
+import { holidayListActiveScreen } from "@/stores/holidayList";
 import { TemplateOption } from "@/utils";
 
 const props = defineProps({
@@ -85,12 +62,36 @@ const props = defineProps({
   },
 });
 
+const holidayList = inject<any>("holidayList");
+
 const duplicateDialog = ref({
   show: false,
   name: "",
 });
 
 const isConfirmingDelete = ref(false);
+
+const dropdownOptions = [
+  {
+    label: "Duplicate",
+    onClick: () => {
+      duplicateDialog.value.show = true;
+      duplicateDialog.value.name = props.data.name + " (Copy)";
+    },
+    icon: "copy",
+  },
+  {
+    label: "Confirm Delete",
+    component: (props) =>
+      TemplateOption({
+        option: isConfirmingDelete ? "Confirm Delete" : "Delete",
+        icon: "trash-2",
+        active: props.active,
+        variant: isConfirmingDelete ? "danger" : "gray",
+        onClick: (event) => deleteHolidayList(event),
+      }),
+  },
+];
 
 const duplicate = () => {
   createResource({
@@ -100,7 +101,7 @@ const duplicate = () => {
       new_name: duplicateDialog.value.name,
     },
     onSuccess: (data) => {
-      holidayListData.reload();
+      holidayList.reload();
       toast.success("Holiday list duplicated");
       duplicateDialog.value = {
         show: false,
@@ -129,7 +130,7 @@ const deleteHolidayList = (event) => {
       name: props.data.name,
     },
     onSuccess: () => {
-      holidayListData.reload();
+      holidayList.reload();
       isConfirmingDelete.value = false;
       toast.success("Holiday list deleted");
     },

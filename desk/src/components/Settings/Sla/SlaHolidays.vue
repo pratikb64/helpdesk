@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { createResource, NestedPopover, Button } from "frappe-ui";
+import { NestedPopover, Button, createListResource } from "frappe-ui";
 import SlaWorkDaysList from "./SlaWorkDaysList.vue";
 import { activeTab, tabs } from "../settingsModal";
 import {
@@ -117,13 +117,9 @@ const editHolidayList = (data: any) => {
   };
 };
 
-const holidayListData = createResource({
-  url: "frappe.client.get_list",
-  params: {
-    doctype: "HD Service Holiday List",
-    fields: ["*"],
-    parent: "HD Service Level Agreement",
-  },
+const holidayListData = createListResource({
+  doctype: "HD Service Holiday List",
+  fields: ["*"],
   auto: true,
 });
 

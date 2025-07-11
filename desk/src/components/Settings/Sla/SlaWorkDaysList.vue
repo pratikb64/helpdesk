@@ -44,12 +44,7 @@
       @click="addWorkDay"
       icon-left="plus"
     />
-    <div
-      v-if="slaDataErrors.support_and_resolution"
-      class="text-red-500 text-xs mt-2"
-    >
-      {{ slaDataErrors.support_and_resolution }}
-    </div>
+    <ErrorMessage :message="slaDataErrors.support_and_resolution" />
   </div>
 </template>
 
