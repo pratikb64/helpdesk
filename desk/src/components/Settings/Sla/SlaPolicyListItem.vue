@@ -28,32 +28,7 @@
         />
       </div>
       <div>
-        <Dropdown
-          placement="right"
-          :options="[
-            {
-              label: 'Duplicate',
-              onClick: () => {
-                duplicateDialog = {
-                  show: true,
-                  name: props.data.name + ' (Copy)',
-                };
-              },
-              icon: 'copy',
-            },
-            {
-              label: 'Confirm Delete',
-              component: (props) =>
-                TemplateOption({
-                  option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-                  icon: 'trash-2',
-                  active: props.active,
-                  variant: isConfirmingDelete ? 'danger' : 'gray',
-                  onClick: (event) => deleteSla(event),
-                }),
-            },
-          ]"
-        >
+        <Dropdown placement="right" :options="dropdownOptions">
           <Button
             icon="more-horizontal"
             variant="ghost"
@@ -117,6 +92,43 @@ const props = defineProps({
 });
 
 const isConfirmingDelete = ref(false);
+
+const dropdownOptions = [
+  {
+    label: "Duplicate",
+    onClick: () => {
+      duplicateDialog.value = {
+        show: true,
+        name: props.data.name + " (Copy)",
+      };
+    },
+    icon: "copy",
+  },
+  {
+    label: "Delete",
+    component: (props) =>
+      TemplateOption({
+        option: "Delete",
+        icon: "trash-2",
+        active: props.active,
+        variant: "gray",
+        onClick: (event) => deleteSla(event),
+      }),
+    condition: () => !isConfirmingDelete.value,
+  },
+  {
+    label: "Confirm Delete",
+    component: (props) =>
+      TemplateOption({
+        option: "Confirm Delete",
+        icon: "trash-2",
+        active: props.active,
+        variant: "danger",
+        onClick: (event) => deleteSla(event),
+      }),
+    condition: () => isConfirmingDelete.value,
+  },
+];
 
 const duplicate = () => {
   createResource({

@@ -1,8 +1,8 @@
 import { ref } from "vue";
-import { createResource } from "frappe-ui";
 import { SlaValidationErrors } from "@/components/Settings/Sla/types";
 
 export const slaData = ref({
+  name: "",
   service_level: "",
   description: "",
   enabled: false,
@@ -21,6 +21,7 @@ export const slaData = ref({
 
 export const resetSlaData = () => {
   slaData.value = {
+    name: "",
     service_level: "",
     description: "",
     enabled: false,
@@ -74,6 +75,25 @@ export const slaDataErrors = ref<SlaValidationErrors>({
   condition: "",
 });
 
+export const resetSlaDataErrors = () => {
+  slaDataErrors.value = {
+    service_level: "",
+    description: "",
+    enabled: "",
+    default_sla: "",
+    apply_sla_for_resolution: "",
+    priorities: "",
+    statuses: "",
+    statuses_conflict: "",
+    holiday_list: "",
+    default_priority: "",
+    start_date: "",
+    end_date: "",
+    support_and_resolution: "",
+    condition: "",
+  };
+};
+
 export function validateConditions(conditions: any[]): boolean {
   if (!Array.isArray(conditions)) return false;
 
@@ -96,22 +116,7 @@ type SlaField = keyof SlaValidationErrors;
 
 export function validateSlaData(key?: SlaField): SlaValidationErrors {
   // Reset all errors
-  slaDataErrors.value = {
-    service_level: "",
-    description: "",
-    enabled: "",
-    default_sla: "",
-    apply_sla_for_resolution: "",
-    priorities: "",
-    statuses: "",
-    statuses_conflict: "",
-    holiday_list: "",
-    default_priority: "",
-    start_date: "",
-    end_date: "",
-    support_and_resolution: "",
-    condition: "",
-  };
+  resetSlaDataErrors();
 
   const validateField = (field: SlaField) => {
     if (key && field !== key) return;

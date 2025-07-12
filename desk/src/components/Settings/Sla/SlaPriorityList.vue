@@ -29,8 +29,6 @@
       :row="row"
       :columns="columns"
       :isLast="index === slaData.priorities.length - 1"
-      :priorityList="slaData.priorities"
-      :priorityOptions="priorityOptions"
     />
     <div
       v-if="slaData.priorities?.length === 0"
@@ -59,7 +57,7 @@
 <script setup lang="ts">
 import { Button, createResource, toast } from "frappe-ui";
 import SlaPriorityListItem from "./SlaPriorityListItem.vue";
-import { computed, reactive } from "vue";
+import { computed, provide, reactive } from "vue";
 import {
   slaActiveScreen,
   slaData,
@@ -69,7 +67,7 @@ import {
 import { watchDebounced } from "@vueuse/core";
 import { getGridTemplateColumnsForTable } from "@/utils";
 
-const priorityOptionsData = createResource({
+createResource({
   url: "frappe.client.get_list",
   params: {
     doctype: "HD Ticket Priority",
@@ -99,6 +97,8 @@ const priorityOptionsData = createResource({
 });
 
 const priorityOptions = reactive([]);
+
+provide("priorityOptions", priorityOptions);
 
 const addRow = () => {
   const existingPriorities = slaData.value.priorities.map((p) => p.priority);

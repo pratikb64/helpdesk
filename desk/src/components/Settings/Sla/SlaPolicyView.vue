@@ -59,7 +59,7 @@
           label="Name"
           v-model="slaData.service_level"
           required
-          @change="debouncedValidateSlaData('service_level')"
+          @change="validateSlaData('service_level')"
           :disabled="slaActiveScreen.data"
         />
         <ErrorMessage :message="slaDataErrors.service_level" />
@@ -112,7 +112,7 @@
             placeholder="From date"
             class="w-full"
             id="from_date"
-            @change="debouncedValidateSlaData('start_date')"
+            @change="validateSlaData('start_date')"
             :formatter="(date) => getFormattedDate(date)"
           />
           <ErrorMessage :message="slaDataErrors.start_date" />
@@ -125,7 +125,7 @@
             placeholder="To date"
             class="w-full"
             id="to_date"
-            @change="debouncedValidateSlaData('end_date')"
+            @change="validateSlaData('end_date')"
             :formatter="(date) => getFormattedDate(date)"
           />
           <ErrorMessage :message="slaDataErrors.end_date" />
@@ -148,7 +148,7 @@
           label="Apply SLA for resolution time also"
           v-model="slaData.apply_sla_for_resolution"
           class="text-ink-gray-6 text-base font-medium"
-          @change="debouncedValidateSlaData('priorities')"
+          @change="validateSlaData('priorities')"
         />
         <div class="mt-4">
           <SlaPriorityList />
@@ -173,11 +173,7 @@
       </div>
     </div>
     <hr class="my-6" />
-    <SlaHolidays
-      :workDaysList="slaData.support_and_resolution"
-      v-model="slaData.holiday_list"
-      :slaData="slaData"
-    />
+    <SlaHolidays />
   </div>
   <ConfirmDialog
     v-model="showConfirmDialog"
@@ -190,6 +186,7 @@
 
 <script setup lang="ts">
 import {
+  resetSlaDataErrors,
   slaActiveScreen,
   slaData,
   slaDataErrors,
@@ -211,17 +208,12 @@ import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
 import SlaHolidays from "./SlaHolidays.vue";
 import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
-import { useDebounceFn } from "@vueuse/core";
 import { getFormattedDate } from "@/utils";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
 const showConfirmDialog = ref(false);
 const isDirty = ref(false);
 const initialData = ref(null);
-
-const debouncedValidateSlaData = useDebounceFn((key: string) => {
-  validateSlaData(key);
-}, 300);
 
 const getSlaData = createResource({
   url: "helpdesk.api.sla.get_sla",
@@ -410,21 +402,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   removeEventListener("beforeunload", beforeUnloadHandler);
-  slaDataErrors.value = {
-    service_level: "",
-    description: "",
-    enabled: "",
-    default_sla: "",
-    apply_sla_for_resolution: "",
-    priorities: "",
-    statuses: "",
-    statuses_conflict: "",
-    holiday_list: "",
-    default_priority: "",
-    start_date: "",
-    end_date: "",
-    support_and_resolution: "",
-    condition: "",
-  };
+  resetSlaDataErrors();
 });
 </script>

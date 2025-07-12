@@ -161,11 +161,6 @@ import { holidayData } from "@/stores/holidayList";
 import dayjs from "dayjs";
 import AddHolidayModal from "./Modals/AddHolidayModal.vue";
 
-const addHolidayErrors = ref({
-  holiday_date: "",
-  description: "",
-});
-
 const dialog = ref({
   show: false,
   holiday_date: null,
@@ -218,13 +213,6 @@ const handleMouseLeave = (date, callback) => {
   popoverTimeouts.value[date] = setTimeout(() => {
     callback();
   }, 350);
-};
-
-const resetErrors = () => {
-  addHolidayErrors.value = {
-    holiday_date: "",
-    description: "",
-  };
 };
 
 const addHoliday = (date) => {

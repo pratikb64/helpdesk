@@ -8,6 +8,7 @@ def duplicate_sla(docname, new_name):
     doc = frappe.get_doc("HD Service Level Agreement", docname)
     doc.name = ""
     doc.service_level = new_name
+    doc.default_sla = False
     doc.insert()
     return doc
 

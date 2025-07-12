@@ -57,7 +57,7 @@
           label="Name"
           v-model="holidayData.holiday_list_name"
           required
-          @change="debouncedValidateHoliday('holiday_list_name')"
+          @change="validateHoliday('holiday_list_name')"
         />
         <ErrorMessage :message="holidayDataErrors.holiday_list_name" />
       </div>
@@ -88,7 +88,7 @@
             class="w-full"
             id="from_date"
             :formatter="(date) => getFormattedDate(date)"
-            @change="debouncedUpdateDuration('from_date')"
+            @change="updateDuration('from_date')"
           />
           <ErrorMessage :message="holidayDataErrors.from_date" />
           <ErrorMessage :message="holidayDataErrors.dateRange" />
@@ -102,7 +102,7 @@
             class="w-full"
             id="to_date"
             :formatter="(date) => getFormattedDate(date)"
-            @change="debouncedUpdateDuration('to_date')"
+            @change="updateDuration('to_date')"
           />
           <ErrorMessage :message="holidayDataErrors.to_date" />
         </div>
@@ -240,11 +240,6 @@ if (holidayListActiveScreen.value.data?.name) {
   getHolidayData.fetch();
 }
 
-const debouncedValidateHoliday = useDebounceFn(
-  (key) => validateHoliday(key),
-  300
-);
-
 const updateDuration = (key) => {
   validateHoliday(key);
   if (
@@ -254,11 +249,6 @@ const updateDuration = (key) => {
     updateWeeklyOffDates();
   }
 };
-
-const debouncedUpdateDuration = useDebounceFn(
-  (key) => updateDuration(key),
-  300
-);
 
 const goBack = () => {
   if (isDirty.value && !showConfirmDialog.value) {

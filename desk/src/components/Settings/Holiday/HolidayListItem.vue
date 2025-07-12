@@ -81,15 +81,28 @@ const dropdownOptions = [
     icon: "copy",
   },
   {
+    label: "Delete",
+    component: (props) =>
+      TemplateOption({
+        option: "Delete",
+        icon: "trash-2",
+        active: props.active,
+        variant: "gray",
+        onClick: (event) => deleteHolidayList(event),
+      }),
+    condition: () => !isConfirmingDelete.value,
+  },
+  {
     label: "Confirm Delete",
     component: (props) =>
       TemplateOption({
-        option: isConfirmingDelete ? "Confirm Delete" : "Delete",
+        option: "Confirm Delete",
         icon: "trash-2",
         active: props.active,
-        variant: isConfirmingDelete ? "danger" : "gray",
+        variant: "danger",
         onClick: (event) => deleteHolidayList(event),
       }),
+    condition: () => isConfirmingDelete.value,
   },
 ];
 
@@ -123,18 +136,13 @@ const deleteHolidayList = (event) => {
     return;
   }
 
-  createResource({
-    url: "frappe.client.delete",
-    params: {
-      doctype: "HD Service Holiday List",
-      name: props.data.name,
-    },
+  holidayList.delete.submit(props.data.name, {
     onSuccess: () => {
-      holidayList.reload();
-      isConfirmingDelete.value = false;
       toast.success("Holiday list deleted");
     },
-    auto: true,
+    onError: (error) => {
+      toast.error(error.messages[0] || "Failed to delete holiday list");
+    },
   });
 };
 </script>
