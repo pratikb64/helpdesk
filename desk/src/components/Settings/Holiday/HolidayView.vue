@@ -152,7 +152,7 @@
         </div>
       </div>
       <div class="mt-4">
-        <HolidaysListView v-if="holidayListView === 'list'" />
+        <HolidaysTableView v-if="holidayListView === 'list'" />
         <HolidaysCalendarView v-else />
       </div>
       <div class="mt-4">
@@ -193,7 +193,7 @@ import {
   toast,
 } from "frappe-ui";
 import { onMounted, onUnmounted, ref, watch } from "vue";
-import HolidaysListView from "./HolidaysListView.vue";
+import HolidaysTableView from "./HolidaysTableView.vue";
 import RecurringHolidaysList from "./RecurringHolidaysList.vue";
 
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
