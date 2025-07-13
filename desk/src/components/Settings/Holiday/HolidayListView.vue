@@ -88,7 +88,8 @@
             class="w-full"
             id="from_date"
             :formatter="(date) => getFormattedDate(date)"
-            @change="updateDuration('from_date')"
+            :debounce="300"
+            @update:model-value="updateDuration('from_date')"
           />
           <ErrorMessage :message="holidayDataErrors.from_date" />
           <ErrorMessage :message="holidayDataErrors.dateRange" />
@@ -102,7 +103,8 @@
             class="w-full"
             id="to_date"
             :formatter="(date) => getFormattedDate(date)"
-            @change="updateDuration('to_date')"
+            :debounce="300"
+            @update:model-value="updateDuration('to_date')"
           />
           <ErrorMessage :message="holidayDataErrors.to_date" />
         </div>
@@ -182,26 +184,25 @@ import {
   validateHoliday,
 } from "@/stores/holidayList";
 import {
-  createResource,
-  TabButtons,
-  DatePicker,
   Button,
+  createResource,
+  DatePicker,
   FormControl,
-  toast,
   LoadingIndicator,
+  TabButtons,
+  toast,
 } from "frappe-ui";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import HolidaysListView from "./HolidaysListView.vue";
 import RecurringHolidaysList from "./RecurringHolidaysList.vue";
 
-import HolidaysCalendarView from "./HolidaysCalendarView.vue";
-import { getFormattedDate, htmlToText } from "@/utils";
-import FormLabel from "frappe-ui/src/components/FormLabel.vue";
-import { useDebounceFn } from "@vueuse/core";
-import dayjs from "dayjs";
-import { activeTab, tabs } from "../settingsModal";
-import { slaActiveScreen } from "@/stores/sla";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import { slaActiveScreen } from "@/stores/sla";
+import { getFormattedDate, htmlToText } from "@/utils";
+import dayjs from "dayjs";
+import FormLabel from "frappe-ui/src/components/FormLabel.vue";
+import { activeTab, tabs } from "../settingsModal";
+import HolidaysCalendarView from "./HolidaysCalendarView.vue";
 import AddHolidayModal from "./Modals/AddHolidayModal.vue";
 
 const dialog = ref({
@@ -224,7 +225,7 @@ const getHolidayData = createResource({
   },
   onSuccess(data) {
     holidayData.value = data;
-    initialData.value = JSON.parse(JSON.stringify(data));
+    initialData.value = JSON.stringify(data);
   },
   transform(data) {
     for (let holiday of data.holidays) {
@@ -359,9 +360,7 @@ watch(
   holidayData,
   (newVal) => {
     if (!initialData.value) return;
-    isDirty.value =
-      JSON.stringify(Object.assign({}, newVal)) !=
-      JSON.stringify(Object.assign({}, initialData.value));
+    isDirty.value = JSON.stringify(newVal) != initialData.value;
   },
   { deep: true }
 );

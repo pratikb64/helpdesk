@@ -136,13 +136,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { Select, FormLabel, Checkbox, toast, Dropdown } from "frappe-ui";
-import dayjs from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { updateWeeklyOffDates } from "@/stores/holidayList";
 import { TemplateOption } from "@/utils";
+import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import weekday from "dayjs/plugin/weekday";
+import { Checkbox, Dropdown, FormLabel, Select, toast } from "frappe-ui";
+import { computed, ref } from "vue";
 import { getRepetitionText } from "./utils";
 
 dayjs.extend(weekday);

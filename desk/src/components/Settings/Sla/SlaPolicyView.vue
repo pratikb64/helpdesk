@@ -91,7 +91,7 @@
           class="text-ink-gray-6 text-base font-medium"
         />
         <div class="mt-4" v-if="!slaData.default_sla">
-          <SlaAssignmentConditions :conditions="slaData.condition" />
+          <SlaAssignmentConditions :conditions="slaData.condition_json" />
         </div>
       </div>
     </div>
@@ -185,6 +185,7 @@
 </template>
 
 <script setup lang="ts">
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import {
   resetSlaDataErrors,
   slaActiveScreen,
@@ -192,24 +193,23 @@ import {
   slaDataErrors,
   validateSlaData,
 } from "@/stores/sla";
+import { convertToConditions, getFormattedDate } from "@/utils";
 import {
-  createResource,
-  Switch,
-  Checkbox,
-  DatePicker,
-  toast,
-  LoadingIndicator,
   Badge,
   Button,
+  Checkbox,
+  createResource,
+  DatePicker,
   ErrorMessage,
+  LoadingIndicator,
+  Switch,
+  toast,
 } from "frappe-ui";
 import { onMounted, onUnmounted, ref, watch } from "vue";
+import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
+import SlaHolidays from "./SlaHolidays.vue";
 import SlaPriorityList from "./SlaPriorityList.vue";
 import SlaStatusList from "./SlaStatusList.vue";
-import SlaHolidays from "./SlaHolidays.vue";
-import SlaAssignmentConditions from "./SlaAssignmentConditions.vue";
-import { getFormattedDate } from "@/utils";
-import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
 const showConfirmDialog = ref(false);
 const isDirty = ref(false);
@@ -236,16 +236,16 @@ const getSlaData = createResource({
         };
       }) || [];
 
-    const conditions = JSON.parse(data.condition || "[]");
+    const condition_json = JSON.parse(data.condition_json || "[]");
 
     const newData = {
       ...data,
       statuses: [...pauseOn, ...fulfilledOn],
       loading: false,
-      condition: data.condition?.length > 0 ? conditions : [],
+      condition_json: condition_json,
     };
     slaData.value = newData;
-    initialData.value = JSON.parse(JSON.stringify(newData));
+    initialData.value = JSON.stringify(newData);
   },
 });
 
@@ -293,26 +293,19 @@ const createSla = () => {
     (status) => status.sla_behavior === "Paused"
   );
   createResource({
-    url: "helpdesk.api.sla.save_sla",
+    url: "frappe.client.insert",
     params: {
       doc: {
+        ...slaData.value,
         doctype: "HD Service Level Agreement",
-        enabled: slaData.value.enabled,
-        description: slaData.value.description,
-        service_level: slaData.value.service_level,
-        default_sla: slaData.value.default_sla,
-        apply_sla_for_resolution: slaData.value.apply_sla_for_resolution,
-        priorities: slaData.value.priorities,
         sla_fulfilled_on: fulfilledOn,
         pause_sla_on: pauseOn,
-        holiday_list: slaData.value.holiday_list,
-        default_priority: slaData.value.default_priority,
-        start_date: slaData.value.start_date,
-        end_date: slaData.value.end_date,
-        support_and_resolution: slaData.value.support_and_resolution,
-        condition: slaData.value.condition,
+        condition: convertToConditions({
+          conditions: slaData.value.condition_json,
+          fieldPrefix: "doc",
+        }),
+        condition_json: JSON.stringify(slaData.value.condition_json),
       },
-      is_new: true,
     },
     auto: true,
     onSuccess(data) {
@@ -334,27 +327,21 @@ const updateSla = () => {
     (status) => status.sla_behavior === "Paused"
   );
   createResource({
-    url: "helpdesk.api.sla.save_sla",
+    url: "frappe.client.set_value",
     params: {
-      doc: {
-        doctype: "HD Service Level Agreement",
+      doctype: "HD Service Level Agreement",
+      name: slaActiveScreen.value.data.name,
+      fieldname: {
+        ...slaData.value,
         name: slaActiveScreen.value.data.name,
-        enabled: slaData.value.enabled,
-        description: slaData.value.description,
-        service_level: slaData.value.service_level,
-        default_sla: slaData.value.default_sla,
-        apply_sla_for_resolution: slaData.value.apply_sla_for_resolution,
-        priorities: slaData.value.priorities,
         sla_fulfilled_on: fulfilledOn,
         pause_sla_on: pauseOn,
-        holiday_list: slaData.value.holiday_list,
-        default_priority: slaData.value.default_priority,
-        start_date: slaData.value.start_date,
-        end_date: slaData.value.end_date,
-        support_and_resolution: slaData.value.support_and_resolution,
-        condition: slaData.value.condition,
+        condition: convertToConditions({
+          conditions: slaData.value.condition_json,
+          fieldPrefix: "doc",
+        }),
+        condition_json: JSON.stringify(slaData.value.condition_json),
       },
-      is_new: false,
     },
     auto: true,
     onSuccess() {
@@ -383,9 +370,7 @@ watch(
   slaData,
   (newVal) => {
     if (!initialData.value) return;
-    isDirty.value =
-      JSON.stringify(Object.assign({}, newVal)) !=
-      JSON.stringify(Object.assign({}, initialData.value));
+    isDirty.value = JSON.stringify(newVal) != initialData.value;
   },
   { deep: true }
 );

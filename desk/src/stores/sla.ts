@@ -1,5 +1,5 @@
-import { ref } from "vue";
 import { SlaValidationErrors } from "@/components/Settings/Sla/types";
+import { ref } from "vue";
 
 export const slaData = ref({
   name: "",
@@ -17,6 +17,7 @@ export const slaData = ref({
   loading: false,
   support_and_resolution: [],
   condition: [],
+  condition_json: [],
 });
 
 export const resetSlaData = () => {
@@ -49,6 +50,7 @@ export const resetSlaData = () => {
     loading: false,
     support_and_resolution: [],
     condition: [],
+    condition_json: [],
   };
 };
 
@@ -301,8 +303,8 @@ export function validateSlaData(key?: SlaField): SlaValidationErrors {
         break;
       case "condition":
         if (
-          slaData.value.condition &&
-          !validateConditions(slaData.value.condition)
+          slaData.value.condition_json &&
+          !validateConditions(slaData.value.condition_json)
         ) {
           slaDataErrors.value.condition = "Valid conditions are required";
         } else {

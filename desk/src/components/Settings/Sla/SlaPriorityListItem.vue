@@ -56,17 +56,17 @@
     </div>
   </div>
   <hr class="my-0.5" v-if="!props.isLast" />
-  <EditResponseResolution v-model="dialog" :row="props.row" />
+  <EditResponseResolutionModal v-model="dialog" :row="props.row" />
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
-import { Button, Checkbox, Dropdown, toast, Select, Popover } from "frappe-ui";
 import DurationPicker from "@/components/frappe-ui/DurationPicker.vue";
-import { getGridTemplateColumnsForTable, TemplateOption } from "@/utils";
-import { formatTimeHMS } from "./utils";
-import EditResponseResolution from "./Modals/EditResponseResolution.vue";
 import { slaData } from "@/stores/sla";
+import { getGridTemplateColumnsForTable, TemplateOption } from "@/utils";
+import { Button, Checkbox, Dropdown, Popover, Select } from "frappe-ui";
+import { inject, ref } from "vue";
+import EditResponseResolutionModal from "./Modals/EditResponseResolutionModal.vue";
+import { formatTimeHMS } from "./utils";
 
 const props = defineProps({
   columns: {
