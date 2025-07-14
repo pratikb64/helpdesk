@@ -17,21 +17,17 @@
       :isLast="index === days.length - 1"
     />
   </div>
-  <div
-    v-if="assignmentRulesErrors.assignment_days"
-    class="text-red-500 text-xs mt-2"
-  >
-    {{ assignmentRulesErrors.assignment_days }}
-  </div>
+  <ErrorMessage :message="assignmentRulesErrors.assignment_days" />
 </template>
 
 <script setup lang="ts">
+import { ErrorMessage } from "frappe-ui";
 import { onMounted, ref } from "vue";
-import AssignmentScheduleItem from "./AssignmentScheduleItem.vue";
 import {
   assignmentRuleData,
   assignmentRulesErrors,
 } from "../../../stores/assignmentRules";
+import AssignmentScheduleItem from "./AssignmentScheduleItem.vue";
 
 const columns = [
   {

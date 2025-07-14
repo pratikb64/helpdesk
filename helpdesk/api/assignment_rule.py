@@ -7,12 +7,12 @@ from frappe.model.rename_doc import update_document_title
 
 
 @frappe.whitelist()
-def duplicate_assignment_rule(docname, new_name):
-    doc = frappe.get_doc("Assignment Rule", docname)
-    doc.name = new_name
-    doc.document_type = "HD Ticket"
-    doc.insert(ignore_permissions=True)
-    return "success"
+def get_assignment_rules_list():
+    assignment_rules = []
+    for docname in frappe.get_all("Assignment Rule"):
+        doc = frappe.get_doc("Assignment Rule", docname)
+        assignment_rules.append(doc.as_dict())
+    return assignment_rules
 
 
 @frappe.whitelist()
@@ -88,7 +88,9 @@ def convert_to_conditions(conditions, is_nested=False):
             condition_str += f" {condition.get('conjunction', 'and')} "
 
         if condition.get("field") == "group":
-            condition_str += f"({convert_to_conditions(condition.get('value', []), is_nested=True)})"
+            condition_str += (
+                f"({convert_to_conditions(condition.get('value', []), is_nested=True)})"
+            )
             continue
 
         field = condition.get("field", {})
@@ -118,10 +120,19 @@ def convert_to_conditions(conditions, is_nested=False):
 
         # Handle value formatting
         if operator in ["in", "not in"] and isinstance(value, str):
-            value_str = f"[{', '.join([f'{repr(v.strip())}' for v in value.split(',')])}]"
+            value_str = (
+                f"[{', '.join([f'{repr(v.strip())}' for v in value.split(',')])}]"
+            )
         elif operator in ["is", "is not"] and value in ["set", "not set"]:
             value_str = "None" if value == "not set" else "not None"
-        elif fieldtype in ["Select", "Link", "Data", "Text Editor", "Small Text", "Text"]:
+        elif fieldtype in [
+            "Select",
+            "Link",
+            "Data",
+            "Text Editor",
+            "Small Text",
+            "Text",
+        ]:
             value_str = repr(value)
         else:
             value_str = value
@@ -133,6 +144,7 @@ def convert_to_conditions(conditions, is_nested=False):
 
     return condition_str
 
+
 def convert_to_object(condition_str):
     if not condition_str:
         return []
@@ -142,32 +154,34 @@ def convert_to_object(condition_str):
     processed_str = list(condition_str)
     i = 0
     while i < len(processed_str):
-        if processed_str[i] == '(':
+        if processed_str[i] == "(":
             start = i
             balance = 1
             i += 1
             while i < len(processed_str) and balance > 0:
-                if processed_str[i] == '(':
+                if processed_str[i] == "(":
                     balance += 1
-                elif processed_str[i] == ')':
+                elif processed_str[i] == ")":
                     balance -= 1
                 i += 1
-            
+
             if balance == 0:
-                group_content = "".join(processed_str[start+1:i-1])
+                group_content = "".join(processed_str[start + 1 : i - 1])
                 group_id = f"__group_{len(groups)}__"
                 groups[group_id] = group_content
                 # Replace the group with its ID
-                processed_str = processed_str[:start] + list(group_id) + processed_str[i:]
+                processed_str = (
+                    processed_str[:start] + list(group_id) + processed_str[i:]
+                )
                 # Reset index to re-scan from the beginning of the modified string
-                i = -1 
+                i = -1
         i += 1
-    
+
     processed_str = "".join(processed_str)
 
     # Split by conjunctions
-    conditions = re.split(r'\s+(and|or)\s+', processed_str)
-    
+    conditions = re.split(r"\s+(and|or)\s+", processed_str)
+
     result = []
     i = 0
     while i < len(conditions):
@@ -176,14 +190,14 @@ def convert_to_object(condition_str):
             i += 1
             continue
 
-        conjunction = conditions[i-1].strip() if i > 0 else None
+        conjunction = conditions[i - 1].strip() if i > 0 else None
 
         if part in groups:
             # This is a nested group
             nested_conditions = convert_to_object(groups[part])
             group_obj = {
                 "field": "group",
-                "operator": "equals", # This seems to be the default for groups in the example
+                "operator": "equals",  # This seems to be the default for groups in the example
                 "value": nested_conditions,
             }
             if conjunction:
@@ -200,22 +214,32 @@ def convert_to_object(condition_str):
 
     return result
 
+
 def _parse_simple_condition(condition_part):
     # This helper function will parse a single condition like 'status == "Open"'
     # It's a simplified implementation.
-    match = re.match(r"'([^']*)'\s+(in|not in)\s+([a-zA-Z0-9_]+)", condition_part)  # like, not like
+    match = re.match(
+        r"'([^']*)'\s+(in|not in)\s+([a-zA-Z0-9_]+)", condition_part
+    )  # like, not like
     if not match:
-        match = re.match(r"([a-zA-Z0-9_]+)\s+(==|!=|in|not in|is|is not|<|>|<=|>=)\s+(.*)", condition_part)
+        match = re.match(
+            r"([a-zA-Z0-9_]+)\s+(==|!=|in|not in|is|is not|<|>|<=|>=)\s+(.*)",
+            condition_part,
+        )
 
     if not match:
         return None
 
     meta = frappe.get_meta("HD Ticket")
 
-    if "'" in condition_part and (' in ' in condition_part or ' not in ' in condition_part) and condition_part.startswith("'"):
+    if (
+        "'" in condition_part
+        and (" in " in condition_part or " not in " in condition_part)
+        and condition_part.startswith("'")
+    ):
         # like / not like
         value, py_operator, fieldname = match.groups()
-        operator = 'like' if py_operator == 'in' else 'not like'
+        operator = "like" if py_operator == "in" else "not like"
     else:
         fieldname, py_operator, value_str = match.groups()
         value_str = value_str.strip()
@@ -235,12 +259,12 @@ def _parse_simple_condition(condition_part):
         operator = operator_map.get(py_operator, py_operator)
 
         # Convert value from string back to original type
-        if value_str.startswith('[') and value_str.endswith(']'):
+        if value_str.startswith("[") and value_str.endswith("]"):
             # List value for 'in' or 'not in'
-            value = [v.strip().strip("'") for v in value_str[1:-1].split(',')]
+            value = [v.strip().strip("'") for v in value_str[1:-1].split(",")]
             value = ", ".join(value)
-        elif value_str == 'None':
-            value = 'not set' if py_operator == 'is not' else 'set'
+        elif value_str == "None":
+            value = "not set" if py_operator == "is not" else "set"
         elif value_str.startswith("'") and value_str.endswith("'"):
             value = value_str[1:-1]
         else:
@@ -250,18 +274,18 @@ def _parse_simple_condition(condition_part):
                 try:
                     value = float(value_str)
                 except ValueError:
-                    value = value_str # Keep as string if not a number
+                    value = value_str  # Keep as string if not a number
 
     field_meta = meta.get_field(fieldname)
-    
+
     return {
         "field": {
             "value": fieldname,
             "fieldname": fieldname,
             "fieldtype": field_meta.fieldtype if field_meta else "Data",
             "label": field_meta.label if field_meta else fieldname,
-            "options": field_meta.options if field_meta else None
+            "options": field_meta.options if field_meta else None,
         },
         "operator": operator,
-        "value": value
+        "value": value,
     }

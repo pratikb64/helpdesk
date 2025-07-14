@@ -1,11 +1,5 @@
-import { createListResource, createResource } from "frappe-ui";
+import { createResource } from "frappe-ui";
 import { ref } from "vue";
-
-export const assignmentRulesListData = createListResource({
-  doctype: "Assignment Rule",
-  fields: ["*"],
-  orderBy: "modified desc",
-});
 
 const defaultAssignmentDays = [
   {

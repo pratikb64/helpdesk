@@ -23,17 +23,18 @@
 </template>
 
 <script setup lang="ts">
+import { Button, createResource } from "frappe-ui";
+import { provide } from "vue";
+import { assignmentRulesActiveScreen } from "../../../stores/assignmentRules";
 import AssignmentRulesListView from "./AssignmentRulesListView.vue";
-import {
-  assignmentRulesListData,
-  assignmentRulesActiveScreen,
-} from "../../../stores/assignmentRules";
-import { onMounted } from "vue";
-import { Button } from "frappe-ui";
 
-onMounted(() => {
-  assignmentRulesListData.fetch();
+const assignmentRulesListData = createResource({
+  url: "helpdesk.api.assignment_rule.get_assignment_rules_list",
+  cache: ["assignmentRules", "get_assignment_rules_list"],
+  auto: true,
 });
+
+provide("assignmentRulesList", assignmentRulesListData);
 
 const goToNew = () => {
   assignmentRulesActiveScreen.value = {

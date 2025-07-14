@@ -31,32 +31,7 @@
         />
       </div>
       <div>
-        <Dropdown
-          placement="right"
-          :options="[
-            {
-              label: 'Duplicate',
-              onClick: () => {
-                duplicateDialog = {
-                  show: true,
-                  name: props.data.name + ' (Copy)',
-                };
-              },
-              icon: 'copy',
-            },
-            {
-              label: 'Confirm Delete',
-              component: (props) =>
-                TemplateOption({
-                  option: isConfirmingDelete ? 'Confirm Delete' : 'Delete',
-                  icon: 'trash-2',
-                  active: props.active,
-                  variant: isConfirmingDelete ? 'danger' : 'gray',
-                  onClick: (event) => deleteAssignmentRule(event),
-                }),
-            },
-          ]"
-        >
+        <Dropdown placement="right" :options="dropdownOptions">
           <Button
             icon="more-horizontal"
             variant="ghost"
@@ -93,20 +68,19 @@
 </template>
 
 <script setup lang="ts">
+import { TemplateOption } from "@/utils";
 import {
+  Button,
   createResource,
-  toast,
+  Dropdown,
   Select,
   Switch,
-  Dropdown,
-  Button,
+  toast,
 } from "frappe-ui";
-import { ref } from "vue";
-import {
-  assignmentRulesActiveScreen,
-  assignmentRulesListData,
-} from "../../../stores/assignmentRules";
-import { TemplateOption } from "@/utils";
+import { inject, ref } from "vue";
+import { assignmentRulesActiveScreen } from "../../../stores/assignmentRules";
+
+const assignmentRulesList = inject<any>("assignmentRulesList");
 
 const props = defineProps({
   data: {
@@ -130,15 +104,55 @@ const duplicateDialog = ref({
 
 const isConfirmingDelete = ref(false);
 
+const dropdownOptions = [
+  {
+    label: "Duplicate",
+    onClick: () => {
+      duplicateDialog.value = {
+        show: true,
+        name: props.data.name + " (Copy)",
+      };
+    },
+    icon: "copy",
+  },
+  {
+    label: "Delete",
+    component: (props) =>
+      TemplateOption({
+        option: "Delete",
+        icon: "trash-2",
+        active: props.active,
+        variant: "gray",
+        onClick: (event) => deleteAssignmentRule(event),
+      }),
+    condition: () => !isConfirmingDelete.value,
+  },
+  {
+    label: "Confirm Delete",
+    component: (props) =>
+      TemplateOption({
+        option: "Confirm Delete",
+        icon: "trash-2",
+        active: props.active,
+        variant: "danger",
+        onClick: (event) => deleteAssignmentRule(event),
+      }),
+    condition: () => isConfirmingDelete.value,
+  },
+];
+
 const duplicate = () => {
   createResource({
-    url: "helpdesk.api.assignment_rule.duplicate_assignment_rule",
+    url: "frappe.client.insert",
     params: {
-      docname: props.data.name,
-      new_name: duplicateDialog.value.name,
+      doctype: "Assignment Rule",
+      doc: {
+        ...props.data,
+        name: duplicateDialog.value.name,
+      },
     },
     onSuccess: () => {
-      assignmentRulesListData.reload();
+      assignmentRulesList.reload();
       toast.success("Assignment rule duplicated");
       duplicateDialog.value.show = false;
       duplicateDialog.value.name = "";
@@ -160,7 +174,7 @@ const deleteAssignmentRule = (event) => {
       name: props.data.name,
     },
     onSuccess: () => {
-      assignmentRulesListData.reload();
+      assignmentRulesList.reload();
       isConfirmingDelete.value = false;
       toast.success("Assignment rule deleted");
     },
@@ -178,7 +192,7 @@ const onPriorityChange = () => {
       value: props.data.priority,
     },
     onSuccess: () => {
-      assignmentRulesListData.reload();
+      assignmentRulesList.reload();
       toast.success("Assignment rule priority updated");
     },
     auto: true,
@@ -186,6 +200,10 @@ const onPriorityChange = () => {
 };
 
 const onToggle = () => {
+  if (props.data.users.length == 0 && props.data.disabled) {
+    toast.error("Cannot enable rule without adding users in it");
+    return;
+  }
   createResource({
     url: "frappe.client.set_value",
     params: {
@@ -195,7 +213,7 @@ const onToggle = () => {
       value: !props.data.disabled,
     },
     onSuccess: () => {
-      assignmentRulesListData.reload();
+      assignmentRulesList.reload();
       toast.success("Assignment rule status updated");
     },
     auto: true,

@@ -99,14 +99,12 @@
         <Button variant="ghost" icon="x" @click="removeAssignedUser(user)" />
       </div>
     </div>
-    <div v-if="assignmentRulesErrors.users" class="text-red-500 text-xs mt-2">
-      {{ assignmentRulesErrors.users }}
-    </div>
+    <ErrorMessage :message="assignmentRulesErrors.users" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, Popover, Tooltip } from "frappe-ui";
+import { Avatar, Button, ErrorMessage, Popover, Tooltip } from "frappe-ui";
 import {
   assignmentRuleData,
   assignmentRulesErrors,

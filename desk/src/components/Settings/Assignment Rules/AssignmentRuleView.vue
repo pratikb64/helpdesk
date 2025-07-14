@@ -69,12 +69,7 @@
           required
           @change="debouncedValidateAssignmentRule('assignment_rule_name')"
         />
-        <span
-          v-if="assignmentRulesErrors.assignment_rule_name"
-          class="text-red-500 text-xs"
-        >
-          {{ assignmentRulesErrors.assignment_rule_name }}
-        </span>
+        <ErrorMessage :message="assignmentRulesErrors.assignment_rule_name" />
       </div>
       <div class="flex flex-col gap-1.5">
         <FormLabel label="Default priority" required />
@@ -129,12 +124,7 @@
           @change="debouncedValidateAssignmentRule('description')"
           v-model="assignmentRuleData.description"
         />
-        <span
-          v-if="assignmentRulesErrors.description"
-          class="text-red-500 text-xs"
-        >
-          {{ assignmentRulesErrors.description }}
-        </span>
+        <ErrorMessage :message="assignmentRulesErrors.description" />
       </div>
     </div>
     <hr class="my-6" />
@@ -159,12 +149,7 @@
           name="assign_condition"
           :errors="assignmentRulesErrors.assign_condition_error"
         />
-        <div
-          v-if="assignmentRulesErrors.assign_condition"
-          class="text-red-500 text-xs mt-2"
-        >
-          {{ assignmentRulesErrors.assign_condition }}
-        </div>
+        <ErrorMessage :message="assignmentRulesErrors.assign_condition" />
       </div>
     </div>
     <hr class="my-6" />
@@ -218,31 +203,32 @@
 </template>
 
 <script setup lang="ts">
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import { useDebounceFn } from "@vueuse/core";
+import {
+  Badge,
+  Button,
+  createResource,
+  ErrorMessage,
+  FormControl,
+  FormLabel,
+  LoadingIndicator,
+  Popover,
+  Switch,
+  toast,
+} from "frappe-ui";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import {
   assignmentRuleData,
+  assignmentRulesActiveScreen,
   assignmentRulesErrors,
   resetAssignmentRuleData,
   resetAssignmentRuleErrors,
   validateAssignmentRule,
 } from "../../../stores/assignmentRules";
-import {
-  createResource,
-  toast,
-  LoadingIndicator,
-  Switch,
-  Button,
-  Badge,
-  FormControl,
-  FormLabel,
-  Popover,
-} from "frappe-ui";
-import { useDebounceFn } from "@vueuse/core";
-import { assignmentRulesActiveScreen } from "../../../stores/assignmentRules";
+import AssigneeRules from "./AssigneeRules.vue";
 import AssignmentRulesSection from "./AssignmentRulesSection.vue";
 import AssignmentSchedule from "./AssignmentSchedule.vue";
-import AssigneeRules from "./AssigneeRules.vue";
-import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
 const isDirty = ref(false);
 const initialData = ref(null);
