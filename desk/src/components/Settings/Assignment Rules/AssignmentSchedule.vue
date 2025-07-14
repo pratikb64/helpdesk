@@ -17,7 +17,7 @@
       :isLast="index === days.length - 1"
     />
   </div>
-  <ErrorMessage :message="assignmentRulesErrors.assignment_days" />
+  <ErrorMessage :message="assignmentRulesErrors.assignment_days" class="mt-2" />
 </template>
 
 <script setup lang="ts">
