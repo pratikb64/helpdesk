@@ -6,7 +6,7 @@
       @click="assignmentRulesActiveScreen = { screen: 'view', data: data }"
       class="w-full py-3 pl-2 col-span-7"
     >
-      <div class="text-base text-gray-700 font-medium">{{ data.name }}</div>
+      <div class="text-base text-ink-gray-7 font-medium">{{ data.name }}</div>
       <div
         v-if="data.description && data.description.length > 0"
         class="text-sm w-full text-ink-gray-5 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"
@@ -16,7 +16,7 @@
     </div>
     <div class="col-span-2">
       <Select
-        class="w-max bg-transparent -ml-2 border-0 text-ink-gray-7 focus-visible:!ring-0 bg-none"
+        class="w-max bg-transparent -ml-2 border-0 text-ink-gray-6 focus-visible:!ring-0 bg-none"
         :options="priorityOptions"
         v-model="data.priority"
         @update:modelValue="onPriorityChange"

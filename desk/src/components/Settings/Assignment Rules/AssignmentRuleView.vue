@@ -20,7 +20,7 @@
             "
             size="md"
             @click="goBack()"
-            class="cursor-pointer -ml-4 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:none active:bg-transparent active:outline-none active:ring-0 active:ring-offset-0 active:text-ink-gray-5"
+            class="cursor-pointer -ml-4 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:none active:bg-transparent active:outline-none active:ring-0 active:ring-offset-0 active:text-ink-gray-5 font-semibold text-xl"
           />
           <Badge
             :variant="'subtle'"
@@ -53,7 +53,7 @@
       class="flex items-center justify-between gap-2"
       @click="assignmentRuleData.disabled = !assignmentRuleData.disabled"
     >
-      <span class="text-sm"> Enable Assignment Rule </span>
+      <span class="text-sm text-ink-gray-7"> Enable Assignment Rule </span>
       <Switch size="sm" :model-value="!assignmentRuleData.disabled" />
     </div>
     <hr class="mb-6 mt-3" />
