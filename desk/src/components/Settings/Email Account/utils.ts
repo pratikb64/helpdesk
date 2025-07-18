@@ -5,7 +5,7 @@ import LogoSparkpost from "@/assets/images/sparkpost.webp";
 import LogoYahoo from "@/assets/images/yahoo.png";
 import LogoYandex from "@/assets/images/yandex.png";
 import LogoFrappeMail from "@/assets/images/frappe-mail.svg";
-import LogoCustom from "@/icons/email.svg";
+import LogoCustom from "@/assets/icons/email.svg";
 
 export const emailIcons = {
   GMail: {
@@ -40,4 +40,8 @@ export const emailIcons = {
     name: "Custom",
     icon: LogoCustom,
   },
+};
+
+export const getProviderIcon = (provider) => {
+  return Object.values(emailIcons).find((icon) => icon.name === provider);
 };

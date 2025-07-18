@@ -5,8 +5,8 @@
       <div class="col-span-2">Date created</div>
     </div>
     <hr class="mt-2 mx-2" />
-    <div v-for="item in list" :key="item">
-      <EmailAccountsListItem />
+    <div v-for="account in emailAccountList.data" :key="account.name">
+      <EmailAccountsListItem :data="account" />
       <hr class="mx-2" />
     </div>
     <div class="mt-8">
@@ -23,21 +23,22 @@
           </div>
           <div>
             <Autocomplete
-              v-model="defaultIncoming"
+              :model-value="defaultIncoming"
+              @update:model-value="onDefaultIncomingChange"
               class="w-max"
-              :options="options"
+              :options="incomingAccounts"
               placeholder="Select account"
               placement="bottom-end"
             >
               <template #prefix>
                 <img
-                  v-if="defaultIncoming"
-                  :src="defaultIncoming.image"
-                  class="mr-2 size-4 rounded-full"
+                  v-if="defaultIncoming.icon"
+                  :src="defaultIncoming.icon"
+                  class="mr-2 size-4"
                 />
               </template>
               <template #item-prefix="{ option }">
-                <img :src="option.image" class="size-4 rounded-full" />
+                <img :src="option?.image" class="size-4" />
               </template>
             </Autocomplete>
           </div>
@@ -55,21 +56,22 @@
           </div>
           <div>
             <Autocomplete
-              v-model="defaultIncoming"
+              :model-value="defaultOutgoing"
+              @update:model-value="onDefaultOutgoingChange"
               class="w-max"
-              :options="options"
+              :options="outgoingAccounts"
               placeholder="Select account"
               placement="bottom-end"
             >
               <template #prefix>
                 <img
-                  v-if="defaultIncoming"
-                  :src="defaultIncoming.image"
-                  class="mr-2 size-4 rounded-full"
+                  v-if="defaultOutgoing.icon"
+                  :src="defaultOutgoing.icon"
+                  class="mr-2 size-4"
                 />
               </template>
               <template #item-prefix="{ option }">
-                <img :src="option.image" class="size-4 rounded-full" />
+                <img :src="option?.image" class="size-4" />
               </template>
             </Autocomplete>
           </div>
@@ -80,42 +82,127 @@
 </template>
 
 <script setup lang="ts">
-import { Autocomplete } from "frappe-ui";
+import { Autocomplete, toast } from "frappe-ui";
 import EmailAccountsListItem from "./EmailAccountsListItem.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { inject } from "vue";
+import { emailIcons } from "./utils";
 
-const list = [1, 2, 3, 4, 5];
-const options = [
-  {
-    label: "John Doe",
-    value: "john-doe",
-    image: "https://randomuser.me/api/portraits/men/59.jpg",
-  },
-  {
-    label: "Jane Doeasdasdasd",
-    value: "jane-doe",
-    image: "https://randomuser.me/api/portraits/women/58.jpg",
-  },
-  {
-    label: "John Smith",
-    value: "john-smith",
-    image: "https://randomuser.me/api/portraits/men/59.jpg",
-  },
-  {
-    label: "Jane Smith",
-    value: "jane-smith",
-    image: "https://randomuser.me/api/portraits/women/59.jpg",
-  },
-  {
-    label: "John Wayne",
-    value: "john-wayne",
-    image: "https://randomuser.me/api/portraits/men/57.jpg",
-  },
-  {
-    label: "Jane Wayne",
-    value: "jane-wayne",
-    image: "https://randomuser.me/api/portraits/women/51.jpg",
-  },
-];
-const defaultIncoming = ref(options[0]);
+const emailAccountList = inject<any>("emailAccountList");
+
+const defaultIncoming = ref({
+  value: "",
+  icon: "",
+});
+const defaultOutgoing = ref({
+  value: "",
+  icon: "",
+});
+
+const incomingAccounts = computed(() => {
+  return emailAccountList.data
+    ?.filter((account) => account.enable_incoming == 1)
+    .map((account) => {
+      const providerIcon = emailIcons[account.service];
+      if (account.default_incoming == 1) {
+        defaultIncoming.value = {
+          value: account.name,
+          icon: providerIcon?.icon,
+        };
+      }
+      return {
+        label: account.name,
+        value: account.name,
+        image: providerIcon?.icon,
+      };
+    });
+});
+
+const outgoingAccounts = computed(() => {
+  return emailAccountList.data
+    ?.filter((account) => account.enable_outgoing == 1)
+    .map((account) => {
+      const providerIcon = emailIcons[account.service];
+      if (account.default_outgoing == 1) {
+        defaultOutgoing.value = {
+          value: account.name,
+          icon: providerIcon?.icon,
+        };
+      }
+      return {
+        label: account.name,
+        value: account.name,
+        image: providerIcon?.icon,
+      };
+    });
+});
+
+const onDefaultIncomingChange = (account) => {
+  const oldAccount = Object.assign({}, defaultIncoming.value);
+
+  emailAccountList.setValue.submit(
+    {
+      name: account ? account.value : defaultIncoming.value.value,
+      default_incoming: account ? 1 : 0,
+    },
+    {
+      onSuccess: () => {
+        toast.success("Default incoming account updated");
+        emailAccountList.reload();
+        if (!account) {
+          defaultIncoming.value = {
+            value: "",
+            icon: "",
+          };
+        } else {
+          defaultIncoming.value = {
+            value: account.value,
+            icon: emailIcons[account.service]?.icon,
+          };
+        }
+      },
+      onError: () => {
+        toast.error("Failed to update default account");
+        defaultIncoming.value = {
+          value: oldAccount.value,
+          icon: oldAccount.icon,
+        };
+      },
+    }
+  );
+};
+
+const onDefaultOutgoingChange = (account) => {
+  const oldAccount = Object.assign({}, defaultOutgoing.value);
+  emailAccountList.setValue.submit(
+    {
+      name: account ? account.value : defaultOutgoing.value.value,
+      default_outgoing: account ? 1 : 0,
+    },
+    {
+      onSuccess: () => {
+        toast.success("Default outgoing account updated");
+        emailAccountList.reload();
+        if (!account) {
+          defaultOutgoing.value = {
+            value: "",
+            icon: "",
+          };
+        } else {
+          defaultOutgoing.value = {
+            value: account.value,
+            icon: emailIcons[account.service]?.icon,
+          };
+        }
+      },
+      onError: () => {
+        toast.error("Failed to update default account");
+        defaultOutgoing.value = {
+          value: oldAccount.value,
+          icon: oldAccount.icon,
+        };
+      },
+    }
+  );
+};
 </script>
