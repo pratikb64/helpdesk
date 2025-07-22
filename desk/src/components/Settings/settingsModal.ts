@@ -34,6 +34,16 @@ export const tabs = [
     component: markRaw(TeamsConfig),
   },
   {
+    label: "SLA Policies",
+    icon: markRaw(ShieldCheck),
+    component: markRaw(AssignmentRules),
+  },
+  {
+    label: "Business Holidays",
+    icon: markRaw(Briefcase),
+    component: markRaw(AssignmentRules),
+  },
+  {
     label: "Assignment Rules",
     icon: markRaw(h(Settings, { class: "rotate-90" })),
     component: markRaw(AssignmentRules),
