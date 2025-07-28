@@ -7,14 +7,7 @@
   <div
     v-if="props.conditions.length == 0"
     class="flex p-4 items-center cursor-pointer justify-center gap-2 text-sm border border-gray-300 text-gray-600 rounded-md"
-    @click="
-      props.conditions.push({
-        field: null,
-        operator: 'equals',
-        value: '',
-        conjunction: 'and',
-      })
-    "
+    @click="props.conditions.push(['', '', ''])"
   >
     <FeatherIcon name="plus" class="h-4" />
     Add a custom condition
@@ -45,16 +38,9 @@ import {
 } from "@/stores/sla";
 import { watchDebounced } from "@vueuse/core";
 
-type Conditions = {
-  field: string | object | null;
-  operator: string;
-  value: string | number | boolean | Array<any>;
-  conjunction?: string;
-};
-
 const props = defineProps({
   conditions: {
-    type: Array<Conditions>,
+    type: Array<any>,
     required: true,
   },
 });
@@ -69,47 +55,31 @@ const dropdownOptions = [
   {
     label: "Add condition group",
     onClick: () => {
-      const conjunction =
-        props.conditions.length > 1 ? props.conditions[1]?.conjunction : "and";
-      props.conditions.push({
-        field: "group",
-        operator: "equals",
-        value: [
-          {
-            field: null,
-            operator: "equals",
-            value: "",
-            conjunction: "and",
-          },
-        ],
-        conjunction: conjunction,
-      });
+      // const conjunction =
+      //   props.conditions.length > 1 ? props.conditions[1]?.conjunction : "and";
+      props.conditions.push("and", [[]]);
     },
   },
 ];
 
 const addCondition = () => {
-  const isValid = validateConditions(props.conditions);
+  // const isValid = validateConditions(props.conditions);
 
-  if (!isValid) {
-    return;
-  }
+  // if (!isValid) {
+  //   return;
+  // }
   const conjunction =
     props.conditions.length > 1 ? props.conditions[1]?.conjunction : "and";
 
-  props.conditions.push({
-    field: null,
-    operator: "equals",
-    value: "",
-    conjunction: conjunction,
-  });
+  props.conditions.push("and", ["", "", ""]);
+  console.log(props.conditions);
 };
 
-watchDebounced(
-  () => [...props.conditions],
-  () => {
-    validateSlaData("condition");
-  },
-  { deep: true, debounce: 300 }
-);
+// watchDebounced(
+//   () => [...props.conditions],
+//   () => {
+//     validateSlaData("condition");
+//   },
+//   { deep: true, debounce: 300 }
+// );
 </script>

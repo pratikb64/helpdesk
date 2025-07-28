@@ -1,17 +1,17 @@
 <template>
   <div
+    class="flex gap-2"
     :class="[
-      'flex gap-2',
       {
-        'items-center': props.condition.field != 'group',
+        'items-center': !props.isGroup,
       },
     ]"
   >
     <div
+      class="flex gap-2 w-full"
       :class="[
-        'flex gap-2 w-full',
         {
-          'items-center justify-between': props.condition.field != 'group',
+          'items-center justify-between': !props.isGroup,
         },
       ]"
     >
@@ -28,10 +28,7 @@
           />
         </div>
       </div>
-      <div
-        v-if="props.condition.field != 'group'"
-        class="flex items-center gap-2 w-full"
-      >
+      <div v-if="!props.isGroup" class="flex items-center gap-2 w-full">
         <div id="fieldname" class="w-full">
           <AutocompleteNew
             :options="filterableFields.data"
@@ -76,12 +73,13 @@
           />
         </div>
       </div>
-      <AssignmentConditions
-        v-if="
+      <!-- v-if="
           props.condition.field == 'group' &&
           !(props.level == 2 || props.level == 4)
-        "
-        :conditions="props.condition.value"
+        " -->
+      <AssignmentConditions
+        v-if="props.isGroup"
+        :conditions="props.condition"
         :isChild="true"
         :level="props.level"
       />
@@ -152,8 +150,12 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  isGroup: {
+    type: Boolean,
+    default: false,
+  },
 });
-
+console.log("level", props.level);
 const dropdownOptions = computed(() => {
   const options = [];
 
