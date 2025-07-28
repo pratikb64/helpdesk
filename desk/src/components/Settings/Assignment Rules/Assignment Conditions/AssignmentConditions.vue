@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { Button, Dropdown } from "frappe-ui";
+import { Button } from "frappe-ui";
 import AssignmentCondition from "./AssignmentCondition.vue";
 import { filterableFields } from "@/stores/assignmentRules";
 

@@ -119,7 +119,6 @@ import {
   DateRangePicker,
   Button,
   Dialog,
-  Dropdown,
 } from "frappe-ui";
 import { AutocompleteNew, Link, StarRating } from "@/components";
 import GroupIcon from "~icons/lucide/group";

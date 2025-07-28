@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, FeatherIcon } from "frappe-ui";
+import { Button, FeatherIcon } from "frappe-ui";
 import { watchDebounced } from "@vueuse/core";
 import {
   validateAssignmentRule,
