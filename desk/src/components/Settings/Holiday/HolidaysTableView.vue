@@ -57,7 +57,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Dropdown } from "frappe-ui";
 import dayjs from "dayjs";
 import { getFormattedDate, TemplateOption } from "@/utils";
 import { holidayData } from "@/stores/holidayList";
