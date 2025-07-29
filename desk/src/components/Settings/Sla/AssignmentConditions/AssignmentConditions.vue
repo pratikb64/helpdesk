@@ -10,8 +10,10 @@
         @remove="removeCondition(condition)"
         @unGroupConditions="unGroupConditions(condition)"
         :level="props.level + 1"
-        @updateConjunction="updateConjunction(props.level)"
+        @toggleConjunction="toggleConjunction"
         :isGroup="isGroupCondition(condition[0])"
+        :conjunction="getConjunction()"
+        @turnIntoGroup="turnIntoGroup(condition)"
       />
     </template>
     <div v-if="props.isChild" class="flex">
@@ -49,8 +51,21 @@ const props = defineProps({
   },
 });
 
+const getConjunction = () => {
+  let conjunction = "and";
+  props.conditions.forEach((condition) => {
+    if (typeof condition == "string") {
+      conjunction = condition;
+    }
+  });
+  return conjunction;
+};
+
+const turnIntoGroup = (condition) => {
+  props.conditions.splice(props.conditions.indexOf(condition), 1, [condition]);
+};
+
 const isGroupCondition = (condition) => {
-  console.log("condition", condition);
   return Array.isArray(condition);
 };
 
@@ -59,9 +74,8 @@ const dropdownOptions = computed(() => {
     {
       label: "Add condition",
       onClick: () => {
-        // const conjunction = props.conditions[0]?.conjunction;
-        console.log("props.conditions dd", props.conditions);
-        props.conditions.push("and", ["", "", ""]);
+        const conjunction = getConjunction();
+        props.conditions.push(conjunction, ["", "", ""]);
       },
     },
   ];
@@ -69,10 +83,8 @@ const dropdownOptions = computed(() => {
     options.push({
       label: "Add condition group",
       onClick: () => {
-        // const conjunction = props.conditions[0]?.conjunction;
-        console.log("props.conditions dd group", props.conditions);
-
-        props.conditions.push("and", [[]]);
+        const conjunction = getConjunction();
+        props.conditions.push(conjunction, [[]]);
       },
     });
   }
@@ -80,34 +92,35 @@ const dropdownOptions = computed(() => {
 });
 
 function removeCondition(condition) {
-  props.conditions.splice(props.conditions.indexOf(condition) - 1, 2);
-}
-
-function unGroupConditions(condition) {
-  const index = props.conditions.indexOf(condition);
-  if (index !== -1 && Array.isArray(condition.value)) {
-    props.conditions.splice(index, 1, ...condition.value);
+  const conditionIndex = props.conditions.indexOf(condition);
+  if (conditionIndex == 0) {
+    props.conditions.splice(conditionIndex, 2);
   } else {
-    props.conditions.splice(index, 1);
+    props.conditions.splice(conditionIndex - 1, 2);
   }
 }
 
-function updateConjunction(level) {
-  const updateConjunctions = (conditions, targetLevel, currentLevel = 0) => {
-    if (!conditions || !Array.isArray(conditions)) return;
-    const newConjunction = conditions[1]?.conjunction === "and" ? "or" : "and";
-    if (currentLevel === targetLevel) {
-      conditions.forEach((condition) => {
-        if (condition.conjunction) {
-          condition.conjunction = newConjunction;
-        }
-      });
-    } else if (currentLevel < targetLevel) {
-      updateConjunctions(props.conditions, level, currentLevel + 1);
+function unGroupConditions(condition) {
+  const conjunction = getConjunction();
+  const newConditions = condition.map((c) => {
+    if (typeof c == "string") {
+      return conjunction;
     }
-  };
+    return c;
+  });
 
-  updateConjunctions(props.conditions, level);
+  const index = props.conditions.indexOf(condition);
+  if (index !== -1) {
+    props.conditions.splice(index, 1, ...newConditions);
+  }
+}
+
+function toggleConjunction(conjunction) {
+  for (let i = 0; i < props.conditions.length; i++) {
+    if (typeof props.conditions[i] == "string") {
+      props.conditions[i] = conjunction == "and" ? "or" : "and";
+    }
+  }
 }
 onMounted(() => {
   if (!filterableFields.fetched) {
