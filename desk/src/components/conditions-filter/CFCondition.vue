@@ -325,12 +325,7 @@ function updateOperator(event) {
 }
 
 function getOperators() {
-  let options = [
-    {
-      label: "Select",
-      value: "",
-    },
-  ];
+  let options = [];
   const field = props.condition[0];
   if (!field) return options;
   const fieldData = filterableFields.data?.find((f) => f.fieldname == field);
@@ -438,6 +433,7 @@ function getOperators() {
       ]
     );
   }
+  props.condition[1] = props.condition[1] || options[0].value;
   return options;
 }
 

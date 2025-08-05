@@ -6,6 +6,49 @@ import IconsResolver from "unplugin-icons/resolver";
 import Components from "unplugin-vue-components/vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import fs from "fs";
+
+function appPath(app) {
+  const root = path.resolve(__dirname, "../.."); // points to apps
+  const frontendPaths = [
+    // Standard frontend structure: appname/frontend/src
+    path.join(root, app, "frontend", "src"),
+    // Desk-based apps: appname/desk/src
+    path.join(root, app, "desk", "src"),
+    // Alternative frontend structures
+    path.join(root, app, "client", "src"),
+    path.join(root, app, "ui", "src"),
+    // Direct src structure: appname/src
+    path.join(root, app, "src"),
+  ];
+  return frontendPaths.find((srcPath) => fs.existsSync(srcPath)) || null;
+}
+
+function hasApp(app) {
+  return fs.existsSync(appPath(app));
+}
+
+// List of frontend apps used in this project
+let apps = ["telephony"];
+
+const alias = [
+  // Default "@" for this app
+  {
+    find: "@",
+    replacement: path.resolve(__dirname, "src"),
+  },
+  {
+    find: "tailwind.config.js",
+    replacement: path.resolve(__dirname, "tailwind.config.js"),
+  },
+
+  // App-specific aliases like @helpdesk, @hrms, etc.
+  ...apps.map((app) =>
+    hasApp(app)
+      ? { find: `@${app}`, replacement: appPath(app) }
+      : { find: `@${app}`, replacement: `virtual:${app}` }
+  ),
+];
 
 export default defineConfig({
   plugins: [
@@ -73,10 +116,7 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-      "tailwind.config.js": path.resolve(__dirname, "tailwind.config.js"),
-    },
+    alias,
   },
   optimizeDeps: {
     include: [
