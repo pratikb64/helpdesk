@@ -119,7 +119,7 @@ import {
   Dropdown,
   FormControl,
 } from "frappe-ui";
-import { computed, defineEmits, h, inject, provide, ref } from "vue";
+import { computed, defineEmits, h, ref } from "vue";
 import GroupIcon from "~icons/lucide/group";
 import UnGroupIcon from "~icons/lucide/ungroup";
 import CFConditions from "./CFConditions.vue";
@@ -433,7 +433,8 @@ function getOperators() {
       ]
     );
   }
-  props.condition[1] = props.condition[1] || options[0].value;
+  const op = options.find((o) => o.value == props.condition[1]);
+  props.condition[1] = op?.value || options[0].value;
   return options;
 }
 
