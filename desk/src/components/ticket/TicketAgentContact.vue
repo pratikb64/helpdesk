@@ -3,11 +3,18 @@
     <Avatar size="3xl" :image="contact.image" :label="contact.name" />
     <div class="flex items-center justify-between flex-1">
       <Tooltip :text="contact.name">
-        <div class="w-[242px] truncate text-2xl font-medium">
+        <div class="w-full truncate text-2xl font-medium">
           {{ contact.name }}
         </div>
       </Tooltip>
       <div class="flex gap-1.5">
+        <Tooltip :text="contact.email_id">
+          <Button
+            class="h-7 w-7"
+            icon="phone"
+            @click="makeCall('+917875500286')"
+          />
+        </Tooltip>
         <Tooltip :text="contact.email_id">
           <Button class="h-7 w-7">
             <template #icon>
@@ -42,7 +49,10 @@
 
 <script setup lang="ts">
 import { EmailIcon } from "@/components/icons/";
+import { telephonyStore } from "@telephony/store";
 import { Avatar, Tooltip } from "frappe-ui";
+
+const { makeCall } = telephonyStore();
 
 const props = defineProps({
   contact: {

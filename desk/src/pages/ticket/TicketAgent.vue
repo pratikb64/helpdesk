@@ -49,6 +49,7 @@
             </Button>
           </template>
         </Dropdown>
+        <CallUI />
       </template>
     </LayoutHeader>
     <div v-if="ticket.data" class="flex h-full overflow-hidden">
@@ -175,6 +176,8 @@ import { TabObject, TicketTab, View } from "@/types";
 import { getIcon } from "@/utils";
 import { ComputedRef } from "vue";
 import { showAssignmentModal } from "./modalStates";
+import CallUI from "@telephony/components/CallUI.vue";
+
 const route = useRoute();
 const router = useRouter();
 
