@@ -11,7 +11,8 @@ import EmailConfig from "./EmailConfig.vue";
 import TeamsConfig from "./Teams/TeamsConfig.vue";
 import Sla from "./Sla/Sla.vue";
 import HolidayList from "./Holiday/Holiday.vue";
-
+import Telephony from "./Telephony/Telephony.vue";
+import LucidePhone from "~icons/lucide/phone";
 export const tabs = [
   {
     label: "Email Accounts",
@@ -42,6 +43,11 @@ export const tabs = [
     label: "Business Holidays",
     icon: markRaw(Briefcase),
     component: markRaw(HolidayList),
+  },
+  {
+    label: "Telephony",
+    icon: markRaw(LucidePhone),
+    component: markRaw(Telephony),
   },
 ];
 
