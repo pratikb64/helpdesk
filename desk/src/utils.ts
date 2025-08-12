@@ -438,3 +438,14 @@ export const convertToConditions = ({
   const parts = conditions.map(processCondition);
   return parts.join(" ");
 };
+
+export function getRandom(len = 4) {
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  Array.from({ length: len }).forEach(() => {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  });
+
+  return text;
+}

@@ -62,12 +62,13 @@
       @scrollend="handleListScroll"
       class="list-rows"
     >
-      <ListRowItem :item="item" :column="column" :row="row">
-        <component
-          :is="listCell(column, row, item, idx)"
-          :key="column.key"
-          @click="(e) => handleFieldClick(e, column, row, item)"
-        />
+      <ListRowItem
+        :item="item"
+        :column="column"
+        :row="row"
+        @click="(e) => handleFieldClick(e, column, row, item)"
+      >
+        <component :is="listCell(column, row, item, idx)" :key="column.key" />
       </ListRowItem>
     </ListRows>
     <ListSelectBanner v-if="options.showSelectBanner">

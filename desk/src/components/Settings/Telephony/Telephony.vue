@@ -32,6 +32,7 @@
       <div class="flex flex-col gap-1.5">
         <FormLabel label="Default medium" />
         <Select
+          v-if="telephonyAgent.doc"
           :options="telephonyProviders"
           :modelValue="telephonyAgent.doc?.default_medium"
           @update:modelValue="telephonyAgent.doc.default_medium = $event"
@@ -39,18 +40,24 @@
       </div>
     </div>
     <div class="grid grid-cols-2 gap-2 mt-4">
-      <FormControl
-        v-if="telephonyAgent.doc && twilio.doc.enabled"
-        label="Twilio number"
-        required
-        v-model="telephonyAgent.doc.twilio_number"
-      />
-      <FormControl
-        v-if="telephonyAgent.doc && exotel.doc.enabled"
-        label="Exotel number"
-        required
-        v-model="telephonyAgent.doc.exotel_number"
-      />
+      <div class="flex flex-col gap-1.5">
+        <FormControl
+          v-if="telephonyAgent.doc && twilio.doc.enabled"
+          label="Twilio number"
+          required
+          v-model="telephonyAgent.doc.twilio_number"
+        />
+        <ErrorMessage :message="twilioErrors.number" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <FormControl
+          v-if="telephonyAgent.doc && exotel.doc.enabled"
+          label="Exotel number"
+          required
+          v-model="telephonyAgent.doc.exotel_number"
+        />
+        <ErrorMessage :message="exotelErrors.number" />
+      </div>
     </div>
     <div class="mt-6" v-if="twilio?.doc">
       <div class="text-base font-semibold text-ink-gray-8">Twilio</div>
@@ -70,7 +77,7 @@
               label="Account SID"
               required
               v-model="twilio.doc.account_sid"
-              placeholder="AC49c7432ebf03AC49c7432ebf03"
+              placeholder="Account SID"
             />
             <ErrorMessage :message="twilioErrors.account_sid" />
           </div>
@@ -79,7 +86,7 @@
               label="Auth Token"
               required
               v-model="twilio.doc.auth_token"
-              placeholder="ozvPVC1yDZfI0VMOzvPVC1yDZfI0VM"
+              placeholder="Auth Token"
             />
             <ErrorMessage :message="twilioErrors.auth_token" />
           </div>
@@ -128,7 +135,7 @@
               label="Account SID"
               required
               v-model="exotel.doc.account_sid"
-              placeholder="AC49c7432ebf03AC49c7432ebf03"
+              placeholder="Account SID"
             />
             <ErrorMessage :message="exotelErrors.account_sid" />
           </div>
@@ -137,7 +144,7 @@
               label="Webhook Verify Token"
               required
               v-model="exotel.doc.webhook_verify_token"
-              placeholder="ozvPVC1yDZfI0VMOzvPVC1yDZfI0VM"
+              placeholder="Webhook Verify Token"
             />
             <ErrorMessage :message="exotelErrors.webhook_verify_token" />
           </div>
@@ -148,6 +155,7 @@
               label="Subdomain"
               required
               v-model="exotel.doc.subdomain"
+              placeholder="Subdomain"
             />
             <ErrorMessage :message="exotelErrors.subdomain" />
           </div>
@@ -158,6 +166,7 @@
               label="API Key"
               required
               v-model="exotel.doc.api_key"
+              placeholder="API Key"
             />
             <ErrorMessage :message="exotelErrors.api_key" />
           </div>
@@ -166,6 +175,7 @@
               label="API Token"
               required
               v-model="exotel.doc.api_token"
+              placeholder="API Token"
             />
             <ErrorMessage :message="exotelErrors.api_token" />
           </div>
@@ -190,12 +200,14 @@ import {
 } from "frappe-ui";
 import { ref } from "vue";
 import { useUserStore } from "@/stores/user";
+import { isDocDirty, validateExotel, validateTwilio } from "./utils";
 
 const { getUser } = useUserStore();
 
 const twilioErrors = ref({
   account_sid: "",
   auth_token: "",
+  number: "",
 });
 
 const exotelErrors = ref({
@@ -204,6 +216,7 @@ const exotelErrors = ref({
   subdomain: "",
   api_key: "",
   api_token: "",
+  number: "",
 });
 
 const twilio = createDocumentResource({
@@ -230,63 +243,15 @@ const telephonyAgent = createDocumentResource({
   auto: true,
 });
 
-const validateTwilio = () => {
-  if (!twilio.doc.enabled) {
-    return;
-  }
-  if (!twilio.doc.account_sid) {
-    twilioErrors.value.account_sid = "Account SID is required";
-  } else {
-    twilioErrors.value.account_sid = "";
-  }
-  if (!twilio.doc.auth_token) {
-    twilioErrors.value.auth_token = "Auth Token is required";
-  } else {
-    twilioErrors.value.auth_token = "";
-  }
-};
-
-const validateExotel = () => {
-  if (!exotel.doc.enabled) {
-    return;
-  }
-  if (!exotel.doc.account_sid) {
-    exotelErrors.value.account_sid = "Account SID is required";
-  } else {
-    exotelErrors.value.account_sid = "";
-  }
-  if (!exotel.doc.webhook_verify_token) {
-    exotelErrors.value.webhook_verify_token =
-      "Webhook Verify Token is required";
-  } else {
-    exotelErrors.value.webhook_verify_token = "";
-  }
-  if (!exotel.doc.subdomain) {
-    exotelErrors.value.subdomain = "Subdomain is required";
-  } else {
-    exotelErrors.value.subdomain = "";
-  }
-  if (!exotel.doc.api_key) {
-    exotelErrors.value.api_key = "API Key is required";
-  } else {
-    exotelErrors.value.api_key = "";
-  }
-  if (!exotel.doc.api_token) {
-    exotelErrors.value.api_token = "API Token is required";
-  } else {
-    exotelErrors.value.api_token = "";
-  }
-};
-
 const telephonyProviders = [
   { label: "", value: "" },
   { label: "Twilio", value: "Twilio" },
   { label: "Exotel", value: "Exotel" },
 ];
 
-function save() {
-  validateTwilio();
-  validateExotel();
+async function save() {
+  validateTwilio(twilio.doc, telephonyAgent.doc, twilioErrors);
+  validateExotel(exotel.doc, telephonyAgent.doc, exotelErrors);
   if (Object.values(twilioErrors.value).some((v) => v)) {
     toast.error("Please fill all required fields for Twilio");
     return;
@@ -296,12 +261,20 @@ function save() {
     return;
   }
 
-  Promise.all([
-    twilio.save.submit(),
-    exotel.save.submit(),
-    telephonyAgent.save.submit(),
-  ]).then(() => {
-    toast.success("Telephony settings updated!");
-  });
+  const promises = [];
+
+  // Temporary fix, as createDocumentResource's dirty state has bug
+  if (isDocDirty(twilio)) {
+    promises.push(twilio.save.submit());
+  }
+  if (isDocDirty(exotel)) {
+    promises.push(exotel.save.submit());
+  }
+  if (isDocDirty(telephonyAgent)) {
+    promises.push(telephonyAgent.save.submit());
+  }
+
+  await Promise.all(promises);
+  toast.success("Telephony settings updated!");
 }
 </script>

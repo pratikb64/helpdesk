@@ -8,9 +8,12 @@
         </div>
       </Tooltip>
       <div class="flex gap-1.5">
-        <Tooltip :text="contact.email_id">
-          <Button class="h-7 w-7" icon="phone" @click="callContact()" />
-        </Tooltip>
+        <Button
+          v-if="callEnabled"
+          class="h-7 w-7"
+          icon="phone"
+          @click="callContact"
+        />
         <Tooltip :text="contact.email_id">
           <Button class="h-7 w-7">
             <template #icon>
@@ -45,10 +48,10 @@
 
 <script setup lang="ts">
 import { EmailIcon } from "@/components/icons/";
-import { telephonyStore } from "@telephony/store";
-import { Avatar, toast, Tooltip } from "frappe-ui";
+import { telephonyStore } from "@/stores/telephony";
+import { Avatar, toast, Tooltip, Button, call } from "frappe-ui";
 
-const { makeCall } = telephonyStore();
+const { makeCall, callEnabled } = telephonyStore();
 
 const props = defineProps({
   contact: {
@@ -58,12 +61,12 @@ const props = defineProps({
 });
 
 const callContact = () => {
-  if (!props.contact.phone && !props.contact.mobile_no) {
-    toast.error("Phone number not found for this contact");
-    return;
-  }
+  // if (!props.contact.phone && !props.contact.mobile_no) {
+  //   toast.error("Phone number not found for this contact");
+  //   return;
+  // }
   console.log("props.contact", props.contact);
-  // makeCall(props.contact.mobile_no || props.contact.phone);
+  makeCall(props.contact.mobile_no || props.contact.phone);
 };
 const emit = defineEmits(["email:open"]);
 

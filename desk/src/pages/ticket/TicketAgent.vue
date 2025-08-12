@@ -49,7 +49,7 @@
             </Button>
           </template>
         </Dropdown>
-        <CallUI />
+        <CallUI :userEmail="getUser().email" />
       </template>
     </LayoutHeader>
     <div v-if="ticket.data" class="flex h-full overflow-hidden">
@@ -176,7 +176,7 @@ import { TabObject, TicketTab, View } from "@/types";
 import { getIcon } from "@/utils";
 import { ComputedRef } from "vue";
 import { showAssignmentModal } from "./modalStates";
-import CallUI from "@telephony/components/CallUI.vue";
+import CallUI from "@/components/telephony/CallUI.vue";
 
 const route = useRoute();
 const router = useRouter();
