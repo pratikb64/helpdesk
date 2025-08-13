@@ -88,4 +88,7 @@ export default defineConfig({
       "lowlight",
     ],
   },
+  server: {
+    allowedHosts: true,
+  },
 });

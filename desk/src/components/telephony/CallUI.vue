@@ -43,10 +43,15 @@ import { FormControl, call, toast } from "frappe-ui";
 import { nextTick, ref, watch } from "vue";
 import TwilioCallUI from "./TwilioCallUI.vue";
 import ExotelCallUI from "./ExotelCallUI.vue";
-import { telephonyStore } from "@/stores/telephony";
+import { useTelephonyStore } from "@/stores/telephony";
 
-const { defaultCallingMedium, exotelEnabled, setMakeCall, twilioEnabled } =
-  telephonyStore();
+const {
+  defaultCallingMedium,
+  exotelEnabled,
+  setMakeCall,
+  twilioEnabled,
+  setDefaultCallingMedium,
+} = useTelephonyStore();
 
 const twilio = ref(null);
 const exotel = ref(null);
@@ -65,19 +70,15 @@ const props = defineProps({
 });
 
 function makeCall(number) {
-  if (
-    twilioEnabled.value &&
-    exotelEnabled.value &&
-    !defaultCallingMedium.value
-  ) {
+  if (twilioEnabled && exotelEnabled && !defaultCallingMedium) {
     mobileNumber.value = number;
     show.value = true;
     return;
   }
 
-  callMedium.value = twilioEnabled.value ? "Twilio" : "Exotel";
-  if (defaultCallingMedium.value) {
-    callMedium.value = defaultCallingMedium.value;
+  callMedium.value = twilioEnabled ? "Twilio" : "Exotel";
+  if (defaultCallingMedium) {
+    callMedium.value = defaultCallingMedium;
   }
 
   mobileNumber.value = number;
@@ -86,7 +87,7 @@ function makeCall(number) {
 
 function makeCallUsing() {
   if (isDefaultMedium.value && callMedium.value) {
-    setDefaultCallingMedium();
+    setCallingMedium();
   }
 
   if (callMedium.value === "Twilio") {
@@ -99,12 +100,12 @@ function makeCallUsing() {
   show.value = false;
 }
 
-async function setDefaultCallingMedium() {
+async function setCallingMedium() {
   await call("telephony.api.set_default_calling_medium", {
     medium: callMedium.value,
   });
 
-  defaultCallingMedium.value = callMedium.value;
+  setDefaultCallingMedium(callMedium.value);
   toast.success(
     `Default calling medium set successfully to ${callMedium.value}`
   );

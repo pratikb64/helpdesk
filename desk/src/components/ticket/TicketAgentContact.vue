@@ -48,10 +48,10 @@
 
 <script setup lang="ts">
 import { EmailIcon } from "@/components/icons/";
-import { telephonyStore } from "@/stores/telephony";
+import { useTelephonyStore } from "@/stores/telephony";
 import { Avatar, toast, Tooltip, Button } from "frappe-ui";
 
-const { makeCall, callEnabled } = telephonyStore();
+const { makeCall, callEnabled } = useTelephonyStore();
 
 const props = defineProps({
   contact: {
