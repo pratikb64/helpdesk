@@ -14,6 +14,11 @@ def get_assignment_rules_list():
 @frappe.whitelist()
 def get_assignment_rule(docname):
     doc = frappe.get_doc("Assignment Rule", docname)
+    users = []
+    for user in doc.users:
+        user = frappe.get_doc("User", user.user)
+        users.append(user)
+    doc.users = users
     return doc.as_dict()
 
 

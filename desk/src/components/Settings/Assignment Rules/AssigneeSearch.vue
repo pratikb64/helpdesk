@@ -3,7 +3,7 @@
     <Popover placement="bottom-end">
       <template #target="{ togglePopover }">
         <Button
-          variant="solid"
+          variant="subtle"
           icon-left="plus"
           @click="togglePopover()"
           label="Add Assignee"
@@ -180,7 +180,12 @@ const addAssignee = (user) => {
     (u) => u.user === user.user
   );
   if (!userExists) {
-    assignmentRuleData.value.users.push({ user: user.user });
+    assignmentRuleData.value.users.push({
+      full_name: user.full_name,
+      email: user.email,
+      user_image: user.user_image,
+      user: user.email,
+    });
     emit("addAssignee", user);
   }
 };

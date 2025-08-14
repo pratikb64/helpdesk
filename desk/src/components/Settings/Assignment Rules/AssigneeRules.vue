@@ -75,12 +75,12 @@
         :key="user.name"
         class="flex items-center gap-2 text-sm bg-surface-gray-2 rounded-md p-1 w-max px-2 select-none"
       >
-        <Avatar :image="user.user_image" :label="user.user" size="sm" />
+        <Avatar :image="user.user_image" :label="user.full_name" size="sm" />
         <div class="text-ink-gray-7">
-          {{ user.user }}
+          {{ user.full_name }}
         </div>
         <Tooltip
-          v-if="user.user == assignmentRuleData.last_user"
+          v-if="user.email == assignmentRuleData.lastUser"
           text="Last user assigned by this rule"
           :hover-delay="0.35"
           :placement="'top'"
