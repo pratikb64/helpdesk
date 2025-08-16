@@ -90,27 +90,13 @@ import ContactsIcon from "@/components/icons/ContactsIcon.vue";
 import CalendarIcon from "@/components/icons/CalendarIcon.vue";
 import CheckCircleIcon from "@/components/icons/CheckCircleIcon.vue";
 import { FeatherIcon, Avatar, Tooltip } from "frappe-ui";
-import { ref, computed, h, nextTick } from "vue";
+import { computed, h, nextTick } from "vue";
 import { formatDate } from "@vueuse/core";
 import dayjs from "dayjs";
 import { timeAgo } from "@/utils";
 
 const show = defineModel();
 const callLog = defineModel("callLog");
-
-const note = ref({
-  title: "",
-  content: "",
-});
-
-const task = ref({
-  title: "",
-  description: "",
-  assigned_to: "",
-  due_date: "",
-  status: "Backlog",
-  priority: "Low",
-});
 
 const detailFields = computed(() => {
   if (!callLog.value?.data) return [];
@@ -120,9 +106,6 @@ const detailFields = computed(() => {
   for (const key in data) {
     data[key] = getCallLogDetail(key, data);
   }
-
-  note.value = data._notes?.[0] ?? null;
-  task.value = data._tasks?.[0] ?? null;
 
   let details = [
     {
