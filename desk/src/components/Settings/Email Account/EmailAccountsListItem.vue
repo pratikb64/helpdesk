@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-8 items-center gap-4 cursor-pointer hover:bg-gray-50 rounded p-2.5"
+    class="grid grid-cols-8 items-center gap-4 cursor-pointer hover:bg-gray-50 rounded p-3"
     @click="
       emailAccountActiveScreen = {
         screen: 'edit',
