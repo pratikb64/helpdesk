@@ -1,7 +1,6 @@
 import { h, markRaw, ref } from "vue";
 import Agents from "./Agents.vue";
 import Branding from "./Branding.vue";
-import EmailConfig from "./EmailConfig.vue";
 import TeamsConfig from "./Teams/TeamsConfig.vue";
 import Sla from "./Sla/Sla.vue";
 import HolidayList from "./Holiday/Holiday.vue";
@@ -17,12 +16,13 @@ import Briefcase from "~icons/lucide/briefcase";
 import AssignmentRules from "./Assignment Rules/AssignmentRules.vue";
 import Settings from "~icons/lucide/settings-2";
 import { FieldDependencyIcon } from "@/components/icons";
+import EmailAccount from "./Email Account/EmailAccount.vue";
 
 export const tabs = [
   {
     label: "Email Accounts",
     icon: markRaw(LucideMail),
-    component: markRaw(EmailConfig),
+    component: markRaw(EmailAccount),
   },
   {
     label: "Branding",
