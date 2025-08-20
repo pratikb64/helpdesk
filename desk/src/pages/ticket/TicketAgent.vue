@@ -177,6 +177,8 @@ import { getIcon } from "@/utils";
 import { ComputedRef } from "vue";
 import { showAssignmentModal } from "./modalStates";
 import CallUI from "@/components/telephony/CallUI.vue";
+import LucidePhone from "~icons/lucide/phone";
+import { useTelephonyStore } from "@/stores/telephony";
 
 const route = useRoute();
 const router = useRouter();
@@ -188,6 +190,7 @@ const ticketAgentActivitiesRef = ref(null);
 const communicationAreaRef = ref(null);
 const renameSubject = ref("");
 const isLoading = ref(false);
+const telephonyStore = useTelephonyStore();
 
 const props = defineProps({
   ticketId: {
@@ -205,6 +208,11 @@ watch(
 const { findView } = useView("HD Ticket");
 
 provide("communicationArea", communicationAreaRef);
+provide("makeCall", () => {
+  telephonyStore.makeCall(
+    ticket.data?.contact?.phone || ticket.data?.contact?.mobile_no
+  );
+});
 
 const showSubjectDialog = ref(false);
 
@@ -239,6 +247,9 @@ const ticket = createResource({
     });
   },
 });
+
+provide("refreshTicket", () => ticket.reload());
+
 function updateField(name: string, value: string, callback = () => {}) {
   updateTicket(name, value);
   callback();
@@ -283,21 +294,21 @@ const dropdownOptions = computed(() =>
   }))
 );
 
-const addCallActivity = () => {
-  createResource({
-    url: "frappe.client.insert",
-    auto: true,
-    params: {
-      doc: {
-        doctype: "HD Ticket Activity",
-        ticket: ticket.data.name,
-        action: "made a call",
-      },
-    },
-  });
-};
+// const addCallActivity = () => {
+//   createResource({
+//     url: "frappe.client.insert",
+//     auto: true,
+//     params: {
+//       doc: {
+//         doctype: "HD Ticket Activity",
+//         ticket: ticket.data.name,
+//         action: "made a call",
+//       },
+//     },
+//   });
+// };
 
-provide("onCallEnded", addCallActivity);
+// provide("onCallStarted", addCallActivity);
 
 // watch(
 //   () => ticket.data,
@@ -324,6 +335,11 @@ const tabs: TabObject[] = [
     name: "comment",
     label: "Comments",
     icon: CommentIcon,
+  },
+  {
+    name: "call",
+    label: "Calls",
+    icon: LucidePhone,
   },
 ];
 
@@ -371,9 +387,34 @@ const activities = computed(() => {
     }
   );
 
-  const sorted = [...emailProps, ...commentProps, ...historyProps].sort(
-    (a, b) => new Date(a.creation) - new Date(b.creation)
-  );
+  const callProps = ticket.data.calls.map((call) => {
+    return {
+      type: "call",
+      name: call.name,
+      key: call.creation,
+      creation: call.creation,
+      caller: call.caller,
+      content: `${call.caller || "Unknown"} made a call to ${
+        call.receiver || "Unknown"
+      }`,
+      receiver: call.receiver,
+      from: call.from,
+      to: call.to,
+      duration: call.duration ? call.duration + "s" : "0s",
+      start_time: call.start_time,
+      end_time: call.end_time,
+      status: call.status,
+      call_type: call.type,
+      recording_url: call.recording_url,
+    };
+  });
+
+  const sorted = [
+    ...emailProps,
+    ...commentProps,
+    ...historyProps,
+    ...callProps,
+  ].sort((a, b) => new Date(a.creation) - new Date(b.creation));
 
   const data = [];
   let i = 0;

@@ -51,6 +51,10 @@
               :activity="activity"
               @update="() => emit('update')"
             />
+            <CallArea
+              v-else-if="activity.type === 'call'"
+              :activity="activity"
+            />
             <HistoryBox v-else :activity="activity" />
           </div>
         </div>

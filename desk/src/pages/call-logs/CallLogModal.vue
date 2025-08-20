@@ -276,7 +276,7 @@ const validateCallLog = () => {
 
   if (!callLog.value.to) {
     errors.value.to = "To is required";
-  } else if (!/^[\d\+\-\(\)\s]{5,20}$/.test(callLog.value.to)) {
+  } else if (!/^\+?\d{8,15}$/.test(callLog.value.to)) {
     errors.value.to = "Please enter a valid phone number";
   } else {
     errors.value.to = "";
@@ -284,7 +284,7 @@ const validateCallLog = () => {
 
   if (!callLog.value.from) {
     errors.value.from = "From is required";
-  } else if (!/^[\d\+\-\(\)\s]{5,20}$/.test(callLog.value.from)) {
+  } else if (!/^\+?\d{8,15}$/.test(callLog.value.from)) {
     errors.value.from = "Please enter a valid phone number";
   } else {
     errors.value.from = "";
@@ -312,23 +312,23 @@ watch(
 );
 
 watch(
-  () => props.data,
+  () => props,
   (newValue) => {
-    editMode.value = newValue?.name ? true : false;
+    editMode.value = newValue?.data?.name ? true : false;
 
-    if (newValue?.name) {
+    if (newValue?.data?.name) {
       callLog.value = {
-        receiver: newValue.receiver,
-        caller: newValue.caller,
-        type: newValue.type,
-        to: newValue.to,
-        from: newValue.from,
-        status: newValue.status,
-        duration: newValue.duration,
+        receiver: newValue.data.receiver,
+        caller: newValue.data.caller,
+        type: newValue.data.type,
+        to: newValue.data.to,
+        from: newValue.data.from,
+        status: newValue.data.status,
+        duration: newValue.data.duration,
       };
     }
     originalCallLog.value = JSON.stringify(callLog.value);
   },
-  { deep: true }
+  { deep: true, flush: "sync" }
 );
 </script>
