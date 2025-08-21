@@ -3,12 +3,12 @@
     <div class="mb-1 flex items-center justify-stretch gap-2 py-1 text-base">
       <div class="inline-flex items-center flex-wrap gap-1 text-ink-gray-5">
         <Avatar
-          :image="getUser(activity?.caller)?.user_image"
-          :label="getUser(activity?.caller)?.full_name"
+          :image="activity?._caller?.image"
+          :label="activity?._caller?.label"
           size="md"
         />
         <span class="font-medium text-ink-gray-8 ml-1">
-          {{ getUser(activity?.caller)?.full_name }}
+          {{ activity?._caller?.label }}
         </span>
         <span>{{
           activity.call_type == "Incoming"
@@ -40,7 +40,18 @@
         </div>
         <div>
           <MultipleAvatar
-            :avatars="[activity?.caller_email, activity?.receiver_email]"
+            :avatars="[
+              {
+                name: activity._caller.label,
+                label: activity._caller.label,
+                image: activity._caller.image,
+              },
+              {
+                name: activity._receiver.label,
+                label: activity._receiver.label,
+                image: activity._receiver.image,
+              },
+            ]"
             size="sm"
           />
         </div>

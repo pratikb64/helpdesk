@@ -336,6 +336,7 @@ export interface CallActivity extends BaseActivity {
   caller: string;
   calledBy: string;
   attachments: FileAttachment[];
+  call_type: "Incoming" | "Outgoing";
 }
 
 export type TicketActivity =

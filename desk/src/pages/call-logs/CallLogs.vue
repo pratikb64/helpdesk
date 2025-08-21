@@ -9,7 +9,10 @@
           label="New Call Log"
           theme="gray"
           variant="solid"
-          @click="showCallLogModal = true"
+          @click="
+            showCallLogModal = true;
+            callLog = null;
+          "
         >
           <template #prefix>
             <LucidePlus class="h-4 w-4" />

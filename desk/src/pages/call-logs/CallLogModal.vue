@@ -245,19 +245,25 @@ function createCallLog() {
   }
   loading.value = true;
   createResource({
-    url: "frappe.client.insert",
+    url: "telephony.api.create_call_log",
     params: {
-      doc: {
-        doctype: "TF Call Log",
-        ...callLog.value,
-        id: getRandom(12),
-        telephony_medium: "Manual",
-      },
+      id: getRandom(12),
+      telephony_medium: "Manual",
+      from_number: callLog.value.from,
+      to_number: callLog.value.to,
+      duration: callLog.value.duration,
+      status: callLog.value.status,
+      type: callLog.value.type,
+      caller: callLog.value.caller,
+      receiver: callLog.value.receiver,
     },
     auto: true,
     onSuccess(doc) {
       loading.value = false;
       handleCallLogUpdate(doc);
+    },
+    onError() {
+      loading.value = false;
     },
   });
 }
@@ -329,6 +335,6 @@ watch(
     }
     originalCallLog.value = JSON.stringify(callLog.value);
   },
-  { deep: true, flush: "sync" }
+  { deep: true }
 );
 </script>

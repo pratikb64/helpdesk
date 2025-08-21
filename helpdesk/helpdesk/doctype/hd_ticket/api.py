@@ -75,46 +75,70 @@ def get_one(name, is_customer_portal=False):
         pluck="parent",
     )
 
-    if linked_calls:
-        CallLog = frappe.qb.DocType("TF Call Log")
-        Link = frappe.qb.DocType("Dynamic Link")
-        User = frappe.qb.DocType("User")
-        query = (
-            frappe.qb.from_(CallLog)
-            .select(
-                CallLog.name,
-                CallLog.caller,
-                CallLog.receiver,
-                CallLog["from"],
-                CallLog.to,
-                CallLog.duration,
-                CallLog.start_time,
-                CallLog.end_time,
-                CallLog.status,
-                CallLog.type,
-                CallLog.recording_url,
-                CallLog.creation,
-                CallLog.note,
-                Link.link_doctype,
-                Link.link_name,
-                User.name.as_("caller_name"),
-                User.full_name.as_("caller_full_name"),
-                User.email.as_("caller_email"),
-                User.as_("receiver_user").name.as_("receiver_name"),
-                User.as_("receiver_user").full_name.as_("receiver_full_name"),
-                User.as_("receiver_user").email.as_("receiver_email"),
-            )
-            .join(Link, JoinType.inner)
-            .on(Link.parent == CallLog.name)
-            .left_join(User)
-            .on(User.name == CallLog.caller)
-            .left_join(User.as_("receiver_user"))
-            .on(User.as_("receiver_user").name == CallLog.receiver)
-            .where(CallLog.name.isin(linked_calls))
-        )
-        call_logs = query.run(as_dict=True)
-    else:
-        call_logs = []
+    calls = []
+
+    # if linked_calls:
+    #     CallLog = frappe.qb.DocType("TF Call Log")
+    #     Link = frappe.qb.DocType("Dynamic Link")
+    #     User = frappe.qb.DocType("User")
+    #     query = (
+    #         frappe.qb.from_(CallLog)
+    #         .select(
+    #             CallLog.name,
+    #             CallLog.caller,
+    #             CallLog.receiver,
+    #             CallLog["from"],
+    #             CallLog.to,
+    #             CallLog.duration,
+    #             CallLog.start_time,
+    #             CallLog.end_time,
+    #             CallLog.status,
+    #             CallLog.type,
+    #             CallLog.recording_url,
+    #             CallLog.creation,
+    #             CallLog.note,
+    #             Link.link_doctype,
+    #             Link.link_name,
+    #             User.name.as_("caller_name"),
+    #             User.full_name.as_("caller_full_name"),
+    #             User.email.as_("caller_email"),
+    #             User.as_("receiver_user").name.as_("receiver_name"),
+    #             User.as_("receiver_user").full_name.as_("receiver_full_name"),
+    #             User.as_("receiver_user").email.as_("receiver_email"),
+    #         )
+    #         .join(Link, JoinType.inner)
+    #         .on(Link.parent == CallLog.name)
+    #         .left_join(User)
+    #         .on(User.name == CallLog.caller)
+    #         .left_join(User.as_("receiver_user"))
+    #         .on(User.as_("receiver_user").name == CallLog.receiver)
+    #         .where(CallLog.name.isin(linked_calls))
+    #     )
+    #     call_logs = query.run(as_dict=True)
+    # else:
+    #     call_logs = []
+    print("@@@@linkedcalls", linked_calls)
+    for call in linked_calls:
+        call = frappe.get_cached_doc(
+            "TF Call Log",
+            call,
+            fields=[
+                "name",
+                "caller",
+                "receiver",
+                "duration",
+                "type",
+                "status",
+                "from",
+                "to",
+                "recording_url",
+                "creation",
+            ],
+        ).as_dict()
+
+        calls.append(call)
+
+    call_logs = parse_list_data(calls, "TF Call Log")
 
     return {
         **ticket,
@@ -131,6 +155,13 @@ def get_one(name, is_customer_portal=False):
         "fields": get_meta(template),
         "calls": call_logs,
     }
+
+
+def parse_list_data(data, doctype):
+    _list = get_controller(doctype)
+    if hasattr(_list, "parse_list_data"):
+        data = _list.parse_list_data(data)
+    return data
 
 
 def get_meta(template: str):

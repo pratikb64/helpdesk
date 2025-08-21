@@ -30,6 +30,15 @@
                 v-else-if="activity.type === 'comment'"
                 class="text-gray-600 absolute left-[7.5px]"
               />
+              <FeatherIcon
+                v-else-if="activity.type === 'call'"
+                :name="
+                  activity.call_type === 'Incoming'
+                    ? 'phone-incoming'
+                    : 'phone-outgoing'
+                "
+                class="text-gray-600 absolute left-[7.5px] size-4"
+              />
               <DotIcon v-else class="text-gray-600 absolute left-[7.5px]" />
             </div>
           </div>
@@ -102,7 +111,7 @@ import {
 import { useUserStore } from "@/stores/user";
 import { TicketActivity } from "@/types";
 import { useElementVisibility } from "@vueuse/core";
-import { Avatar } from "frappe-ui";
+import { Avatar, FeatherIcon } from "frappe-ui";
 import { PropType, Ref, computed, h, inject, onMounted, watch } from "vue";
 const props = defineProps({
   activities: {
