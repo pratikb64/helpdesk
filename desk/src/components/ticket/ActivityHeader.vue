@@ -25,6 +25,12 @@
       </template>
       <span>{{ "New Comment" }}</span>
     </Button>
+    <Button v-else-if="title == 'Calls'" variant="solid" @click="makeCall()">
+      <template #prefix>
+        <PhoneIcon class="h-4 w-4" />
+      </template>
+      <span>Make a Call</span>
+    </Button>
     <Dropdown v-else :options="defaultActions" @click.stop>
       <template v-slot="{ open }">
         <Button variant="solid" class="flex items-center gap-1">
@@ -45,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { CommentIcon, EmailIcon } from "@/components/icons";
+import { CommentIcon, EmailIcon, PhoneIcon } from "@/components/icons";
 import { Dropdown } from "frappe-ui";
 import { computed, h, inject, Ref } from "vue";
 defineProps({
@@ -56,6 +62,7 @@ defineProps({
 });
 
 const communicationAreaRef: Ref = inject("communicationArea");
+const makeCall = inject<() => void>("makeCall");
 
 const defaultActions = computed(() => {
   let actions = [
@@ -68,6 +75,11 @@ const defaultActions = computed(() => {
       icon: h(CommentIcon, { class: "h-4 w-4" }),
       label: "Comment",
       onClick: () => communicationAreaRef.value.toggleCommentBox(),
+    },
+    {
+      icon: h(PhoneIcon, { class: "h-4 w-4" }),
+      label: "Make a Call",
+      onClick: () => makeCall(),
     },
   ];
   return actions;

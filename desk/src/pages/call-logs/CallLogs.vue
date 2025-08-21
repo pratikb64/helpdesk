@@ -75,26 +75,26 @@ const options = computed(() => {
         prefix: ({ row }) => {
           return h(Avatar, {
             shape: "circle",
-            image: row.caller || "Unknown",
-            label: row.caller || "Unknown",
+            image: row._caller?.image || "Unknown",
+            label: row._caller?.label || "Unknown",
             size: "sm",
           });
         },
         custom: ({ row }) => {
-          return h("span", row.caller || "Unknown");
+          return h("span", row._caller?.label || "Unknown");
         },
       },
       receiver: {
         prefix: ({ row }) => {
           return h(Avatar, {
             shape: "circle",
-            image: row.receiver || "Unknown",
-            label: row.receiver || "Unknown",
+            image: row._receiver?.image || "Unknown",
+            label: row._receiver?.label || "Unknown",
             size: "sm",
           });
         },
         custom: ({ row }) => {
-          return h("span", row.receiver || "Unknown");
+          return h("span", row._receiver?.label || "Unknown");
         },
       },
       type: {

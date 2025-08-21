@@ -5,11 +5,13 @@ from frappe.utils import get_user_info_for_avatar, now_datetime
 from frappe.utils.caching import redis_cache
 from pypika import Criterion, Order
 
+from helpdesk.api.doc import parse_list_data
 from helpdesk.consts import DEFAULT_TICKET_TEMPLATE
 from helpdesk.helpdesk.doctype.hd_form_script.hd_form_script import get_form_script
 from helpdesk.helpdesk.doctype.hd_ticket_template.api import get_fields_meta
 from helpdesk.helpdesk.doctype.hd_ticket_template.api import get_one as get_template
 from helpdesk.utils import agent_only, check_permissions, get_customer, is_agent
+from frappe.query_builder import JoinType
 
 
 @frappe.whitelist()
@@ -66,6 +68,54 @@ def get_one(name, is_customer_portal=False):
             "name": ticket.raised_by.split("@")[0],
         }
     template = ticket.template or DEFAULT_TICKET_TEMPLATE
+
+    linked_calls = frappe.db.get_all(
+        "Dynamic Link",
+        filters={"link_name": contact["name"], "parenttype": "TF Call Log"},
+        pluck="parent",
+    )
+
+    if linked_calls:
+        CallLog = frappe.qb.DocType("TF Call Log")
+        Link = frappe.qb.DocType("Dynamic Link")
+        User = frappe.qb.DocType("User")
+        query = (
+            frappe.qb.from_(CallLog)
+            .select(
+                CallLog.name,
+                CallLog.caller,
+                CallLog.receiver,
+                CallLog["from"],
+                CallLog.to,
+                CallLog.duration,
+                CallLog.start_time,
+                CallLog.end_time,
+                CallLog.status,
+                CallLog.type,
+                CallLog.recording_url,
+                CallLog.creation,
+                CallLog.note,
+                Link.link_doctype,
+                Link.link_name,
+                User.name.as_("caller_name"),
+                User.full_name.as_("caller_full_name"),
+                User.email.as_("caller_email"),
+                User.as_("receiver_user").name.as_("receiver_name"),
+                User.as_("receiver_user").full_name.as_("receiver_full_name"),
+                User.as_("receiver_user").email.as_("receiver_email"),
+            )
+            .join(Link, JoinType.inner)
+            .on(Link.parent == CallLog.name)
+            .left_join(User)
+            .on(User.name == CallLog.caller)
+            .left_join(User.as_("receiver_user"))
+            .on(User.as_("receiver_user").name == CallLog.receiver)
+            .where(CallLog.name.isin(linked_calls))
+        )
+        call_logs = query.run(as_dict=True)
+    else:
+        call_logs = []
+
     return {
         **ticket,
         "comments": get_comments(name),
@@ -79,6 +129,7 @@ def get_one(name, is_customer_portal=False):
             "HD Ticket", is_customer_portal=is_customer_portal
         ),
         "fields": get_meta(template),
+        "calls": call_logs,
     }
 
 
@@ -358,7 +409,6 @@ def duplicate_list_retain_timestamp(doctype, activities: list, target: int, cont
 @frappe.whitelist()
 @agent_only
 def split_ticket(subject: str, communication_id: str):
-
     communicaton_creation_time = frappe.db.get_value(
         "Communication", communication_id, "creation"
     )

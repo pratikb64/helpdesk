@@ -51,6 +51,10 @@
               :activity="activity"
               @update="() => emit('update')"
             />
+            <CallArea
+              v-else-if="activity.type === 'call'"
+              :activity="activity"
+            />
             <HistoryBox v-else :activity="activity" />
           </div>
         </div>
@@ -72,6 +76,11 @@
         label="New Comment"
         @click="communicationAreaRef.toggleCommentBox()"
       />
+      <Button
+        v-else-if="title == 'Calls'"
+        label="New Call"
+        @click="makeCall()"
+      />
     </div>
   </FadedScrollableDiv>
 </template>
@@ -88,6 +97,7 @@ import {
   CommentIcon,
   DotIcon,
   EmailIcon,
+  PhoneIcon,
 } from "@/components/icons";
 import { useUserStore } from "@/stores/user";
 import { TicketActivity } from "@/types";
@@ -113,6 +123,7 @@ const emit = defineEmits(["email:reply", "update"]);
 
 const { getUser } = useUserStore();
 const communicationAreaRef: Ref = inject("communicationArea");
+const makeCall = inject<() => void>("makeCall");
 
 const emptyText = computed(() => {
   let text = "No Activities";
@@ -120,6 +131,9 @@ const emptyText = computed(() => {
     text = "No Email Communications";
   } else if (props.title == "Comments") {
     text = "No Comments";
+    return text;
+  } else if (props.title == "Calls") {
+    text = "No Calls";
     return text;
   }
 });
@@ -130,6 +144,8 @@ const emptyTextIcon = computed(() => {
     icon = EmailIcon;
   } else if (props.title == "Comments") {
     icon = CommentIcon;
+  } else if (props.title == "Calls") {
+    icon = PhoneIcon;
   }
   return h(icon, { class: "text-gray-500" });
 });
