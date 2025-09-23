@@ -139,7 +139,6 @@
       v-if="isFCSite && !isCustomerPortal"
       :isSidebarCollapsed="!isExpanded"
     />
-    <SettingsModal v-model="showSettingsModal" />
     <HelpModal
       v-if="showHelpModal"
       v-model="showHelpModal"
@@ -165,7 +164,6 @@ import HDLogo from "@/assets/logos/HDLogo.vue";
 import { Section, SidebarLink } from "@/components";
 import Apps from "@/components/Apps.vue";
 import { FrappeCloudIcon, InviteCustomer } from "@/components/icons";
-import SettingsModal from "@/components/Settings/SettingsModal.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import { useDevice } from "@/composables";
 import { confirmLoginToFrappeCloud } from "@/composables/fc";
@@ -218,7 +216,6 @@ import Timer from "~icons/lucide/timer";
 import UserPen from "~icons/lucide/user-pen";
 import LucideUserPlus from "~icons/lucide/user-plus";
 import { useTelephonyStore } from "@/stores/telephony";
-import { setActiveSettingsTab } from "../Settings/settingsModal";
 
 const { isMobileView } = useScreenSize();
 
@@ -230,8 +227,6 @@ const { isExpanded, width } = storeToRefs(useSidebarStore());
 const device = useDevice();
 const telephonyStore = useTelephonyStore();
 const { isCallingEnabled } = storeToRefs(telephonyStore);
-
-const showSettingsModal = ref(false);
 
 const { pinnedViews, publicViews } = useView();
 
