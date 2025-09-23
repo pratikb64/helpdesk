@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import { Avatar, FormControl, createListResource } from "frappe-ui";
 import { ref, watch } from "vue";
-import NewTeamModal from "../NewTeamModal.vue";
+import NewTeamModal from "../../../pages/settings/Teams/NewTeamModal.vue";
 
 interface E {
   (event: "update:step", step: string, team: string): void;

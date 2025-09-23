@@ -50,7 +50,7 @@
 import { useConfigStore } from "@/stores/config";
 import { Avatar, createResource, FileUploader, toast } from "frappe-ui";
 import { computed, reactive } from "vue";
-import SettingsLayoutHeader from "./SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../pages/settings/components/SettingsLayoutHeader.vue";
 
 const config = useConfigStore();
 

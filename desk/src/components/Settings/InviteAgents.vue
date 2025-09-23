@@ -100,7 +100,7 @@ import { useAuthStore } from "@/stores/auth";
 import { FormControl, Button, Tooltip, createResource, toast } from "frappe-ui";
 import { computed, ref } from "vue";
 import { useOnboarding } from "frappe-ui/frappe";
-import SettingsLayoutHeader from "./SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../pages/settings/components/SettingsLayoutHeader.vue";
 
 const authStore = useAuthStore();
 const { isAdmin, isManager } = authStore;

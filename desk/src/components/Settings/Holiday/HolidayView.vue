@@ -174,7 +174,9 @@
         <HolidaysTableView v-if="holidayListView === 'list'" />
         <HolidaysCalendarView v-else />
       </div>
-      <div class="mt-2.5 flex justify-between items-center">
+      <div
+        class="mt-2.5 flex justify-between items-center flex-col sm:flex-row"
+      >
         <Button
           variant="subtle"
           label="Add Holiday"

@@ -37,8 +37,8 @@
 <script setup lang="ts">
 import { EmailAccount } from "@/types";
 import { createListResource } from "frappe-ui";
-import EmailAccountCard from "./EmailAccountCard.vue";
-import SettingsLayoutHeader from "./SettingsLayoutHeader.vue";
+import EmailAccountCard from "../../pages/settings/EmailAccount/components/EmailAccountCard.vue";
+import SettingsLayoutHeader from "../../pages/settings/components/SettingsLayoutHeader.vue";
 
 const emit = defineEmits(["update:step"]);
 

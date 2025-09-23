@@ -128,8 +128,8 @@
 import { Avatar, LoadingIndicator, Switch, toast } from "frappe-ui";
 import { getFieldDependencyLabel, ConfirmDelete } from "@/utils";
 import { onMounted, ref } from "vue";
-import { fieldDependenciesList } from "./fieldDependency";
-import SettingsLayoutHeader from "../SettingsLayoutHeader.vue";
+import { fieldDependenciesList } from "../../../pages/settings/FieldDependency/fieldDependency";
+import SettingsLayoutHeader from "../../../pages/settings/components/SettingsLayoutHeader.vue";
 import DocumentationButton from "@/components/DocumentationButton.vue";
 
 onMounted(() => {

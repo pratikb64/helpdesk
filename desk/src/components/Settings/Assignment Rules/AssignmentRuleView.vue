@@ -149,7 +149,7 @@
             <Popover trigger="hover" :hoverDelay="0.25" placement="top-end">
               <template #target>
                 <div
-                  class="text-sm text-ink-gray-6 flex gap-1 cursor-default text-nowrap flex items-center"
+                  class="text-sm text-ink-gray-6 flex gap-1 cursor-default text-nowrap items-center"
                 >
                   <span>{{ __("Old Condition") }}</span>
                   <FeatherIcon name="info" class="size-4" />
@@ -227,7 +227,7 @@
             <Popover trigger="hover" :hoverDelay="0.25" placement="top-end">
               <template #target>
                 <div
-                  class="text-sm text-ink-gray-6 flex gap-1 cursor-default text-nowrap flex items-center"
+                  class="text-sm text-ink-gray-6 flex gap-1 cursor-default text-nowrap items-center"
                 >
                   <span> {{ __("Old Condition") }} </span>
                   <FeatherIcon name="info" class="size-4" />
@@ -323,9 +323,9 @@ import {
   resetAssignmentRuleErrors,
   validateAssignmentRule,
 } from "../../../stores/assignmentRules";
-import AssigneeRules from "./AssigneeRules.vue";
-import AssignmentRulesSection from "./AssignmentRulesSection.vue";
-import AssignmentSchedule from "./AssignmentSchedule.vue";
+import AssigneeRules from "../../../pages/settings/AssignmentRule/components/AssigneeRules.vue";
+import AssignmentRulesSection from "../../../pages/settings/AssignmentRule/components/AssignmentRulesSection.vue";
+import AssignmentSchedule from "../../../pages/settings/AssignmentRule/components/AssignmentSchedule.vue";
 import { convertToConditions } from "@/utils";
 import { disableSettingModalOutsideClick } from "../settingsModal";
 

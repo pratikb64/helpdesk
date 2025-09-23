@@ -3,8 +3,6 @@ import Agents from "./Agents.vue";
 import Branding from "./Branding.vue";
 import EmailConfig from "./EmailConfig.vue";
 import TeamsConfig from "./Teams/TeamsConfig.vue";
-import Sla from "./Sla/Sla.vue";
-import HolidayList from "./Holiday/Holiday.vue";
 import FieldDependencyConfig from "./FieldDependency/FieldDependencyConfig.vue";
 import InviteAgents from "./InviteAgents.vue";
 import ImageUp from "~icons/lucide/image-up";
@@ -13,9 +11,6 @@ import LucideMailOpen from "~icons/lucide/mail-open";
 import LucideUser from "~icons/lucide/user";
 import LucideUserPlus from "~icons/lucide/user-plus";
 import LucideUsers from "~icons/lucide/users";
-import ShieldCheck from "~icons/lucide/shield-check";
-import Briefcase from "~icons/lucide/briefcase";
-import AssignmentRules from "./Assignment Rules/AssignmentRules.vue";
 import Settings from "~icons/lucide/settings-2";
 import { FieldDependencyIcon, PhoneIcon } from "@/components/icons";
 import Telephony from "./Telephony/Telephony.vue";
@@ -57,21 +52,21 @@ export const tabs = [
         icon: markRaw(LucideUsers),
         component: markRaw(TeamsConfig),
       },
-      {
-        label: "SLA Policies",
-        icon: markRaw(ShieldCheck),
-        component: markRaw(Sla),
-      },
-      {
-        label: "Business Holidays",
-        icon: markRaw(Briefcase),
-        component: markRaw(HolidayList),
-      },
-      {
-        label: "Assignment Rules",
-        icon: markRaw(h(Settings, { class: "rotate-90" })),
-        component: markRaw(AssignmentRules),
-      },
+      // {
+      //   label: "SLA Policies",
+      //   icon: markRaw(ShieldCheck),
+      //   component: markRaw(Sla),
+      // },
+      // {
+      //   label: "Business Holidays",
+      //   icon: markRaw(Briefcase),
+      //   component: markRaw(HolidayList),
+      // },
+      // {
+      //   label: "Assignment Rules",
+      //   icon: markRaw(h(Settings, { class: "rotate-90" })),
+      //   component: markRaw(AssignmentRules),
+      // },
       {
         label: "Field Dependencies",
         icon: markRaw(FieldDependencyIcon),

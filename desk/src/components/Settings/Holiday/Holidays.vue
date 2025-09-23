@@ -26,7 +26,7 @@ import {
   resetHolidayData,
 } from "@/stores/holidayList";
 import HolidayList from "./HolidayList.vue";
-import SettingsLayoutHeader from "../SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../../pages/settings/components/SettingsLayoutHeader.vue";
 
 const goToNew = () => {
   resetHolidayData();

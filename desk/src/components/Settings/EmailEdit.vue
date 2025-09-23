@@ -96,7 +96,7 @@ import { useStorage } from "@vueuse/core";
 import { call, toast } from "frappe-ui";
 import { computed, h, reactive, ref } from "vue";
 import CircleAlert from "~icons/lucide/circle-alert";
-import EmailProviderIcon from "./EmailProviderIcon.vue";
+import EmailProviderIcon from "../../pages/settings/EmailAccount/components/EmailProviderIcon.vue";
 import {
   customProviderFields,
   emailIcon,
@@ -104,7 +104,7 @@ import {
   popularProviderFields,
   services,
   validateInputs,
-} from "./emailConfig";
+} from "../../pages/settings/EmailAccount/emailConfig";
 
 interface P {
   accountData: EmailAccount;

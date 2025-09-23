@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import HolidayListItem from "./HolidayListItem.vue";
+import HolidayListItem from "../../../pages/settings/Holiday/HolidayListItem.vue";
 import { LoadingIndicator } from "frappe-ui";
 
 import { inject } from "vue";

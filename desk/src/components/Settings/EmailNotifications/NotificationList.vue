@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { __ } from "@/translation";
-import SettingsLayoutHeader from "../SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../../pages/settings/components/SettingsLayoutHeader.vue";
 import type { AtLeastOneNotifcation, Notification } from "./types";
 
 const props = defineProps<{

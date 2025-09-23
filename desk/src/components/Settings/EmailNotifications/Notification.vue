@@ -141,7 +141,7 @@
 import { ref, watch } from "vue";
 import type { NotificationName } from "./types";
 import { createResource, Switch, LoadingIndicator } from "frappe-ui";
-import SettingsLayoutHeader from "../SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../../pages/settings/components/SettingsLayoutHeader.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { disableSettingModalOutsideClick } from "../settingsModal";
 

@@ -80,12 +80,15 @@ import { getMeta } from "@/stores/meta";
 import { getFieldDependencyLabel } from "@/utils";
 import { createResource, Switch, toast } from "frappe-ui";
 import { computed, reactive, ref, watch } from "vue";
-import SettingsLayoutHeader from "../SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../../pages/settings/components/SettingsLayoutHeader.vue";
 import { disableSettingModalOutsideClick } from "../settingsModal";
-import { getFieldOptions, hiddenChildFields } from "./fieldDependency";
-import FieldDependencyCriteria from "./FieldDependencyCriteria.vue";
-import FieldDependencyFieldsSelection from "./FieldDependencyFieldsSelection.vue";
-import FieldDependencyValueSelection from "./FieldDependencyValueSelection.vue";
+import {
+  getFieldOptions,
+  hiddenChildFields,
+} from "../../../pages/settings/FieldDependency/fieldDependency";
+import FieldDependencyCriteria from "../../../pages/settings/FieldDependency/components/FieldDependencyCriteria.vue";
+import FieldDependencyFieldsSelection from "../../../pages/settings/FieldDependency/components/FieldDependencyFieldsSelection.vue";
+import FieldDependencyValueSelection from "../../../pages/settings/FieldDependency/components/FieldDependencyValueSelection.vue";
 
 const props = defineProps({
   fieldDependencyName: {

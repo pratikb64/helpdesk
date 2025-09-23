@@ -105,8 +105,8 @@ import {
   popularProviderFields,
   services,
   validateInputs,
-} from "./emailConfig";
-import EmailProviderIcon from "./EmailProviderIcon.vue";
+} from "../../pages/settings/EmailAccount/emailConfig";
+import EmailProviderIcon from "../../pages/settings/EmailAccount/components/EmailProviderIcon.vue";
 
 interface E {
   (event: "update:step", value: EmailStep): void;

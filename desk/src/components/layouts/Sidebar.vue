@@ -331,7 +331,7 @@ const agentPortalDropdown = computed(() => [
   {
     label: "Settings",
     icon: "settings",
-    onClick: () => (showSettingsModal.value = true),
+    onClick: () => router.push({ name: "Profile" }),
     condition: () => authStore.isAdmin || authStore.isManager,
   },
   {
@@ -390,8 +390,7 @@ const steps = [
     icon: markRaw(LucideMail),
     onClick: () => {
       minimize.value = true;
-      showSettingsModal.value = true;
-      setActiveSettingsTab("Email Accounts");
+      router.push({ name: "EmailAccounts" });
     },
   },
   {
@@ -401,8 +400,7 @@ const steps = [
     icon: markRaw(LucideUserPlus),
     onClick: () => {
       minimize.value = true;
-      showSettingsModal.value = true;
-      setActiveSettingsTab("Invite Agents");
+      router.push({ name: "InviteAgent" });
     },
   },
   {
@@ -411,9 +409,8 @@ const steps = [
     completed: false,
     icon: markRaw(Timer),
     onClick: () => {
-      setActiveSettingsTab("SLA Policies");
-      showSettingsModal.value = true;
       minimize.value = true;
+      router.push({ name: "SLAPolicies" });
     },
   },
   {

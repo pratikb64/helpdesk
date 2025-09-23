@@ -238,7 +238,7 @@
 
 <script setup lang="ts">
 import Password from "@/components/Password.vue";
-import SettingsLayoutHeader from "../SettingsLayoutHeader.vue";
+import SettingsLayoutHeader from "../../../pages/settings/components/SettingsLayoutHeader.vue";
 import {
   Button,
   Select,

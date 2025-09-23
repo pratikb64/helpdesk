@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { LoadingIndicator } from "frappe-ui";
 import { inject } from "vue";
-import AssignmentRuleListItem from "./AssignmentRuleListItem.vue";
+import AssignmentRuleListItem from "../../../pages/settings/AssignmentRule/components/AssignmentRuleListItem.vue";
 
 const assignmentRulesList = inject<any>("assignmentRulesList");
 </script>
