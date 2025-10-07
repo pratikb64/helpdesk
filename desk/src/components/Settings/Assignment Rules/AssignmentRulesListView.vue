@@ -5,7 +5,7 @@
   >
     <LoadingIndicator class="w-4" />
   </div>
-  <div v-else>
+  <div v-else class="-ml-2">
     <div
       v-if="assignmentRulesList.data?.length === 0"
       class="flex items-center justify-center rounded-md border border-gray-200 p-4"

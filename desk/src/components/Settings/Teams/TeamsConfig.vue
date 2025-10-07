@@ -1,5 +1,5 @@
 <template>
-  <div v-if="step === 'team-list'" class="h-full px-10 py-8">
+  <div v-if="step === 'team-list'" class="h-full">
     <TeamsList @update:step="updateStep" />
   </div>
   <div v-else-if="step === 'team-edit'" class="h-full px-10 py-8">

@@ -6,11 +6,11 @@
 </template>
 
 <script setup lang="ts">
-import { slaActiveScreen } from "@/stores/sla";
+import { slaActiveScreen, slaSearch } from "@/stores/sla";
 import SlaPolicies from "./SlaPolicies.vue";
 import SlaPolicyView from "./SlaPolicyView.vue";
 import { createListResource } from "frappe-ui";
-import { provide } from "vue";
+import { onUnmounted, provide } from "vue";
 
 const slaPolicyListData = createListResource({
   doctype: "HD Service Level Agreement",
@@ -22,4 +22,8 @@ const slaPolicyListData = createListResource({
 });
 
 provide("slaPolicyList", slaPolicyListData);
+
+onUnmounted(() => {
+  slaSearch.value = "";
+});
 </script>

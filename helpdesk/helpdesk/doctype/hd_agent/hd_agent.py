@@ -36,3 +36,20 @@ def update_agent_role(user, new_role):
             user_doc.remove_roles("Agent Manager", "System Manager")
 
     user_doc.save()
+
+
+@frappe.whitelist()
+def get_agent():
+    if frappe.db.exists("HD Agent", {"user": frappe.session.user}):
+        return frappe.get_doc("HD Agent", {"user": frappe.session.user})
+    else:
+        user = frappe.get_doc("User", frappe.session.user)
+        agent = frappe.get_doc(
+            {
+                "doctype": "HD Agent",
+                "user": frappe.session.user,
+                "agent_name": f"{user.first_name} {user.last_name}",
+                "user_image": user.user_image,
+            }
+        ).insert(ignore_permissions=True)
+        return agent

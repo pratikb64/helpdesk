@@ -83,6 +83,8 @@ export const slaActiveScreen = ref<{
   fetchData: boolean;
 }>({ screen: "list", data: null, fetchData: true });
 
+export const slaSearch = ref("");
+
 export const slaDataErrors = ref<SlaValidationErrors>({
   service_level: "",
   description: "",
