@@ -21,6 +21,8 @@ import { FieldDependencyIcon, PhoneIcon } from "@/components/icons";
 import Telephony from "./Telephony/Telephony.vue";
 import { EmailNotifications } from "./EmailNotifications";
 import { __ } from "@/translation";
+import LucideCloudLightning from "~icons/lucide/cloud-lightning";
+import CannedResponse from "./CannedResponse/CannedResponse.vue";
 
 export const tabs = [
   {
@@ -76,6 +78,11 @@ export const tabs = [
         label: "Field Dependencies",
         icon: markRaw(FieldDependencyIcon),
         component: markRaw(FieldDependencyConfig),
+      },
+      {
+        label: "Canned Responses",
+        icon: markRaw(LucideCloudLightning),
+        component: markRaw(CannedResponse),
       },
     ],
   },
