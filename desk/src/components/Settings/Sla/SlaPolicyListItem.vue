@@ -14,7 +14,7 @@
       </div>
       <div
         v-if="data.description && data.description.length > 0"
-        class="text-sm w-full text-ink-gray-5 mt-1 whitespace-nowrap overflow-ellipsis overflow-hidden"
+        class="text-sm w-full text-ink-gray-5 mt-1 truncate"
       >
         {{ data.description }}
       </div>

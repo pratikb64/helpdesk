@@ -1,30 +1,42 @@
 <template>
   <div>
     <!-- header -->
-    <SettingsLayoutHeader
-      title="Email Accounts"
-      description="Manage your email accounts and configure incoming and outgoing settings."
-    >
-      <template #actions>
-        <Button
-          label="Add Account"
-          theme="gray"
-          variant="solid"
-          @click="emit('update:step', 'email-add')"
-          icon-left="plus"
-        />
-      </template>
-    </SettingsLayoutHeader>
+    <div class="mb-8">
+      <SettingsLayoutHeader
+        :title="__('Email Accounts')"
+        :description="
+          __(
+            'Manage your email accounts and configure incoming and outgoing settings.'
+          )
+        "
+      >
+        <template #actions>
+          <Button
+            :label="__('Add Account')"
+            theme="gray"
+            variant="solid"
+            @click="emit('update:step', 'email-add')"
+            icon-left="plus"
+          />
+        </template>
+      </SettingsLayoutHeader>
+    </div>
+
     <!-- list accounts -->
     <div
+      class="-ml-2"
       v-if="!emailAccounts.loading && Boolean(emailAccounts.data?.length)"
-      class="mt-8 divide-y"
     >
+      <div class="flex text-sm text-gray-600">
+        <div class="ml-2">Email Account name</div>
+      </div>
+      <hr class="mx-2 mt-2" />
       <div v-for="emailAccount in emailAccounts.data" :key="emailAccount.name">
         <EmailAccountCard
           :emailAccount="emailAccount"
           @click="emit('update:step', 'email-edit', emailAccount)"
         />
+        <hr class="mx-2" />
       </div>
     </div>
     <!-- fallback if no email accounts -->

@@ -14,8 +14,10 @@
               : 'ml-2 w-auto opacity-100'
           "
         >
-          <div class="text-base font-medium leading-none text-gray-900">
-            Helpdesk
+          <div
+            class="text-base font-medium leading-none text-gray-900 truncate"
+          >
+            {{ config.brandName || "Helpdesk" }}
           </div>
           <div class="mt-1 text-sm leading-none text-gray-700">
             {{ authStore.userName }}

@@ -41,9 +41,10 @@
   "instantly_send_email",
   "column_break_aomm",
   "branding_tab",
-  "images_column",
-  "brand_logo",
   "column_break_fsjn",
+  "brand_name",
+  "brand_logo",
+  "images_column",
   "misc_tab",
   "setup_section",
   "setup_complete",
@@ -183,8 +184,7 @@
   },
   {
    "fieldname": "images_column",
-   "fieldtype": "Column Break",
-   "label": "Images"
+   "fieldtype": "Column Break"
   },
   {
    "description": "Image to be used in various places, including Login and Signup pages. An image with transparent background and 160 x 32 is preferred",
@@ -442,12 +442,17 @@
    "link_filters": "[[\"HD Ticket Status\",\"category\",\"in\",[\"Paused\",\"Resolved\",null]]]",
    "mandatory_depends_on": "eval: doc.auto_close_tickets",
    "options": "HD Ticket Status"
+  },
+  {
+   "fieldname": "brand_name",
+   "fieldtype": "Data",
+   "label": "Name"
   }
  ],
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-09 21:36:24.420602",
+ "modified": "2025-10-15 19:43:45.850737",
  "modified_by": "Administrator",
  "module": "Helpdesk",
  "name": "HD Settings",

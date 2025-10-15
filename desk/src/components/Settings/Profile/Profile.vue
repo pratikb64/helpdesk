@@ -99,11 +99,13 @@
         <FormControl
           class="w-full"
           :label="__('First Name')"
+          maxlength="40"
           v-model="profile.firstName"
         />
         <FormControl
           class="w-full"
           :label="__('Last Name')"
+          maxlength="40"
           v-model="profile.lastName"
         />
       </div>

@@ -4,85 +4,9 @@
       {{ __("Ticket Settings") }}
     </div>
     <div
-      v-if="
-        ticketTypeList.data && autoUpdateticketStatusList && settingsData.doc
-      "
+      v-if="ticketTypeList.data && autoUpdateticketStatusList && settingsData"
       class="mt-6 flex flex-col gap-6"
     >
-      <div class="flex items-center justify-between">
-        <div class="flex flex-col gap-1">
-          <span class="text-base font-medium text-ink-gray-8">{{
-            __("Default ticket type")
-          }}</span>
-          <span class="text-p-sm text-ink-gray-6">{{
-            __("Select what type all tickets get by default")
-          }}</span>
-        </div>
-        <Popover>
-          <template #target="{ togglePopover }">
-            <div
-              class="flex items-center justify-between text-base rounded h-7 py-1.5 pl-2 pr-2 border border-[--surface-gray-2] bg-surface-gray-2 placeholder-ink-gray-4 hover:border-outline-gray-modals hover:bg-surface-gray-3 focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 text-ink-gray-8 transition-colors w-full dark:[color-scheme:dark] cursor-default min-w-28"
-              @click="togglePopover()"
-            >
-              <div>
-                {{
-                  ticketTypeList.data?.find(
-                    (option) =>
-                      option.value == settingsData.doc.default_ticket_type
-                  )?.value || "Select"
-                }}
-              </div>
-              <FeatherIcon name="chevron-down" class="size-4 ml-2" />
-            </div>
-          </template>
-          <template #body="{ togglePopover }">
-            <div
-              class="p-1 text-ink-gray-6 top-1 absolute w-min bg-white shadow-2xl rounded min-w-28"
-            >
-              <div
-                v-for="option in ticketTypeList.data"
-                :key="option.value"
-                class="p-2 cursor-pointer hover:bg-gray-50 text-base flex items-center justify-between rounded"
-                @click="
-                  onChange({ default_ticket_type: option.value });
-                  togglePopover();
-                "
-              >
-                {{ option.label }}
-                <FeatherIcon
-                  v-if="settingsData.doc.default_ticket_type == option.value"
-                  name="check"
-                  class="size-4 ml-2"
-                />
-              </div>
-              <hr class="my-1" />
-              <Button
-                variant="ghost"
-                :label="__('Reset')"
-                icon-left="refresh-ccw"
-                class="w-full focus-visible:ring-0"
-                @click="onChange({ default_ticket_type: null })"
-              />
-            </div>
-          </template>
-        </Popover>
-      </div>
-      <div class="flex items-center justify-between">
-        <div class="flex flex-col gap-1">
-          <span class="text-base font-medium text-ink-gray-8">{{
-            __("Allow anyone to create tickets")
-          }}</span>
-          <span class="text-p-sm text-ink-gray-6">{{
-            __("Anyone will able to create tickets")
-          }}</span>
-        </div>
-        <Switch
-          :model-value="settingsData.doc.allow_anyone_to_create_tickets"
-          @update:model-value="
-            onChange({ allow_anyone_to_create_tickets: $event })
-          "
-        />
-      </div>
       <div class="flex items-center justify-between">
         <div class="flex flex-col gap-1">
           <span class="text-base font-medium text-ink-gray-8">{{
@@ -90,14 +14,59 @@
           }}</span>
           <span class="text-p-sm text-ink-gray-6">{{
             __(
-              "The feedback dialog will be shown, when a user tries to close a ticket."
+              "The feedback dialog will be shown, when a user tries to close a ticket from the customer portal"
             )
           }}</span>
         </div>
-        <Switch
-          :model-value="settingsData.doc.is_feedback_mandatory"
-          @update:model-value="onChange({ is_feedback_mandatory: $event })"
-        />
+        <Switch v-model="settingsData.is_feedback_mandatory" />
+      </div>
+      <div>
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col gap-1">
+            <span class="text-base font-medium text-ink-gray-8">{{
+              __("Restrict tickets by Team")
+            }}</span>
+            <span class="text-p-sm text-ink-gray-6">{{
+              __("Restrict tickets to be created by team members only.")
+            }}</span>
+          </div>
+          <Switch v-model="settingsData.restrict_tickets_by_agent_group" />
+        </div>
+        <div
+          class="grid grid-cols-2 gap-4 mt-3"
+          v-if="settingsData.restrict_tickets_by_agent_group"
+        >
+          <div
+            class="flex items-start sm:items-center gap-2"
+            @click="
+              () => {
+                settingsData.do_not_restrict_tickets_without_an_agent_group =
+                  !settingsData.do_not_restrict_tickets_without_an_agent_group;
+              }
+            "
+          >
+            <Checkbox
+              :model-value="
+                settingsData.do_not_restrict_tickets_without_an_agent_group
+              "
+            />
+            <FormLabel :label="__('Do not restrict tickets without a Team')" />
+          </div>
+          <div
+            class="flex items-start sm:items-center gap-2"
+            @click="
+              () => {
+                settingsData.assign_within_team =
+                  !settingsData.assign_within_team;
+              }
+            "
+          >
+            <Checkbox :model-value="settingsData.assign_within_team" />
+            <FormLabel
+              :label="__('Restrict agent assignment to selected Team')"
+            />
+          </div>
+        </div>
       </div>
       <div class="flex items-center justify-between">
         <div class="flex flex-col gap-1">
@@ -110,119 +79,58 @@
             )
           }}</span>
         </div>
-        <Popover>
-          <template #target="{ togglePopover }">
-            <div
-              class="flex items-center justify-between text-base rounded h-7 py-1.5 pl-2 pr-2 border border-[--surface-gray-2] bg-surface-gray-2 placeholder-ink-gray-4 hover:border-outline-gray-modals hover:bg-surface-gray-3 focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 text-ink-gray-8 transition-colors w-full dark:[color-scheme:dark] cursor-default min-w-28"
-              @click="togglePopover()"
-            >
-              <div>
-                {{
-                  autoUpdateticketStatusList?.find(
-                    (option) =>
-                      option.value == settingsData.doc.update_status_to
-                  )?.label || "Select"
-                }}
-              </div>
-              <FeatherIcon name="chevron-down" class="size-4 ml-2" />
-            </div>
-          </template>
-          <template #body="{ togglePopover }">
-            <div
-              class="p-1 text-ink-gray-6 top-1 absolute min-w-28 bg-white shadow-2xl rounded"
-            >
-              <div
-                v-for="option in autoUpdateticketStatusList"
-                :key="option.value"
-                class="p-2 cursor-pointer hover:bg-gray-50 text-base flex items-center justify-between rounded"
-                @click="
-                  settingsData.doc.update_status_to = option.value;
-                  settingsData.doc.auto_update_status = true;
-                  onChange({
-                    update_status_to: option.value,
-                    auto_update_status: true,
-                  });
-                  togglePopover();
-                "
-              >
-                {{ option.label }}
-                <FeatherIcon
-                  v-if="settingsData.doc.update_status_to == option.value"
-                  name="check"
-                  class="size-4 ml-2"
-                />
-              </div>
-              <hr class="my-1" />
-              <Button
-                variant="ghost"
-                :label="__('Reset')"
-                icon-left="refresh-ccw"
-                class="w-full focus-visible:ring-0"
-                @click="
-                  settingsData.doc.update_status_to = null;
-                  settingsData.doc.auto_update_status = false;
-                  onChange({
-                    update_status_to: null,
-                    auto_update_status: false,
-                  });
-                "
-              />
-            </div>
-          </template>
-        </Popover>
+        <SelectDropdown
+          :options="autoUpdateticketStatusList"
+          :model-value="settingsData.update_status_to"
+          target-class="max-w-40"
+          placement="bottom-end"
+          @on-reset="
+            () => {
+              settingsData.update_status_to = null;
+              settingsData.auto_update_status = false;
+            }
+          "
+          @on-change="
+            (value) => {
+              settingsData.update_status_to = value;
+              settingsData.auto_update_status = true;
+            }
+          "
+        />
       </div>
-      <div>
-        <div class="flex items-center justify-between">
-          <div class="flex flex-col gap-1">
-            <span class="text-base font-medium text-ink-gray-8">{{
-              __("Restrict tickets by Team")
-            }}</span>
-            <span class="text-p-sm text-ink-gray-6">{{
-              __("Restrict tickets to be created by team members only.")
-            }}</span>
-          </div>
-          <Switch
-            :model-value="settingsData.doc.restrict_tickets_by_agent_group"
-            @update:model-value="
-              onChange({ restrict_tickets_by_agent_group: $event })
-            "
-          />
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-1">
+          <span class="text-base font-medium text-ink-gray-8">{{
+            __("Allow anyone to create tickets")
+          }}</span>
+          <span class="text-p-sm text-ink-gray-6">{{
+            __("Anyone will able to create tickets, e.g. from webform")
+          }}</span>
         </div>
-        <div
-          class="grid grid-cols-2 gap-4 mt-3"
-          v-if="settingsData.doc.restrict_tickets_by_agent_group"
-        >
-          <div
-            class="flex items-start sm:items-center gap-2"
-            @click="
-              onChange({
-                do_not_restrict_tickets_without_an_agent_group:
-                  !settingsData.doc
-                    .do_not_restrict_tickets_without_an_agent_group,
-              })
-            "
-          >
-            <Checkbox
-              :model-value="
-                settingsData.doc.do_not_restrict_tickets_without_an_agent_group
-              "
-            />
-            <FormLabel :label="__('Do not restrict tickets without a Team')" />
-          </div>
-          <div
-            class="flex items-start sm:items-center gap-2"
-            @click="
-              onChange({
-                assign_within_team: !settingsData.doc.assign_within_team,
-              })
-            "
-          >
-            <Checkbox :model-value="settingsData.doc.assign_within_team" />
-            <FormLabel
-              :label="__('Restrict agent assignment to selected Team')"
-            />
-          </div>
+        <Switch
+          :model-value="settingsData.allow_anyone_to_create_tickets"
+          @update:model-value="
+            (value) => (settingsData.allow_anyone_to_create_tickets = value)
+          "
+        />
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-1">
+          <span class="text-base font-medium text-ink-gray-8">{{
+            __("Default ticket type")
+          }}</span>
+          <span class="text-p-sm text-ink-gray-6">{{
+            __("Select what type all tickets get by default")
+          }}</span>
         </div>
+        <SelectDropdown
+          :options="ticketTypeList.data"
+          :model-value="settingsData.default_ticket_type"
+          target-class="max-w-40"
+          placement="bottom-end"
+          @on-reset="() => (settingsData.default_ticket_type = null)"
+          @on-change="(value) => (settingsData.default_ticket_type = value)"
+        />
       </div>
       <div>
         <div class="flex flex-col gap-1">
@@ -236,81 +144,46 @@
         <div class="grid grid-cols-2 gap-4 mt-3">
           <div class="flex flex-col gap-1.5">
             <FormLabel :label="__('Auto-close status')" />
-            <Popover>
-              <template #target="{ togglePopover }">
-                <div
-                  class="flex items-center justify-between text-base rounded h-7 py-1.5 pl-2 pr-2 border border-[--surface-gray-2] bg-surface-gray-2 placeholder-ink-gray-4 hover:border-outline-gray-modals hover:bg-surface-gray-3 focus:bg-surface-white focus:border-outline-gray-4 focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 text-ink-gray-8 transition-colors w-full dark:[color-scheme:dark] cursor-default min-w-28"
-                  @click="togglePopover()"
-                >
-                  <div>
-                    {{
-                      autoCloseTicketStatusList?.find(
-                        (option) =>
-                          option.value == settingsData.doc.auto_close_status
-                      )?.label || "Select status"
-                    }}
-                  </div>
-                  <FeatherIcon name="chevron-down" class="size-4 ml-2" />
-                </div>
-              </template>
-              <template #body="{ togglePopover }">
-                <div
-                  class="p-1 text-ink-gray-6 top-1 absolute min-w-28 bg-white shadow-2xl rounded"
-                >
-                  <div
-                    v-for="option in autoCloseTicketStatusList"
-                    :key="option.value"
-                    class="p-2 cursor-pointer hover:bg-gray-50 text-base flex items-center justify-between rounded"
-                    @click="
-                      settingsData.doc.auto_close_status = option.value;
-                      onChange({
-                        auto_close_tickets: true,
-                        auto_close_status: option.value,
-                        auto_close_after_days:
-                          settingsData.doc.auto_close_after_days || 1,
-                      });
-                      togglePopover();
-                    "
-                  >
-                    {{ option.label }}
-                    <FeatherIcon
-                      v-if="settingsData.doc.auto_close_status == option.value"
-                      name="check"
-                      class="size-4 ml-2"
-                    />
-                  </div>
-                  <hr class="my-1" />
-                  <Button
-                    variant="ghost"
-                    :label="__('Reset')"
-                    icon-left="refresh-ccw"
-                    class="w-full focus-visible:ring-0"
-                    @click="
-                      settingsData.doc.auto_close_status = null;
-                      onChange({
-                        auto_close_tickets: false,
-                        auto_close_status: null,
-                      });
-                      togglePopover();
-                    "
-                  />
-                </div>
-              </template>
-            </Popover>
+            <SelectDropdown
+              :options="autoCloseTicketStatusList"
+              :model-value="settingsData.auto_close_status"
+              target-class="w-full"
+              placement="bottom-end"
+              @on-reset="
+                () => {
+                  settingsData.auto_close_status = null;
+                  settingsData.auto_close_tickets = false;
+                }
+              "
+              @on-change="
+                (value) => {
+                  settingsData.auto_close_status = value;
+                  settingsData.auto_close_tickets = true;
+                }
+              "
+            />
           </div>
-          <FormControl
-            :label="__('Auto-close after (Days)')"
-            placeholder="e.g. 30"
-            :model-value="settingsData.doc.auto_close_after_days"
-            @update:model-value="
-              onChange({
-                auto_close_after_days: Number($event) <= 0 ? 1 : Number($event),
-              })
-            "
-            type="number"
-            :debounce="300"
-            :disabled="!settingsData.doc.auto_close_status"
-          />
+          <div class="flex flex-col gap-1.5">
+            <FormControl
+              :label="__('Auto-close after (Days)')"
+              placeholder="e.g. 30"
+              :model-value="settingsData.auto_close_after_days"
+              @update:model-value="
+                (value) =>
+                  (settingsData.auto_close_after_days = Number(value) || null)
+              "
+              type="number"
+              :debounce="300"
+              :disabled="!settingsData.auto_close_status"
+            />
+            <ErrorMessage
+              :message="
+                settingsData.auto_close_after_days < 1
+                  ? __('The number of days must be 1 or more')
+                  : ''
+              "
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -318,15 +191,15 @@
 </template>
 
 <script setup lang="ts">
+import SelectDropdown from "@/components/SelectDropdown.vue";
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import { HDTicketStatus } from "@/types/doctypes";
 import {
-  Button,
   Checkbox,
   createListResource,
+  ErrorMessage,
   FormControl,
   FormLabel,
-  Popover,
   Switch,
 } from "frappe-ui";
 import { computed, inject } from "vue";
@@ -379,8 +252,4 @@ const autoCloseTicketStatusList = computed(() => {
 });
 
 const settingsData = inject<any>("settingsData");
-
-const onChange = (data) => {
-  settingsData.setValue.submit(data);
-};
 </script>
