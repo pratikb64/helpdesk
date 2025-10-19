@@ -17,7 +17,7 @@
           />
         </div>
         <ComboboxViewport
-          class="flex flex-col gap-0.5 max-h-60 overflow-y-auto overflow-hidden p-2 pt-0"
+          class="flex flex-col gap-0.5 max-h-60 overflow-y-auto p-2 pt-0"
         >
           <ComboboxEmpty class="text-base text-ink-gray-5 p-2 text-center">
             No fields found

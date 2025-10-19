@@ -75,6 +75,11 @@
                 size="sm"
                 @click="onShowPreview()"
                 icon-left="eye"
+                :disabled="
+                  Boolean(
+                    !content?.editor?.state?.doc?.textContent?.trim()?.length
+                  )
+                "
               />
               <FieldSearch @onFieldSelected="insertField" />
             </div>
@@ -95,17 +100,21 @@
               </template>
               <template #body-main>
                 <div
-                  class="p-3 text-ink-gray-6 text-sm flex flex-col gap-2 max-w-[450px] w-full"
+                  class="p-3 text-ink-gray-6 text-xs flex flex-col gap-2 max-w-[450px] w-full"
                 >
                   <div>
                     {{
                       __(
-                        "Response supports dynamic fields - Ticket and User fields are available. "
+                        "Insert dynamic fields like ticket details or user info into your response."
                       )
                     }}
                   </div>
                   <div>
-                    {{ __(`Rich text features can be used by selecting text`) }}
+                    {{
+                      __(
+                        "Apply rich text formatting by selecting text and using the toolbar options."
+                      )
+                    }}
                   </div>
                 </div>
               </template>
@@ -208,7 +217,6 @@ const cannedResponseListData = inject<any>("cannedResponseListData");
 const previewDialog = ref({
   show: false,
   ticketId: "",
-  cannedResponseId: cannedResponseActiveScreen.value.data?.name,
   cannedResponse: "",
   preview: null,
 });

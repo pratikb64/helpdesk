@@ -8,7 +8,6 @@ from frappe import _
 def get_canned_responses(teams=None):
     user_team = get_agents_team()
     user_team_names = [team["team_name"] for team in user_team]
-    user_team_names.append("No team")
 
     if isinstance(teams, list):
         user_team_names = teams

@@ -77,7 +77,6 @@ import { menuButtons } from "../cannedResponse";
 const dialogModel = defineModel<{
   show: boolean;
   ticketId: string;
-  cannedResponseId: string;
   cannedResponse: string;
   preview: string;
 }>();
@@ -93,11 +92,8 @@ const getResponsePreview = (ticketId: string) => {
   dialogModel.value.ticketId = ticketId;
   dialogModel.value.preview = null;
   getResponsePreviewResource.submit({
-    canned_response_id: dialogModel.value.cannedResponseId,
     ticket_id: ticketId,
-    canned_response: !dialogModel.value.cannedResponseId
-      ? dialogModel.value.cannedResponse
-      : null,
+    canned_response: dialogModel.value.cannedResponse,
   });
 };
 </script>

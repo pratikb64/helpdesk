@@ -183,6 +183,9 @@ const selectedTemplate = ref({
 
 const cannedResponsesResource = createResource({
   url: "helpdesk.api.canned_response.get_canned_responses",
+  params: {
+    teams: ["No team"],
+  },
   onSuccess: (data) => {
     cannedResponsesList.value = data;
   },
