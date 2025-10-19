@@ -14,7 +14,7 @@ def execute():
                 "response": canned_response.message,
                 "reference_doctype": "HD Ticket",
             }
-        ).insert()
+        ).insert(ignore_permissions=True)
 
     if not frappe.db.exists("DocType", doctype):
         return
