@@ -2,9 +2,10 @@ import frappe
 
 
 def execute():
-    canned_responses = frappe.get_all("HD Canned Response")
+    doctype = "HD Canned Response"
+    canned_responses = frappe.get_all(doctype)
     for cr in canned_responses:
-        canned_response = frappe.get_doc("HD Canned Response", cr.name)
+        canned_response = frappe.get_doc(doctype, cr.name)
         frappe.get_doc(
             {
                 "doctype": "Email Template",
@@ -14,3 +15,9 @@ def execute():
                 "reference_doctype": "HD Ticket",
             }
         ).insert()
+
+    if not frappe.db.exists("DocType", doctype):
+        return
+
+    frappe.db.delete(doctype)
+    frappe.delete_doc("DocType", doctype, force=True)
