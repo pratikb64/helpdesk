@@ -19,38 +19,37 @@
             <FeatherIcon name="search" class="h-4 w-4 text-gray-500" />
           </template>
         </TextInput>
-        <Popover placement="bottom-end">
+        <!-- <Popover placement="bottom-end">
           <template #target="{ togglePopover }">
-            <Button label="Teams" icon-left="filter" @click="togglePopover()">
-              <template #suffix>
-                <div
-                  class="flex items-center rounded-full bg-gray-300 justify-center text-xs size-5"
-                >
-                  {{ teamsList.length }}
-                </div>
-              </template>
-            </Button>
+            <Button
+              label="Filter"
+              icon-left="filter"
+              @click="togglePopover()"
+            />
           </template>
           <template #body-main>
             <div class="p-2 text-ink-gray-9 w-52 overflow-y-auto max-h-60">
               <div
-                v-for="team in teamsListResource.data"
-                :key="team.name"
+                v-for="team in filters"
+                :key="team.label"
                 class="p-2 cursor-pointer hover:bg-gray-50 text-base flex items-center justify-between rounded select-none"
-                @click="toggleTeamToFilter(team.name)"
+                @click="toggleFilter(team.label)"
               >
                 <span class="truncate">
-                  {{ team.name }}
+                  {{ team.label }}
                 </span>
                 <FeatherIcon
-                  v-if="isTeamInFilter(team.name)"
+                  v-if="isFilterActive(team.label)"
                   name="check"
                   class="size-4"
                 />
               </div>
             </div>
           </template>
-        </Popover>
+        </Popover> -->
+        <Dropdown :options="filters" placement="right">
+          <Button :label="activeFilter" icon-left="filter" />
+        </Dropdown>
       </div>
       <div
         v-if="filteredTemplates.length"
@@ -62,13 +61,8 @@
           class="flex h-56 cursor-pointer flex-col gap-2 rounded-lg border p-3 hover:bg-gray-100 relative"
           @click="onTemplateSelect(template)"
         >
-          <div class="flex flex-col pb-2 border-b gap-0.5">
-            <div class="text-base font-semibold truncate">
-              {{ template.name }}
-            </div>
-            <div class="text-xs text-gray-500 truncate">
-              {{ template.teams?.join(", ") || "No team" }}
-            </div>
+          <div class="text-base font-semibold truncate border-b pb-2">
+            {{ template.name }}
           </div>
           <TextEditor
             v-if="template.response"
@@ -104,6 +98,8 @@
 
 <script setup lang="ts">
 import {
+  Button,
+  Dropdown,
   FeatherIcon,
   LoadingIndicator,
   Popover,
@@ -134,32 +130,38 @@ const props = defineProps({
 
 const show = defineModel();
 const searchInput = ref("");
-const teamsList = ref([...auth.userTeams.value, "No team"]);
+const activeFilter = ref("My Team");
 
-const teamsListResource = createListResource({
-  doctype: "HD Team",
-  fields: ["name"],
-  auto: true,
-  transform: (data) => {
-    return [{ name: "No team" }, ...data];
+const filters = [
+  {
+    label: "My Team",
+    onClick: () => (activeFilter.value = "My Team"),
   },
-});
+  {
+    label: "Global",
+    onClick: () => (activeFilter.value = "Global"),
+  },
+  {
+    label: "Personal",
+    onClick: () => (activeFilter.value = "Personal"),
+  },
+];
 
-const isTeamInFilter = (teamName: string) => {
-  return teamsList.value.includes(teamName);
+const isFilterActive = (filter: string) => {
+  return activeFilter.value.includes(filter);
 };
 
-const toggleTeamToFilter = (teamName: string) => {
-  if (teamsList.value.includes(teamName)) {
-    teamsList.value = teamsList.value.filter((team) => team !== teamName);
-  } else {
-    teamsList.value = [...teamsList.value, teamName];
-  }
-};
+// const toggleFilter = (filter: string) => {
+//   if (activeFilter.value.includes(filter)) {
+//     activeFilter.value = activeFilter.value.filter((team) => team !== filter);
+//   } else {
+//     activeFilter.value = [...activeFilter.value, filter];
+//   }
+// };
 
-watch(teamsList, () => {
+watch(activeFilter, () => {
   cannedResponsesResource.reload({
-    teams: teamsList.value,
+    teams: activeFilter.value,
   });
 });
 
@@ -175,7 +177,7 @@ const selectedTemplate = ref({
 const cannedResponsesResource = createResource({
   url: "helpdesk.api.canned_response.get_canned_responses",
   params: {
-    teams: teamsList.value,
+    teams: activeFilter.value,
   },
   onSuccess: (data) => {
     cannedResponsesList.value = data;

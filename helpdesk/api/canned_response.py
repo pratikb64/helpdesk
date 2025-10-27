@@ -5,37 +5,49 @@ from helpdesk.utils import get_agents_team
 
 
 @frappe.whitelist()
-def get_canned_responses(teams=None):
-    user_team = get_agents_team()
-    user_team_names = [team["team_name"] for team in user_team]
-
-    if isinstance(teams, list):
-        user_team_names = teams
-
+def get_canned_responses(scope=None):
     QBEmailTemplate = frappe.qb.DocType("Email Template")
     QBChildTeam = frappe.qb.DocType("HD Canned Response Team")
-    if user_team_names:
-        if "No team" in user_team_names:
-            query = (
-                frappe.qb.from_(QBEmailTemplate)
-                .left_join(QBChildTeam)
-                .on(QBChildTeam.parent == QBEmailTemplate.name)
-                .select(QBEmailTemplate.star, QBChildTeam.team)
-                .where(QBEmailTemplate.reference_doctype == "HD Ticket")
-                .where(
-                    (QBChildTeam.team.isin(user_team_names))
-                    | (QBChildTeam.team.isnull())
+
+    base_query = (
+        frappe.qb.from_(QBEmailTemplate)
+        .left_join(QBChildTeam)
+        .on(QBChildTeam.parent == QBEmailTemplate.name)
+        .select(QBEmailTemplate.star, QBChildTeam.team)
+        .where(QBEmailTemplate.reference_doctype == "HD Ticket")
+    )
+
+    if scope == "Global":
+        query = base_query.where(QBEmailTemplate.scope == "Global")
+    elif scope == "Personal":
+        query = base_query.where(
+            (QBEmailTemplate.scope == "Personal")
+            & (QBEmailTemplate.owner == frappe.session.user)
+        )
+    elif scope == "Team" or scope is None:
+        # Default to Team scope if not specified
+        user_team = get_agents_team()
+        user_team_names = [team["team_name"] for team in user_team]
+
+        if isinstance(scope, list):
+            user_team_names = scope
+
+        if user_team_names:
+            if "No team" in user_team_names:
+                query = base_query.where(
+                    (QBEmailTemplate.scope == "Team")
+                    & (
+                        (QBChildTeam.team.isin(user_team_names))
+                        | (QBChildTeam.team.isnull())
+                    )
                 )
-            )
+            else:
+                query = base_query.where(
+                    (QBEmailTemplate.scope == "Team")
+                    & (QBChildTeam.team.isin(user_team_names))
+                )
         else:
-            query = (
-                frappe.qb.from_(QBEmailTemplate)
-                .left_join(QBChildTeam)
-                .on(QBChildTeam.parent == QBEmailTemplate.name)
-                .select(QBEmailTemplate.star, QBChildTeam.team)
-                .where(QBEmailTemplate.reference_doctype == "HD Ticket")
-                .where(QBChildTeam.team.isin(user_team_names))
-            )
+            return []
     else:
         return []
 

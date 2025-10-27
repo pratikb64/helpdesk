@@ -54,17 +54,44 @@
             />
             <ErrorMessage :message="errors.title" />
           </div>
-          <div class="flex flex-col gap-1.5">
-            <Autocomplete
-              :label="__('Teams')"
-              :multiple="true"
-              :options="getTeamsList.data"
-              v-model="cannedResponseData.teams"
+          <div class="space-y-1.5">
+            <FormLabel :label="__('Scope')" />
+            <Select
+              v-model="cannedResponseData.scope"
+              :options="[
+                {
+                  label: 'Global',
+                  value: 'Global',
+                },
+                {
+                  label: 'Team',
+                  value: 'Team',
+                },
+                {
+                  label: 'Personal',
+                  value: 'Personal',
+                },
+              ]"
+              required
             />
-            <div class="text-xs text-ink-gray-5 cursor-default">
-              {{ __("Restrict visibility to these teams") }}
-            </div>
           </div>
+        </div>
+        <div
+          v-if="cannedResponseData.scope === 'Team'"
+          class="flex flex-col gap-1.5"
+        >
+          <FormLabel :label="__('Teams')" required />
+          <Autocomplete
+            :multiple="true"
+            :options="getTeamsList.data"
+            v-model="cannedResponseData.teams"
+            required
+            @update:modelValue="validateData('teams')"
+          />
+          <div class="text-xs text-ink-gray-5 cursor-default">
+            {{ __("Restrict visibility to these teams") }}
+          </div>
+          <ErrorMessage :message="errors.teams" />
         </div>
         <div class="flex flex-col gap-1.5 w-full">
           <FormLabel :label="__('Response')" required />
@@ -81,7 +108,8 @@
               }
             "
             :fixed-menu="true"
-            :placeholder="'Hello {{ customer }}, \n\nWe are sorry for the inconvenience, we will get back to you soon. \n\nRegards, \n{{ company }}'"
+            :extensions="[FieldAutocomplete]"
+            :placeholder="'Hello {{ customer }}, \n\nWe are sorry for the inconvenience, we will get back to you soon. \n\nRegards, \n{{ full_name }}'"
           />
           <ErrorMessage :message="errors.response" />
         </div>
@@ -110,6 +138,7 @@ import {
   FormControl,
   FormLabel,
   Popover,
+  Select,
   TextEditor,
   toast,
 } from "frappe-ui";
@@ -123,6 +152,7 @@ import FieldSearch from "./components/FieldSearch.vue";
 import PreviewDialog from "./components/PreviewDialog.vue";
 import { menuButtons, userFields } from "./cannedResponse";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import { FieldAutocomplete } from "./components/field-autocomplete-extension";
 
 const ticketMeta = getMeta("HD Ticket");
 const fieldSearchQuery = ref("");
@@ -173,6 +203,7 @@ const content = ref();
 const cannedResponseData = ref({
   name: "",
   title: "",
+  scope: "Global",
   response: "",
   teams: [],
 });
@@ -181,6 +212,7 @@ const initialData = ref("");
 const errors = ref({
   title: "",
   response: "",
+  teams: "",
 });
 
 const getCannedResponseData = createResource({
@@ -194,6 +226,7 @@ const getCannedResponseData = createResource({
     cannedResponseData.value = {
       name: data.name,
       title: data.name,
+      scope: data.scope,
       response: data.response,
       teams:
         data.teams?.map((team) => ({
@@ -284,6 +317,7 @@ const createCannedResponse = () => {
       title: cannedResponseData.value.title,
       subject: cannedResponseData.value.title,
       response: cannedResponseData.value.response,
+      scope: cannedResponseData.value.scope,
       teams: cannedResponseData.value.teams.map((team) => ({
         team: team.value,
       })),
@@ -347,6 +381,7 @@ const updateCannedResponse = async () => {
       title: cannedResponseData.value.title,
       subject: cannedResponseData.value.title,
       response: cannedResponseData.value.response,
+      scope: cannedResponseData.value.scope,
       teams: cannedResponseData.value.teams.map((team) => ({
         team: team.value,
       })),
@@ -378,6 +413,17 @@ const validateData = (key?: string) => {
           errors.value.response = __("Response is required");
         } else {
           errors.value.response = "";
+        }
+        break;
+
+      case "teams":
+        if (
+          cannedResponseData.value.scope === "Team" &&
+          !cannedResponseData.value.teams.length
+        ) {
+          errors.value.teams = __("Teams is required");
+        } else {
+          errors.value.teams = "";
         }
         break;
 
