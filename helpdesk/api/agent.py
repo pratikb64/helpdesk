@@ -19,3 +19,16 @@ def sent_invites(emails, send_welcome_mail_to_user=True):
 
         frappe.get_doc({"doctype": "HD Agent", "user": user.name}).insert()
     return
+
+
+@frappe.whitelist()
+@agent_only
+def get_upcoming_sla_violations():
+    upcoming_sla_violations = frappe.get_list(
+        "HD Ticket",
+        fields=[
+            "*",
+        ],
+        limit=5,
+    )
+    return upcoming_sla_violations
