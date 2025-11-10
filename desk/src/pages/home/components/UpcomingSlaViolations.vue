@@ -3,7 +3,7 @@
     <div class="text-lg font-semibold text-ink-gray-8">
       Upcoming SLA Violations
     </div>
-    <div class="mt-5 h-full overflow-x-auto">
+    <div class="mt-5 h-full overflow-x-auto hide-scrollbar">
       <div class="min-w-[950px]">
         <div class="grid grid-cols-8 text-sm text-gray-600 py-2 px-3">
           <div class="col-span-1">ID</div>
