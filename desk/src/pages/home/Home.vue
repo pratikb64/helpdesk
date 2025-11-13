@@ -34,7 +34,7 @@
           class="h-fit w-full"
           :class="[editing ? 'mb-[20rem] !select-none' : '']"
           :cols="50"
-          :rowHeight="42"
+          :rowHeight="14"
           :disabled="!editing"
           :modelValue="items.map((item) => item.layout)"
           @update:modelValue="
@@ -55,7 +55,7 @@
                     : ''
                 "
               >
-                <DashboardItem
+                <ChartItem
                   :index="index"
                   :item="items[index]"
                   :editing="editing"
@@ -75,8 +75,6 @@
             </div>
           </template>
         </GridLayout>
-        <!-- <UpcomingSlaViolations />
-        <Card :config="{}" /> -->
       </div>
     </div>
   </div>
@@ -87,10 +85,8 @@ import { LayoutHeader } from "@/components";
 import { Button, GridLayout } from "frappe-ui";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
-import UpcomingSlaViolations from "./components/UpcomingSlaViolations.vue";
-import Card from "./components/Card.vue";
 import { ref, watch } from "vue";
-import DashboardItem from "./components/DashboardItem.vue";
+import ChartItem from "./components/ChartItem.vue";
 
 const { userName } = storeToRefs(useAuthStore());
 const editing = ref(false);
@@ -129,7 +125,7 @@ const items = ref([
       x: 0,
       y: 0,
       w: 17,
-      h: 3,
+      h: 9,
       i: 0,
       moved: false,
     },
@@ -168,7 +164,7 @@ const items = ref([
       x: 17,
       y: 0,
       w: 16,
-      h: 3,
+      h: 9,
       i: 1,
       moved: false,
     },
@@ -207,7 +203,7 @@ const items = ref([
       x: 33,
       y: 0,
       w: 17,
-      h: 3,
+      h: 9,
       i: 2,
       moved: false,
     },
@@ -217,10 +213,61 @@ const items = ref([
     data: {},
     layout: {
       x: 0,
-      y: 3,
+      y: 9,
       w: 50,
-      h: 8,
+      h: 24,
       i: 3,
+      moved: false,
+    },
+  },
+  {
+    type: "recently_assigned_tickets",
+    data: {},
+    layout: {
+      x: 0,
+      y: 33,
+      w: 12,
+      h: 24,
+      i: 4,
+      moved: false,
+    },
+  },
+  {
+    type: "rating_card",
+    data: {
+      xAxis: {
+        type: "category",
+        show: false,
+      },
+      yAxis: {
+        type: "value",
+        show: false,
+      },
+      series: [
+        {
+          data: [
+            210, 42, 470, 360, 35, 170, 16, 380, 242, 31, 390, 30, 170, 12, 280,
+            38, 25, 300, 37, 140, 140, 360, 39, 692, 143, 174, 163, 176, 125,
+            162, 131,
+          ],
+          type: "line",
+          symbol: "none",
+        },
+      ],
+      color: "green",
+      grid: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+      },
+    },
+    layout: {
+      x: 0,
+      y: 57,
+      w: 12,
+      h: 8,
+      i: 5,
       moved: false,
     },
   },
