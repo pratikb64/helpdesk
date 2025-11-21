@@ -1,7 +1,7 @@
 <template>
   <CardBase
     title="Avg. Resolution"
-    :text="average + ' days'"
+    :text="average"
     :currentDuration="currentDuration"
     :percentageChange="percentageChange"
     @changeDuration="changeDuration"
@@ -12,18 +12,11 @@
 import { computed, ref } from "vue";
 import CardBase from "./CardBase.vue";
 import { createResource } from "frappe-ui";
+import { formatTime } from "@/utils";
 
 const props = defineProps({
-  percentage_change: {
-    type: Number,
-    required: true,
-  },
-  average: {
-    type: Number,
-    required: true,
-  },
   data: {
-    type: Array<any>,
+    type: Object,
     required: true,
   },
 });
@@ -33,13 +26,14 @@ const currentDuration = ref("Last month");
 const average = computed(() => {
   const _average = getAvgResolutionTimeResource.fetched
     ? getAvgResolutionTimeResource.data?.average
-    : props.average;
-  return _average > 0 ? Math.round(_average / 86400) : 0;
+    : props.data?.average;
+  return formatTime(_average, { day: true, hour: true, minute: true }) || "0m";
 });
+
 const percentageChange = computed(() => {
   const _percentageChange = getAvgResolutionTimeResource.fetched
     ? getAvgResolutionTimeResource.data?.percentage_change
-    : props.percentage_change;
+    : props.data?.percentage_change;
   return {
     icon: _percentageChange > 0 ? "arrow-up-right" : "arrow-down-left",
     value: _percentageChange > 0 ? `+${_percentageChange}` : _percentageChange,
@@ -55,14 +49,11 @@ const getAvgResolutionTimeResource = createResource({
       period: currentDuration.value.toLowerCase(),
     };
   },
-  onSuccess: (data) => {
-    console.log("@@@ getAvgResolutionTimeResource", data);
-  },
+  onSuccess: (data) => {},
 });
 
 const changeDuration = (period: string) => {
   currentDuration.value = period;
   getAvgResolutionTimeResource.submit();
-  console.log("@@@ changeDuration", period);
 };
 </script>

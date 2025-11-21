@@ -3,9 +3,9 @@
     <div class="text-lg font-semibold text-ink-gray-8">
       Upcoming SLA Violations
     </div>
-    <div class="mt-5 h-full overflow-auto hide-scrollbar">
+    <div class="mt-5 h-full overflow-auto hide-scrollbar -mx-2">
       <div class="min-w-[950px]">
-        <div class="grid grid-cols-8 text-sm text-gray-600 py-2 px-3">
+        <div class="grid grid-cols-8 gap-2 text-sm text-gray-600 py-2 px-3">
           <div class="col-span-1">ID</div>
           <div class="col-span-2">Subject</div>
           <div class="col-span-1">Status</div>
@@ -14,13 +14,18 @@
           <div class="col-span-1">Response</div>
           <div class="col-span-1">Resolution</div>
         </div>
-        <hr />
+        <hr class="mx-2" />
         <div>
-          <div v-for="(ticket, index) in upcomingSlaViolations.data">
-            <div class="grid grid-cols-8 text-sm items-center py-3 px-3">
-              <div class="col-span-1">{{ ticket.name }}</div>
-              <div class="col-span-2">{{ ticket.subject }}</div>
-              <div class="col-span-1">{{ ticket.status }}</div>
+          <div
+            v-for="(ticket, index) in upcomingSlaViolations.data"
+            @click="goToTicket(ticket)"
+          >
+            <div
+              class="grid grid-cols-8 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
+            >
+              <div class="col-span-1 truncate">{{ ticket.name }}</div>
+              <div class="col-span-2 truncate">{{ ticket.subject }}</div>
+              <div class="col-span-1 truncate">{{ ticket.status }}</div>
               <div class="col-span-1">
                 <Badge :label="ticket.priority" theme="red" />
               </div>
@@ -86,7 +91,10 @@
                 </Tooltip>
               </div>
             </div>
-            <hr v-if="index !== upcomingSlaViolations.data.length - 1" />
+            <hr
+              class="mx-2"
+              v-if="index !== upcomingSlaViolations.data.length - 1"
+            />
           </div>
         </div>
       </div>
@@ -98,17 +106,34 @@
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import dayjs from "dayjs";
 import { Badge, createResource, Tooltip } from "frappe-ui";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
 import TimerIcon from "~icons/lucide/timer";
 
+const props = defineProps({
+  data: {
+    type: Object,
+    required: true,
+  },
+});
+
 const { getStatus } = useTicketStatusStore();
+const router = useRouter();
 
 const upcomingSlaViolations = createResource({
   url: "helpdesk.api.agent_dashboard.get_upcoming_sla_violations",
-  cache: "Upcoming SLA Violations",
-  initialData: [],
-  auto: true,
-  transform(upcomingSlaViolations) {
-    return upcomingSlaViolations;
-  },
+});
+
+const goToTicket = (ticket: any) => {
+  router.push({
+    name: "TicketAgent",
+    params: { ticketId: ticket.name },
+  });
+};
+
+onMounted(() => {
+  if (!props.data) {
+    upcomingSlaViolations.submit();
+  }
 });
 </script>

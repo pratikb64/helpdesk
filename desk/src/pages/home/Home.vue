@@ -19,6 +19,7 @@
           variant="subtle"
           :icon-left="'check'"
           @click="onSave"
+          :disabled="!isDirty"
         />
         <Button
           v-else
@@ -35,7 +36,11 @@
           @click="onCancel"
         />
 
-        <Dropdown :options="chartsDropdown" placement="right">
+        <Dropdown
+          v-if="chartsDropdown.length > 0"
+          :options="chartsDropdown"
+          placement="right"
+        >
           <Button
             label="New"
             variant="solid"
@@ -47,9 +52,12 @@
       </div>
     </template>
   </LayoutHeader>
-  <div class="p-5 mx-auto max-w-6xl w-full">
-    <div>
-      <div class="text-xl font-semibold text-ink-gray-8">
+  <div class="flex flex-col p-5 mx-auto max-w-6xl w-full grow relative">
+    <div class="grow">
+      <div
+        v-if="layout.length > 0"
+        class="text-xl font-semibold text-ink-gray-8 pl-2"
+      >
         Hey, {{ userName }}
       </div>
       <!-- <div class="text-sm text-ink-gray-5 mt-1">
@@ -60,6 +68,18 @@
           2 tickets about to breach SLA
         </span>
       </div> -->
+      <div
+        v-if="layout.length === 0"
+        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      >
+        <div class="flex flex-col items-center justify-center gap-1">
+          <FeatherIcon name="layout" class="size-12 text-ink-gray-8" />
+          <div class="text-xl font-semibold text-ink-gray-8">
+            No charts added
+          </div>
+          <div class="text-sm text-ink-gray-5">Add charts to get started</div>
+        </div>
+      </div>
       <div class="mt-5">
         <GridLayout
           v-if="layout.length > 0"
@@ -117,7 +137,7 @@ import { LayoutHeader } from "@/components";
 import { Button, createResource, Dropdown, GridLayout, toast } from "frappe-ui";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
-import { computed, provide, ref, watch } from "vue";
+import { computed, h, provide, ref, watch } from "vue";
 import ChartItem from "./components/ChartItem.vue";
 
 const { userName } = storeToRefs(useAuthStore());
@@ -125,6 +145,10 @@ const editing = ref(false);
 const layout = ref([]);
 const oldLayout = ref([]);
 const { userId } = storeToRefs(useAuthStore());
+
+const isDirty = computed(() => {
+  return JSON.stringify(layout.value) !== JSON.stringify(oldLayout.value);
+});
 
 const agentDashboard = createResource({
   url: "helpdesk.api.agent_dashboard.get_dashboard",
@@ -140,11 +164,17 @@ provide("dashboardData", layout);
 const saveDashboard = createResource({
   url: "frappe.client.set_value",
   makeParams() {
+    const layoutData = layout.value.map((item) => {
+      return {
+        chart: item.chart,
+        layout: item.layout,
+      };
+    });
     return {
       doctype: "HD Dashboard",
       name: userId.value,
       fieldname: "layout",
-      value: JSON.stringify(layout.value),
+      value: JSON.stringify(layoutData),
     };
   },
   onSuccess() {
@@ -153,40 +183,56 @@ const saveDashboard = createResource({
 });
 
 const chartsDropdown = computed(() => {
-  return [
+  const _charts = [
     {
       label: "My Tickets",
+      chart: "agent_tickets",
       onClick: () => addChart("agent_tickets", 15, 9),
     },
     {
       label: "Unresolved Tickets",
+      chart: "unresolved_tickets",
       onClick: () => addChart("unresolved_tickets", 11, 9),
     },
     {
       label: "Upcoming SLA Violations",
+      chart: "upcoming_sla_violations",
       onClick: () => addChart("upcoming_sla_violations", 50, 24),
     },
     {
       label: "Average Time Metrics",
+      chart: "avg_time_metrics",
       onClick: () => addChart("avg_time_metrics", 50, 24),
     },
     {
       label: "Avg. First Response Time",
+      chart: "avg_first_response_time",
       onClick: () => addChart("avg_first_response_time", 17, 9),
     },
     {
       label: "Avg. Resolution Time",
+      chart: "avg_resolution_time",
       onClick: () => addChart("avg_resolution_time", 17, 9),
     },
     {
       label: "Recent Feedback",
+      chart: "recent_feedback",
       onClick: () => addChart("recent_feedback", 30, 10),
     },
     {
       label: "Recently Assigned Tickets",
+      chart: "recently_assigned_tickets",
       onClick: () => addChart("recently_assigned_tickets", 20, 23),
     },
-  ];
+    {
+      label: "Pending Tickets",
+      chart: "pending_tickets",
+      onClick: () => addChart("pending_tickets", 20, 23),
+    },
+  ].filter((chart) => {
+    return !layout.value.some((item) => item.chart === chart.chart);
+  });
+  return _charts;
 });
 
 const addChart = (chart, width, height) => {

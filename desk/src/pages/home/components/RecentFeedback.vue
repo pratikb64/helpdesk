@@ -2,11 +2,11 @@
   <div class="flex flex-col w-full h-full rounded-md p-4 min-h-48 grow">
     <div class="text-ink-gray-8 text-lg font-semibold">Recent Feedback</div>
     <div class="flex flex-col gap-2 h-full w-full mt-4">
-      <div class="flex items-end w-full gap-2">
+      <div class="flex items-end justify-between w-full gap-2">
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-2">
             <div class="text-2xl font-medium text-ink-gray-8">
-              {{ rating }}/5
+              {{ data?.average_rating }}
             </div>
             <Tooltip
               text="Average rating across all tickets"
@@ -17,6 +17,11 @@
             </Tooltip>
           </div>
           <div class="text-base text-ink-gray-5">Avg rating</div>
+        </div>
+        <div class="text-sm">
+          Your performance is
+          <span :class="performance.color">{{ performance.text }}</span
+          >!
         </div>
       </div>
       <div
@@ -87,18 +92,28 @@ interface Feedback {
 }
 
 const props = defineProps({
-  feedbacks: {
-    type: Array as PropType<Feedback[]>,
-    required: true,
-  },
-  rating: {
-    type: Number,
+  data: {
+    type: Object,
     required: true,
   },
 });
 
+console.log("@@@ props", props.data);
+
+const performance = computed(() => {
+  if (props.data?.rating >= 4) {
+    return { text: "excellent", color: "text-green-600" };
+  } else if (props.data?.rating >= 3) {
+    return { text: "good", color: "text-yellow-600" };
+  } else if (props.data?.rating >= 2) {
+    return { text: "average", color: "text-yellow-600" };
+  } else {
+    return { text: "poor", color: "text-red-600" };
+  }
+});
+
 const feedbacks = computed<Feedback[]>(() => {
-  const _feedbacks = props.feedbacks;
+  const _feedbacks = props.data?.recent_feedbacks;
   return _feedbacks || [];
 });
 

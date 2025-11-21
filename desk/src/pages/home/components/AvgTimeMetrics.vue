@@ -27,7 +27,7 @@
       <div class="flex items-center gap-12">
         <div>
           <div class="text-lg font-medium text-ink-gray-8">
-            {{ timeAverages.first_response }} min
+            {{ timeAverages.first_response }}
           </div>
           <div class="text-ink-gray-5 flex items-center gap-2 mt-1">
             <div class="size-2 bg-black rounded-full" />
@@ -36,7 +36,7 @@
         </div>
         <div>
           <div class="text-lg font-medium text-ink-gray-8">
-            {{ timeAverages.resolution }} min
+            {{ timeAverages.resolution }}
           </div>
           <div class="text-ink-gray-5 flex items-center gap-2 mt-1">
             <div class="size-2 bg-gray-400 rounded-full" />
@@ -52,18 +52,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, h, markRaw, ref } from "vue";
 import EChart from "./EChart.vue";
 import { EChartsOption } from "echarts";
 import { createResource, TabButtons } from "frappe-ui";
+import { formatTime } from "@/utils";
 
 const props = defineProps({
-  averages: {
-    type: Object,
-    required: true,
-  },
   data: {
-    type: Array<any>,
+    type: Object,
     required: true,
   },
 });
@@ -85,27 +82,65 @@ const getAvgTimeMetricsResource = createResource({
 const timeAverages = computed(() => {
   const _averageFirstResponse = getAvgTimeMetricsResource.fetched
     ? getAvgTimeMetricsResource.data?.averages.first_response
-    : props.averages?.first_response || 0;
+    : props.data?.averages?.first_response || 0;
   const _averageResolution = getAvgTimeMetricsResource.fetched
     ? getAvgTimeMetricsResource.data?.averages.resolution
-    : props.averages?.resolution || 0;
+    : props.data?.averages?.resolution || 0;
 
   return {
     first_response:
-      _averageFirstResponse > 0 ? Math.round(_averageFirstResponse / 3600) : 0,
+      formatTime(_averageFirstResponse, {
+        day: true,
+        hour: true,
+        minute: true,
+      }) || "0m",
     resolution:
-      _averageResolution > 0 ? Math.round(_averageResolution / 3600) : 0,
+      formatTime(_averageResolution, {
+        day: true,
+        hour: true,
+        minute: true,
+      }) || "0m",
   };
 });
 
 const chartConfig = computed<EChartsOption>(() => {
-  const data = getAvgTimeMetricsResource.fetched
+  let data = getAvgTimeMetricsResource.fetched
     ? getAvgTimeMetricsResource.data?.data
-    : props.data || [];
+    : props.data?.data || [];
 
   return {
     legend: {},
-    tooltip: {},
+    tooltip: {
+      trigger: "item",
+      borderColor: "#333",
+      borderWidth: 1,
+      padding: 10,
+      textStyle: {
+        color: "#000",
+      },
+      formatter: (params) => {
+        const [category, firstResponse, resolution] = params.data;
+        if (params.seriesIndex === 0) {
+          return `<b>${category}</b><br/>Avg. First Response: <b>${formatTime(
+            firstResponse,
+            {
+              day: true,
+              hour: true,
+              minute: true,
+            }
+          )}</b>`;
+        } else {
+          return `<b>${category}</b><br/>Avg. Resolution: <b>${formatTime(
+            resolution,
+            {
+              day: true,
+              hour: true,
+              minute: true,
+            }
+          )}</b>`;
+        }
+      },
+    },
     dataset: {
       source: data,
     },
@@ -116,7 +151,15 @@ const chartConfig = computed<EChartsOption>(() => {
     },
     yAxis: {
       axisLabel: {
-        formatter: "{value}h",
+        formatter: (value) => {
+          if (value < 3600) {
+            return (value / 60).toFixed(0) + "m";
+          } else if (value < 86400) {
+            return (value / 3600).toFixed(0) + "h";
+          } else {
+            return (value / 86400).toFixed(0) + "d";
+          }
+        },
         margin: 20,
       },
       axisTick: { show: true },

@@ -16,16 +16,8 @@ import { EChartsOption } from "echarts";
 import { createResource } from "frappe-ui";
 
 const props = defineProps({
-  percentage_change: {
-    type: Number,
-    required: true,
-  },
   data: {
-    type: Array<any>,
-    required: true,
-  },
-  total: {
-    type: Number,
+    type: Object,
     required: true,
   },
 });
@@ -35,7 +27,7 @@ const currentDuration = ref("Last month");
 const percentageChange = computed(() => {
   const _percentageChange = getAgentTicketsResource.fetched
     ? getAgentTicketsResource.data?.percentage_change
-    : props.percentage_change;
+    : props.data?.percentage_change;
   return {
     icon: _percentageChange > 0 ? "arrow-up-right" : "arrow-down-left",
     value: _percentageChange > 0 ? `+${_percentageChange}` : _percentageChange,
@@ -46,19 +38,21 @@ const percentageChange = computed(() => {
 const total = computed(() => {
   return getAgentTicketsResource.fetched
     ? getAgentTicketsResource.data?.total
-    : props.total;
+    : props.data?.total;
 });
 
 const chartConfig = computed<EChartsOption>(() => {
   const isDataFetched = getAgentTicketsResource.fetched;
-  const _data = isDataFetched ? getAgentTicketsResource.data?.data : props.data;
+  const _data = isDataFetched
+    ? getAgentTicketsResource.data?.data
+    : props.data?.data;
   if (!_data) return {};
 
   const dates = _data.map((item) => item.date);
   const counts = _data.map((item) => item.count);
   const _percentageChange = isDataFetched
     ? getAgentTicketsResource.data?.percentage_change
-    : props.percentage_change;
+    : props.data?.percentage_change;
   return {
     xAxis: {
       type: "category",
@@ -94,14 +88,11 @@ const getAgentTicketsResource = createResource({
       period: currentDuration.value.toLowerCase(),
     };
   },
-  onSuccess: (data) => {
-    console.log("@@@ getAgentTicketsResource", data);
-  },
+  onSuccess: (data) => {},
 });
 
 const changeDuration = (period: string) => {
   currentDuration.value = period;
   getAgentTicketsResource.submit();
-  console.log("@@@ changeDuration", period);
 };
 </script>

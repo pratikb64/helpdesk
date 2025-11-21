@@ -312,9 +312,39 @@ def get_unresolved_tickets():
 @frappe.whitelist()
 @agent_only
 def get_recently_assigned_tickets():
+    # Get tickets assigned in the past week
+    one_week_ago = frappe.utils.add_days(frappe.utils.nowdate(), -7)
+    assigned_tickets = frappe.db.sql(
+        """
+        SELECT DISTINCT reference_name
+        FROM `tabToDo`
+        WHERE reference_type = 'HD Ticket'
+        AND allocated_to = %(user)s
+        AND creation >= %(one_week_ago)s
+        """,
+        {"user": frappe.session.user, "one_week_ago": one_week_ago},
+        as_dict=False,
+    )
+    ticket_names = [row[0] for row in assigned_tickets]
+
+    if not ticket_names:
+        return {"count": 0, "tickets": []}
+
     allowed_statuses = frappe.get_all(
         "HD Ticket Status", filters={"category": ["!=", "Resolved"]}, pluck="name"
     )
+
+    # Count tickets assigned in past week that are still assigned and not resolved
+    count = frappe.db.count(
+        "HD Ticket",
+        filters=[
+            ["name", "in", ticket_names],
+            ["_assign", "like", f"%{frappe.session.user}%"],
+            ["status", "in", allowed_statuses],
+        ],
+    )
+
+    # Get 5 tickets
     tickets = frappe.get_list(
         "HD Ticket",
         fields=[
@@ -326,13 +356,15 @@ def get_recently_assigned_tickets():
             "creation",
         ],
         filters=[
+            ["name", "in", ticket_names],
             ["_assign", "like", f"%{frappe.session.user}%"],
             ["status", "in", allowed_statuses],
         ],
         order_by="modified desc",
-        limit=10,
+        limit=4,
     )
-    return tickets
+
+    return {"count": count, "tickets": tickets}
 
 
 @frappe.whitelist()
@@ -408,8 +440,8 @@ def get_avg_time_metrics(period: str = "6m"):
         key = f"{row['year']}-{row['month_num']:02d}"
         data_dict[key] = {
             "month": row["month"],
-            "avg_first": row["avg_first_response"] or 0,
-            "avg_resolution": row["avg_resolution"] or 0,
+            "avg_first": round(row["avg_first_response"] or 0),
+            "avg_resolution": round(row["avg_resolution"] or 0),
         }
 
     # Generate all months in the period
@@ -474,6 +506,34 @@ def get_avg_time_metrics(period: str = "6m"):
 
 @frappe.whitelist()
 @agent_only
+def get_pending_tickets():
+    allowed_statuses = frappe.get_all(
+        "HD Ticket Status", filters={"category": ["!=", "Resolved"]}, pluck="name"
+    )
+    tickets = frappe.get_list(
+        "HD Ticket",
+        fields=[
+            "name",
+            "subject",
+            "status",
+            "priority",
+            "agent_group",
+            "response_by",
+            "resolution_by",
+            "resolution_date",
+        ],
+        filters=[
+            ["_assign", "like", f"%{frappe.session.user}%"],
+            ["status", "in", allowed_statuses],
+        ],
+        order_by="response_by asc, resolution_by asc",
+        limit=5,
+    )
+    return tickets
+
+
+@frappe.whitelist()
+@agent_only
 def get_upcoming_sla_violations():
     upcoming_sla_violations = frappe.get_list(
         "HD Ticket",
@@ -494,7 +554,160 @@ def get_upcoming_sla_violations():
             ["agreement_status", "in", ["First Response Due", "Resolution Due"]],
             ["status_category", "!=", "Closed"],
         ],
-        order_by="response_by asc, resolution_by asc",
+        order_by="response_by desc, resolution_by desc",
         limit=5,
     )
     return upcoming_sla_violations
+
+
+@frappe.whitelist()
+def generate_data():
+    import random
+    from datetime import datetime, timedelta
+
+    # Constants
+    STATUSES = ["Open", "Replied", "Resolved", "Closed"]
+    PRIORITIES = ["Low", "Medium", "High", "Urgent"]
+    TICKET_TYPES = ["Question", "Bug", "Incident"]
+    TEAMS = ["Billing", "Product Experts"]
+    FEEDBACK_OPTIONS = [
+        "Response did not help",
+        "No resolution provided",
+        "Delayed response time",
+        "Adequate help, bit slow",
+        "Clear guidance given",
+        "Helpful answers, reasonable wait",
+        "Quick and precise solutions",
+        "Prompt, informative support",
+        "Exceptional support experience",
+        "Instant, top-notch help",
+    ]
+
+    # Get current user as agent
+    agent = frappe.session.user
+
+    # Past 6 months
+    now = datetime.now()
+    start_date = now - timedelta(days=180)
+
+    # Create tickets for each month
+    current_date = start_date
+    while current_date <= now:
+        # Random number of tickets per month (20-50)
+        num_tickets = random.randint(20, 50)
+
+        for _ in range(num_tickets):
+            # Random creation date in the month
+            days_in_month = (current_date.replace(day=28) + timedelta(days=4)).replace(
+                day=1
+            ) - timedelta(days=1)
+            random_day = random.randint(1, days_in_month.day)
+            creation_date = current_date.replace(day=random_day)
+
+            # Random subject
+            subjects = [
+                "Login issue",
+                "Password reset",
+                "Billing question",
+                "Feature request",
+                "Bug report",
+                "Account setup",
+                "Payment failed",
+                "System error",
+                "Data sync problem",
+                "Performance issue",
+            ]
+            subject = random.choice(subjects) + f" #{random.randint(1000, 9999)}"
+
+            # Random status
+            status = random.choice(STATUSES)
+
+            # Random priority
+            priority = random.choice(PRIORITIES)
+
+            # Random ticket type
+            ticket_type = random.choice(TICKET_TYPES)
+
+            # Random team
+            agent_group = random.choice(TEAMS)
+
+            # Create ticket data
+            ticket_data = {
+                "doctype": "HD Ticket",
+                "subject": subject,
+                "description": f"Detailed description for {subject}",
+                "raised_by": f"user{random.randint(1, 100)}@example.com",
+                "status": status,
+                "priority": priority,
+                "ticket_type": ticket_type,
+                "agent_group": agent_group,
+                "creation": creation_date.isoformat(),
+            }
+
+            # For resolved/closed tickets, add resolution data
+            if status in ["Resolved", "Closed"]:
+                # Random resolution time (hours)
+                resolution_hours = random.randint(1, 168)  # 1 hour to 1 week
+                resolution_time = resolution_hours * 3600  # in seconds
+
+                # First response time (usually less than resolution)
+                first_response_hours = random.randint(1, resolution_hours)
+                first_response_time = first_response_hours * 3600
+
+                # Resolution date
+                resolution_date = creation_date + timedelta(hours=resolution_hours)
+
+                ticket_data.update(
+                    {
+                        "resolution_time": resolution_time,
+                        "first_response_time": first_response_time,
+                        "resolution_date": resolution_date.isoformat(),
+                        "first_responded_on": (
+                            creation_date + timedelta(hours=first_response_hours)
+                        ).isoformat(),
+                    }
+                )
+
+                # Add feedback for some resolved tickets
+                if random.random() < 0.7:  # 70% chance
+                    feedback_rating = random.randint(1, 5)
+                    feedback_option = random.choice(FEEDBACK_OPTIONS)
+                    ticket_data.update(
+                        {
+                            "feedback_rating": feedback_rating,
+                            "feedback": feedback_option,
+                            "feedback_extra": f"Additional feedback for {subject}",
+                        }
+                    )
+
+                # Set SLA status
+                sla_statuses = ["Fulfilled", "Failed"]
+                ticket_data["agreement_status"] = random.choice(sla_statuses)
+
+            # Create ticket
+            ticket = frappe.get_doc(ticket_data).insert(ignore_permissions=True)
+            frappe.db.set_value(
+                "HD Ticket", ticket.name, "creation", creation_date.isoformat()
+            )
+            from frappe.desk.form.assign_to import add
+
+            add(
+                {
+                    "doctype": "HD Ticket",
+                    "name": ticket.name,
+                    "assign_to": json.dumps([agent]),
+                }
+            )
+
+        # Next month
+        if current_date.month == 12:
+            current_date = current_date.replace(
+                year=current_date.year + 1, month=1, day=1
+            )
+        else:
+            current_date = current_date.replace(month=current_date.month + 1, day=1)
+
+    # Commit all changes
+    frappe.db.commit()
+
+    return {"message": "Dummy data generated successfully"}

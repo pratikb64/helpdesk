@@ -4,64 +4,55 @@
       v-if="item.chart == 'agent_tickets'"
       class="w-full h-full overflow-hidden"
     >
-      <AgentTicketsCard
-        :data="item.data.data"
-        :percentage_change="item.data.percentage_change"
-        :total="item.data.total"
-      />
+      <AgentTicketsCard :data="item.data" />
     </div>
     <div
       v-if="item.chart == 'avg_first_response_time'"
       class="w-full h-full overflow-hidden"
     >
-      <AvgFirstResponseCard
-        :data="item.data.data"
-        :percentage_change="item.data.percentage_change"
-        :average="item.data.average"
-      />
+      <AvgFirstResponseCard :data="item.data" />
     </div>
     <div
       v-if="item.chart == 'avg_resolution_time'"
       class="w-full h-full overflow-hidden"
     >
-      <AvgResolutionCard
-        :data="item.data.data"
-        :percentage_change="item.data.percentage_change"
-        :average="item.data.average"
-      />
+      <AvgResolutionCard :data="item.data" />
     </div>
     <div
       v-if="item.chart == 'unresolved_tickets'"
       class="w-full h-full overflow-hidden"
     >
-      <UnresolvedTickets :tickets="item.data.total" />
+      <UnresolvedTickets :data="item.data" />
     </div>
     <div
       class="w-full h-full overflow-hidden"
       v-if="item.chart == 'upcoming_sla_violations'"
     >
-      <UpcomingSlaViolations />
+      <UpcomingSlaViolations :data="item.data" />
     </div>
     <div
       v-else-if="item.chart == 'recently_assigned_tickets'"
       class="overflow-hidden"
     >
-      <RecentlyAssignedTickets :tickets="item.data" />
+      <RecentlyAssignedTickets :data="item.data" />
     </div>
     <div
       v-else-if="item.chart == 'recent_feedback'"
       class="w-full h-full overflow-hidden"
     >
-      <RecentFeedback
-        :rating="item.data.average_rating"
-        :feedbacks="item.data.recent_feedbacks"
-      />
+      <RecentFeedback :data="item.data" />
     </div>
     <div
       v-else-if="item.chart == 'avg_time_metrics'"
       class="w-full h-full overflow-hidden flex"
     >
-      <AvgTimeMetrics :averages="item.data.averages" :data="item.data.data" />
+      <AvgTimeMetrics :data="item.data" />
+    </div>
+    <div
+      v-else-if="item.chart == 'pending_tickets'"
+      class="w-full h-full overflow-hidden"
+    >
+      <PendingTickets :data="item.data" />
     </div>
   </div>
 </template>
@@ -75,6 +66,7 @@ import RecentFeedback from "./RecentFeedback.vue";
 import RecentlyAssignedTickets from "./RecentlyAssignedTickets/RecentlyAssignedTickets.vue";
 import UnresolvedTickets from "./UnresolvedTickets.vue";
 import UpcomingSlaViolations from "./UpcomingSlaViolations.vue";
+import PendingTickets from "./PendingTickets.vue";
 
 const props = defineProps({
   index: {
@@ -90,6 +82,4 @@ const props = defineProps({
     default: false,
   },
 });
-
-console.log("DashboardItem.vue props.item", props.item);
 </script>

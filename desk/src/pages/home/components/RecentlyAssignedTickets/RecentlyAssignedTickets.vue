@@ -6,11 +6,14 @@
       </div>
       <div class="text-base text-ink-gray-6">
         You have
-        {{ tickets?.length }} new tickets this week
+        {{ data?.count }} new tickets this week
       </div>
     </div>
     <div class="space-y-5 mt-7">
-      <RecentlyAssignedTicketsItem v-for="item in tickets" :ticket="item" />
+      <RecentlyAssignedTicketsItem
+        v-for="item in data?.tickets"
+        :ticket="item"
+      />
     </div>
   </div>
 </template>
@@ -22,10 +25,10 @@ import RecentlyAssignedTicketsItem from "./RecentlyAssignedTicketsItem.vue";
 const dashboardData = inject("dashboardData");
 
 const props = defineProps({
-  tickets: {
-    type: Array,
+  data: {
+    type: Object,
     required: true,
   },
 });
-console.log("tickets", props.tickets);
+console.log("tickets", props);
 </script>

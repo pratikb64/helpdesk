@@ -48,11 +48,9 @@ import { Dropdown, FeatherIcon } from "frappe-ui";
 const props = defineProps({
   title: {
     type: String,
-    required: true,
   },
   text: {
     type: Number || String,
-    required: true,
   },
   chartConfig: {
     type: Object,
@@ -69,8 +67,6 @@ const props = defineProps({
     default: false,
   },
 });
-
-console.log("@@@ props", props, props.chartConfig);
 
 const currentDuration = computed(() => props.currentDuration);
 
