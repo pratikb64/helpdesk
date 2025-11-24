@@ -10,7 +10,9 @@
     <div class="flex flex-col gap-2 h-full w-full">
       <slot name="body">
         <div class="flex items-end w-full h-full gap-2">
-          <div class="text-2xl font-medium text-center text-ink-gray-8">
+          <div
+            class="text-2xl font-medium text-center text-ink-gray-8 whitespace-nowrap"
+          >
             {{ text }}
           </div>
           <slot name="chart">

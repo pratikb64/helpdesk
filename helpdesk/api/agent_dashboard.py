@@ -127,6 +127,28 @@ def get_avg_first_response_time(period="last month"):
     previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
+    def get_avg_time_data(from_date, to_date):
+        result = frappe.db.sql(
+            """
+            SELECT
+                DATE(creation) as date,
+                AVG(first_response_time) as avg_time
+            FROM `tabHD Ticket`
+            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
+            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
+            AND first_response_time IS NOT NULL
+            GROUP BY DATE(creation)
+            ORDER BY DATE(creation)
+            """,
+            {
+                "from_date": from_date,
+                "to_date": to_date,
+                "agent": frappe.session.user,
+            },
+            as_dict=1,
+        )
+        return result
+
     def get_avg_time(from_date, to_date, time_field):
         result = frappe.db.sql(
             f"""
@@ -147,6 +169,8 @@ def get_avg_first_response_time(period="last month"):
             result[0]["avg_time"] if result and result[0]["avg_time"] is not None else 0
         )
 
+    current_result = get_avg_time_data(current_from, current_to)
+
     current_avg = get_avg_time(current_from, current_to, "first_response_time")
     previous_avg = get_avg_time(previous_from, previous_to, "first_response_time")
 
@@ -159,8 +183,27 @@ def get_avg_first_response_time(period="last month"):
     else:
         percentage_change = 0
 
+    # Fill missing days with 0
+    from_date_obj = date.fromisoformat(current_from)
+    to_date_obj = date.fromisoformat(current_to)
+    date_dict = {}
+    current_date = from_date_obj
+    while current_date <= to_date_obj:
+        date_str = current_date.isoformat()
+        date_dict[date_str] = 0
+        current_date += timedelta(days=1)
+
+    for row in current_result:
+        date_dict[str(row["date"])] = round(row["avg_time"] or 0, 2)
+
+    data = [
+        {"date": date, "avg_time": avg_time}
+        for date, avg_time in sorted(date_dict.items())
+    ]
+
     return {
-        "average": current_avg,
+        "data": data,
+        "average": round(current_avg, 2),
         "percentage_change": percentage_change,
     }
 
@@ -176,6 +219,28 @@ def get_avg_resolution_time(period="last month"):
     previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
+    def get_avg_time_data(from_date, to_date):
+        result = frappe.db.sql(
+            """
+            SELECT
+                DATE(creation) as date,
+                AVG(resolution_time) as avg_time
+            FROM `tabHD Ticket`
+            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
+            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
+            AND resolution_time IS NOT NULL
+            GROUP BY DATE(creation)
+            ORDER BY DATE(creation)
+            """,
+            {
+                "from_date": from_date,
+                "to_date": to_date,
+                "agent": frappe.session.user,
+            },
+            as_dict=1,
+        )
+        return result
+
     def get_avg_time(from_date, to_date, time_field):
         result = frappe.db.sql(
             f"""
@@ -196,6 +261,8 @@ def get_avg_resolution_time(period="last month"):
             result[0]["avg_time"] if result and result[0]["avg_time"] is not None else 0
         )
 
+    current_result = get_avg_time_data(current_from, current_to)
+
     current_avg = get_avg_time(current_from, current_to, "resolution_time")
     previous_avg = get_avg_time(previous_from, previous_to, "resolution_time")
 
@@ -208,8 +275,27 @@ def get_avg_resolution_time(period="last month"):
     else:
         percentage_change = 0
 
+    # Fill missing days with 0
+    from_date_obj = date.fromisoformat(current_from)
+    to_date_obj = date.fromisoformat(current_to)
+    date_dict = {}
+    current_date = from_date_obj
+    while current_date <= to_date_obj:
+        date_str = current_date.isoformat()
+        date_dict[date_str] = 0
+        current_date += timedelta(days=1)
+
+    for row in current_result:
+        date_dict[str(row["date"])] = round(row["avg_time"] or 0, 2)
+
+    data = [
+        {"date": date, "avg_time": avg_time}
+        for date, avg_time in sorted(date_dict.items())
+    ]
+
     return {
-        "average": current_avg,
+        "data": data,
+        "average": round(current_avg, 2),
         "percentage_change": percentage_change,
     }
 
