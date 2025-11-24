@@ -116,11 +116,11 @@ const props = defineProps({
 console.log("@@@ props", props.data);
 
 const performance = computed(() => {
-  if (props.data?.rating >= 4) {
+  if (props.data?.average_rating >= 4) {
     return { text: "excellent", color: "text-green-600" };
-  } else if (props.data?.rating >= 3) {
+  } else if (props.data?.average_rating >= 3) {
     return { text: "good", color: "text-yellow-600" };
-  } else if (props.data?.rating >= 2) {
+  } else if (props.data?.average_rating >= 2) {
     return { text: "average", color: "text-yellow-600" };
   } else {
     return { text: "poor", color: "text-red-600" };

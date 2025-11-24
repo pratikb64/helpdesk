@@ -30,7 +30,6 @@
                 {{ ticket.agent_group || __("Not Assigned") }}
               </div>
               <div class="col-span-1 flex gap-1 items-center">
-                <TimerIcon class="size-4" />
                 <Badge
                   v-if="getStatus(ticket.status)?.category === 'Paused'"
                   label="Paused"
@@ -55,6 +54,7 @@
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.response_by).long()">
+                  <TimerIcon class="size-4" />
                   {{ dayjs.tz(ticket.response_by).fromNow() }}
                 </Tooltip>
               </div>

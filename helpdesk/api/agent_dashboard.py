@@ -666,6 +666,22 @@ def generate_data():
         "Instant, top-notch help",
     ]
 
+    # Create 10 contacts
+    contacts = []
+    for i in range(10):
+        first_name = f"User{i + 1}"
+        last_name = "Test"
+        email = f"user{i + 1}@example.com"
+        contact = frappe.get_doc(
+            {
+                "doctype": "Contact",
+                "first_name": first_name,
+                "last_name": last_name,
+                "email_id": email,
+            }
+        ).insert(ignore_permissions=True)
+        contacts.append({"email": email, "name": contact.name})
+
     # Get current user as agent
     agent = frappe.session.user
 
@@ -715,11 +731,13 @@ def generate_data():
             agent_group = random.choice(TEAMS)
 
             # Create ticket data
+            random_contact = random.choice(contacts)
             ticket_data = {
                 "doctype": "HD Ticket",
                 "subject": subject,
                 "description": f"Detailed description for {subject}",
-                "raised_by": f"user{random.randint(1, 100)}@example.com",
+                "raised_by": random_contact["email"],
+                "contact": random_contact["name"],
                 "status": status,
                 "priority": priority,
                 "ticket_type": ticket_type,
@@ -760,6 +778,7 @@ def generate_data():
                             "feedback_rating": feedback_rating,
                             "feedback": feedback_option,
                             "feedback_extra": f"Additional feedback for {subject}",
+                            "status": "Closed",
                         }
                     )
 
