@@ -15,11 +15,8 @@
           <div class="col-span-1">Resolution</div>
         </div>
         <hr class="mx-2" />
-        <div>
-          <div
-            v-for="(ticket, index) in upcomingSlaViolations.data"
-            @click="goToTicket(ticket)"
-          >
+        <div v-if="tickets.length > 0">
+          <div v-for="(ticket, index) in tickets" @click="goToTicket(ticket)">
             <div
               class="grid grid-cols-8 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
             >
@@ -91,10 +88,33 @@
                 </Tooltip>
               </div>
             </div>
-            <hr
-              class="mx-2"
-              v-if="index !== upcomingSlaViolations.data.length - 1"
-            />
+            <hr class="mx-2" v-if="index !== tickets.length - 1" />
+          </div>
+        </div>
+        <div v-else class="relative">
+          <div v-for="i in 5" :key="i">
+            <div class="grid grid-cols-8 gap-2 py-3 px-3">
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-2 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+            </div>
+            <hr class="mx-2" v-if="i < 5" />
+          </div>
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center"
+          >
+            <div class="bg-surface-white space-y-1 w-64 p-3 rounded">
+              <div class="text-ink-gray-7 font-medium text-center text-base">
+                No upcoming SLA violations
+              </div>
+              <div class="text-ink-gray-6 text-center text-base">
+                You’re well within your response windows.
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -106,7 +126,7 @@
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import dayjs from "dayjs";
 import { Badge, createResource, Tooltip } from "frappe-ui";
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import TimerIcon from "~icons/lucide/timer";
 
@@ -119,6 +139,17 @@ const props = defineProps({
 
 const { getStatus } = useTicketStatusStore();
 const router = useRouter();
+
+const tickets = computed(() => {
+  console.log(
+    upcomingSlaViolations.fetched
+      ? upcomingSlaViolations.data
+      : props.data || []
+  );
+  return upcomingSlaViolations.fetched
+    ? upcomingSlaViolations.data
+    : props.data || [];
+});
 
 const upcomingSlaViolations = createResource({
   url: "helpdesk.api.agent_dashboard.get_upcoming_sla_violations",

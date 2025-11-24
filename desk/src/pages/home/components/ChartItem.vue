@@ -63,7 +63,7 @@ import AvgResolutionCard from "./AvgResolutionCard.vue";
 import AgentTicketsCard from "./AgentTicketsCard.vue";
 import AvgTimeMetrics from "./AvgTimeMetrics.vue";
 import RecentFeedback from "./RecentFeedback.vue";
-import RecentlyAssignedTickets from "./RecentlyAssignedTickets/RecentlyAssignedTickets.vue";
+import RecentlyAssignedTickets from "./RecentlyAssignedTickets.vue";
 import UnresolvedTickets from "./UnresolvedTickets.vue";
 import UpcomingSlaViolations from "./UpcomingSlaViolations.vue";
 import PendingTickets from "./PendingTickets.vue";
