@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-md p-4 grow">
+  <div class="rounded-md p-4 grow w-full h-full overflow-hidden">
     <div class="text-lg font-semibold text-ink-gray-8">
       Upcoming SLA Violations
     </div>

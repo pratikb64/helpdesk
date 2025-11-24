@@ -1,10 +1,13 @@
 <template>
-  <div class="flex flex-col rounded-md p-4 grow">
+  <div class="flex flex-col rounded-md p-4 grow w-full h-full overflow-hidden">
     <div class="flex items-center justify-between">
       <div class="text-lg font-semibold text-ink-gray-8">
         Average Time Metrics
       </div>
       <TabButtons
+        v-if="
+          timeAverages.first_response != '0m' || timeAverages.resolution != '0m'
+        "
         :buttons="[
           {
             label: '3M',
@@ -23,7 +26,22 @@
         @update:model-value="onDurationChange"
       />
     </div>
-    <div class="flex flex-col mt-5 grow w-full">
+    <div
+      v-if="
+        timeAverages.first_response == '0m' && timeAverages.resolution == '0m'
+      "
+      class="flex flex-col justify-center items-center text-center gap-2 h-full w-full"
+    >
+      <div class="flex flex-col gap-2 max-w-60">
+        <div class="text-base font-medium text-ink-gray-7">
+          No average metrics
+        </div>
+        <div class="text-base text-ink-gray-6">
+          Average response and resolution metrics not yet generated.
+        </div>
+      </div>
+    </div>
+    <div v-else class="flex flex-col mt-5 grow w-full">
       <div class="flex items-center gap-12">
         <div>
           <div class="text-lg font-medium text-ink-gray-8">

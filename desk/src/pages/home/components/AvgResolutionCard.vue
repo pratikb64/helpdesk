@@ -1,11 +1,13 @@
 <template>
-  <CardBase
-    title="Avg. Resolution"
-    :text="average"
-    :currentDuration="currentDuration"
-    :percentageChange="percentageChange"
-    @changeDuration="changeDuration"
-  />
+  <div class="w-full h-full overflow-hidden">
+    <CardBase
+      title="Avg. Resolution"
+      :text="average"
+      :currentDuration="currentDuration"
+      :percentageChange="percentageChange"
+      @changeDuration="changeDuration"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

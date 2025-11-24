@@ -1,12 +1,14 @@
 <template>
-  <CardBase
-    title="My Tickets"
-    :text="total"
-    :chartConfig="chartConfig"
-    :currentDuration="currentDuration"
-    :percentageChange="percentageChange"
-    @changeDuration="changeDuration"
-  />
+  <div class="w-full h-full overflow-hidden">
+    <CardBase
+      title="My Tickets"
+      :text="total"
+      :chartConfig="chartConfig"
+      :currentDuration="currentDuration"
+      :percentageChange="percentageChange"
+      @changeDuration="changeDuration"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

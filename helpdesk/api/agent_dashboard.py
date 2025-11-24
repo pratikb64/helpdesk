@@ -312,7 +312,6 @@ def get_unresolved_tickets():
 @frappe.whitelist()
 @agent_only
 def get_recently_assigned_tickets():
-    # Get tickets assigned in the past week
     one_week_ago = frappe.utils.add_days(frappe.utils.nowdate(), -7)
     assigned_tickets = frappe.db.sql(
         """
@@ -414,7 +413,6 @@ def get_avg_time_metrics(period: str = "6m"):
     months = periods.get(period, 6)
     agent = frappe.session.user
 
-    # Get monthly averages for the last 'months' months
     result = frappe.db.sql(
         """
         SELECT
@@ -434,7 +432,6 @@ def get_avg_time_metrics(period: str = "6m"):
         as_dict=1,
     )
 
-    # Create a dict of existing data
     data_dict = {}
     for row in result:
         key = f"{row['year']}-{row['month_num']:02d}"
@@ -553,6 +550,7 @@ def get_upcoming_sla_violations():
             ["sla", "!=", ""],
             ["agreement_status", "in", ["First Response Due", "Resolution Due"]],
             ["status_category", "!=", "Closed"],
+            ["_assign", "like", f"%{frappe.session.user}%"],
         ],
         order_by="response_by desc, resolution_by desc",
         limit=5,
@@ -565,7 +563,6 @@ def generate_data():
     import random
     from datetime import datetime, timedelta
 
-    # Constants
     STATUSES = ["Open", "Replied", "Resolved", "Closed"]
     PRIORITIES = ["Low", "Medium", "High", "Urgent"]
     TICKET_TYPES = ["Question", "Bug", "Incident"]
@@ -699,7 +696,6 @@ def generate_data():
                 }
             )
 
-        # Next month
         if current_date.month == 12:
             current_date = current_date.replace(
                 year=current_date.year + 1, month=1, day=1
@@ -707,7 +703,6 @@ def generate_data():
         else:
             current_date = current_date.replace(month=current_date.month + 1, day=1)
 
-    # Commit all changes
     frappe.db.commit()
 
     return {"message": "Dummy data generated successfully"}

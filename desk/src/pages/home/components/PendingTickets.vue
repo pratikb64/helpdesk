@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-md p-4 grow">
+  <div class="rounded-md p-4 grow w-full h-full overflow-hidden">
     <div class="text-lg font-semibold text-ink-gray-8">Pending Tickets</div>
     <div class="mt-5 h-full overflow-auto hide-scrollbar -mx-2">
       <div class="min-w-[950px]">
@@ -13,7 +13,7 @@
           <div class="col-span-1">Resolution</div>
         </div>
         <hr class="mx-2" />
-        <div>
+        <div v-if="pendingTickets.data?.length > 0">
           <div
             v-for="(ticket, index) in pendingTickets.data"
             @click="goToTicket(ticket)"
@@ -90,6 +90,32 @@
               </div>
             </div>
             <hr class="mx-2" v-if="index !== pendingTickets.data.length - 1" />
+          </div>
+        </div>
+        <div v-else class="relative">
+          <div v-for="i in 5" :key="i">
+            <div class="grid grid-cols-8 gap-2 py-3 px-3">
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-2 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+            </div>
+            <hr class="mx-2" v-if="i < 5" />
+          </div>
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center"
+          >
+            <div class="bg-surface-white space-y-1 w-64 p-3 rounded">
+              <div class="text-ink-gray-7 font-medium text-center text-base">
+                No pending tickets
+              </div>
+              <div class="text-ink-gray-6 text-center text-base">
+                All tickets are resolved or in progress.
+              </div>
+            </div>
           </div>
         </div>
       </div>
