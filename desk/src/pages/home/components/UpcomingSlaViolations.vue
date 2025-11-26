@@ -1,7 +1,22 @@
 <template>
   <div class="rounded-md p-4 grow w-full h-full overflow-hidden">
-    <div class="text-lg font-semibold text-ink-gray-8">
-      Upcoming SLA Violations
+    <div class="flex items-center justify-between">
+      <div class="text-lg font-semibold text-ink-gray-8">
+        Upcoming SLA Violations
+      </div>
+      <div class="flex items-center gap-2">
+        <Button
+          v-if="priorityFilter !== ''"
+          label="Clear"
+          variant="subtle"
+          @click="priorityFilter = ''"
+        />
+        <Combobox
+          :options="getPriorityListResource?.data || []"
+          v-model="priorityFilter"
+          placeholder="Ticket priority"
+        />
+      </div>
     </div>
     <div class="mt-5 h-full overflow-auto hide-scrollbar -mx-2">
       <div class="min-w-[950px]">
@@ -11,11 +26,11 @@
           <div class="col-span-1">Status</div>
           <div class="col-span-1">Priority</div>
           <div class="col-span-1">Team</div>
-          <div class="col-span-1">Response</div>
+          <div class="col-span-1">First Response</div>
           <div class="col-span-1">Resolution</div>
         </div>
         <hr class="mx-2" />
-        <div v-if="tickets.length > 0">
+        <div v-if="tickets?.length > 0">
           <div v-for="(ticket, index) in tickets" @click="goToTicket(ticket)">
             <div
               class="grid grid-cols-8 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
@@ -24,7 +39,7 @@
               <div class="col-span-2 truncate">{{ ticket.subject }}</div>
               <div class="col-span-1 truncate">{{ ticket.status }}</div>
               <div class="col-span-1">
-                <Badge :label="ticket.priority" theme="red" />
+                <Badge :label="ticket.priority" />
               </div>
               <div class="col-span-1">
                 {{ ticket.agent_group || __("Not Assigned") }}
@@ -125,8 +140,14 @@
 <script setup lang="ts">
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import dayjs from "dayjs";
-import { Badge, createResource, Tooltip } from "frappe-ui";
-import { computed, onMounted } from "vue";
+import {
+  Badge,
+  Combobox,
+  createListResource,
+  createResource,
+  Tooltip,
+} from "frappe-ui";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import TimerIcon from "~icons/lucide/timer";
 
@@ -139,6 +160,16 @@ const props = defineProps({
 
 const { getStatus } = useTicketStatusStore();
 const router = useRouter();
+const priorityFilter = ref("");
+
+const getPriorityListResource = createListResource({
+  doctype: "HD Ticket Priority",
+  fields: ["name"],
+  auto: true,
+  transform(data) {
+    return data.map((d) => d.name);
+  },
+});
 
 const tickets = computed(() => {
   console.log(
@@ -163,8 +194,12 @@ const goToTicket = (ticket: any) => {
 };
 
 onMounted(() => {
-  if (!props.data) {
+  if (!props.data.length) {
     upcomingSlaViolations.submit();
   }
+});
+
+watch(priorityFilter, (newPriority) => {
+  upcomingSlaViolations.submit({ priority: newPriority });
 });
 </script>

@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import CardBase from "./CardBase.vue";
 import { createResource } from "frappe-ui";
 import { formatTime } from "@/utils";
@@ -53,7 +53,6 @@ const getAvgResolutionTimeResource = createResource({
       period: currentDuration.value.toLowerCase(),
     };
   },
-  onSuccess: (data) => {},
 });
 
 const changeDuration = (period: string) => {
@@ -98,5 +97,11 @@ const chartConfig = computed<EChartsOption>(() => {
       bottom: 2,
     },
   };
+});
+
+onMounted(() => {
+  if (!props.data?.data) {
+    getAvgResolutionTimeResource.submit();
+  }
 });
 </script>

@@ -429,7 +429,6 @@ def get_recently_assigned_tickets():
         ],
     )
 
-    # Get 5 tickets
     tickets = frappe.get_list(
         "HD Ticket",
         fields=[
@@ -446,7 +445,7 @@ def get_recently_assigned_tickets():
             ["status", "in", allowed_statuses],
         ],
         order_by="modified desc",
-        limit=4,
+        limit=5,
     )
 
     return {"count": count, "tickets": tickets}
@@ -617,7 +616,15 @@ def get_pending_tickets():
 
 @frappe.whitelist()
 @agent_only
-def get_upcoming_sla_violations():
+def get_upcoming_sla_violations(priority=None):
+    filters = [
+        ["sla", "!=", ""],
+        ["agreement_status", "in", ["First Response Due", "Resolution Due"]],
+        ["status_category", "!=", "Closed"],
+        ["_assign", "like", f"%{frappe.session.user}%"],
+    ]
+    if priority:
+        filters.append(["priority", "=", priority])
     upcoming_sla_violations = frappe.get_list(
         "HD Ticket",
         fields=[
@@ -632,12 +639,7 @@ def get_upcoming_sla_violations():
             "agreement_status",
             "status_category",
         ],
-        filters=[
-            ["sla", "!=", ""],
-            ["agreement_status", "in", ["First Response Due", "Resolution Due"]],
-            ["status_category", "!=", "Closed"],
-            ["_assign", "like", f"%{frappe.session.user}%"],
-        ],
+        filters=filters,
         order_by="response_by desc, resolution_by desc",
         limit=5,
     )

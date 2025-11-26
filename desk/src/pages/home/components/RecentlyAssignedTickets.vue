@@ -5,13 +5,13 @@
         <div class="text-lg font-semibold text-ink-gray-8">
           Recently assigned tickets
         </div>
-        <div v-if="data?.count > 0" class="text-base text-ink-gray-6">
+        <div v-if="ticketCount > 0" class="text-base text-ink-gray-6">
           You have
-          {{ data?.count }} new tickets this week
+          {{ ticketCount }} new tickets this week
         </div>
       </div>
       <div
-        v-if="data?.count == 0"
+        v-if="ticketCount == 0"
         class="flex flex-col justify-center items-center text-center gap-2 h-full w-full"
       >
         <div class="flex flex-col gap-2 max-w-60">
@@ -25,7 +25,7 @@
       </div>
       <div class="space-y-5 mt-7">
         <div
-          v-for="ticket in data?.tickets"
+          v-for="ticket in tickets"
           class="flex justify-between items-center gap-2 rounded relative group/child my-2 cursor-pointer"
           @click="goToTicket(ticket)"
         >
@@ -56,6 +56,8 @@
 
 <script setup lang="ts">
 import { dateFormat } from "@/utils";
+import { createResource } from "frappe-ui";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -66,7 +68,18 @@ const props = defineProps({
     required: true,
   },
 });
-console.log("tickets", props);
+
+const ticketCount = computed(() => {
+  return getRecentlyAssignedTickets.fetched
+    ? getRecentlyAssignedTickets.data?.count
+    : props.data?.count;
+});
+
+const tickets = computed(() => {
+  return getRecentlyAssignedTickets.fetched
+    ? getRecentlyAssignedTickets.data?.tickets
+    : props.data?.tickets;
+});
 
 const goToTicket = (ticket: any) => {
   router.push({
@@ -74,4 +87,15 @@ const goToTicket = (ticket: any) => {
     params: { ticketId: ticket.name },
   });
 };
+
+const getRecentlyAssignedTickets = createResource({
+  url: "helpdesk.api.agent_dashboard.get_recently_assigned_tickets",
+  type: "GET",
+});
+
+onMounted(() => {
+  if (!props.data?.tickets) {
+    getRecentlyAssignedTickets.submit();
+  }
+});
 </script>

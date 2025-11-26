@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import CardBase from "./CardBase.vue";
 import { EChartsOption } from "echarts";
 import { createResource } from "frappe-ui";
@@ -90,11 +90,16 @@ const getAgentTicketsResource = createResource({
       period: currentDuration.value.toLowerCase(),
     };
   },
-  onSuccess: (data) => {},
 });
 
 const changeDuration = (period: string) => {
   currentDuration.value = period;
   getAgentTicketsResource.submit();
 };
+
+onMounted(() => {
+  if (!props.data?.data) {
+    getAgentTicketsResource.submit();
+  }
+});
 </script>

@@ -47,7 +47,7 @@
           <div class="text-lg font-medium text-ink-gray-8">
             {{ timeAverages.first_response }}
           </div>
-          <div class="text-ink-gray-5 flex items-center gap-2 mt-1">
+          <div class="text-base text-ink-gray-5 flex items-center gap-2 mt-1">
             <div class="size-2 bg-black rounded-full" />
             Avg. first response
           </div>
@@ -56,7 +56,7 @@
           <div class="text-lg font-medium text-ink-gray-8">
             {{ timeAverages.resolution }}
           </div>
-          <div class="text-ink-gray-5 flex items-center gap-2 mt-1">
+          <div class="text-base text-ink-gray-5 flex items-center gap-2 mt-1">
             <div class="size-2 bg-gray-400 rounded-full" />
             Avg. resolution time
           </div>
@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, markRaw, ref } from "vue";
+import { computed, h, markRaw, onMounted, ref } from "vue";
 import EChart from "./EChart.vue";
 import { EChartsOption } from "echarts";
 import { createResource, TabButtons } from "frappe-ui";
@@ -82,14 +82,12 @@ const props = defineProps({
     required: true,
   },
 });
-console.log("AvgTimeMetrics.vue props.data", props);
 
 const currentDuration = ref("6m");
 
 const getAvgTimeMetricsResource = createResource({
   url: "helpdesk.api.agent_dashboard.get_avg_time_metrics",
   type: "GET",
-  auto: true,
   makeParams: () => {
     return {
       period: currentDuration.value.toLowerCase(),
@@ -193,13 +191,13 @@ const chartConfig = computed<EChartsOption>(() => {
       {
         type: "bar",
         color: "black",
-        barWidth: 20,
+        barWidth: "12%",
         itemStyle: { borderRadius: [4, 4, 0, 0] },
       },
       {
         type: "bar",
         color: "#E2E2E2",
-        barWidth: 20,
+        barWidth: "12%",
         itemStyle: { borderRadius: [4, 4, 0, 0] },
       },
     ],
@@ -216,4 +214,10 @@ const onDurationChange = (duration: string) => {
   currentDuration.value = duration;
   getAvgTimeMetricsResource.submit();
 };
+
+onMounted(() => {
+  if (!props.data.data) {
+    getAvgTimeMetricsResource.submit();
+  }
+});
 </script>

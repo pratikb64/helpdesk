@@ -6,7 +6,7 @@
     <template #right-header>
       <div class="flex items-center gap-2">
         <Button
-          v-if="!editing"
+          v-if="layout.length > 0 && !editing"
           :label="'Refresh'"
           variant="subtle"
           :icon-left="'refresh-ccw'"
@@ -22,7 +22,7 @@
           :disabled="!isDirty"
         />
         <Button
-          v-else
+          v-if="layout.length > 0 && !editing"
           :label="'Edit'"
           variant="subtle"
           :icon-left="'edit'"
@@ -35,7 +35,6 @@
           variant="subtle"
           @click="onCancel"
         />
-
         <Dropdown
           v-if="chartsDropdown.length > 0"
           :options="chartsDropdown"
@@ -217,7 +216,7 @@ const chartsDropdown = computed(() => {
     {
       label: "Recent Feedback",
       chart: "recent_feedback",
-      onClick: () => addChart("recent_feedback", 30, 10),
+      onClick: () => addChart("recent_feedback", 16, 27),
     },
     {
       label: "Recently Assigned Tickets",
@@ -227,7 +226,7 @@ const chartsDropdown = computed(() => {
     {
       label: "Pending Tickets",
       chart: "pending_tickets",
-      onClick: () => addChart("pending_tickets", 20, 23),
+      onClick: () => addChart("pending_tickets", 50, 25),
     },
   ].filter((chart) => {
     return !layout.value.some((item) => item.chart === chart.chart);

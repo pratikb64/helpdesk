@@ -3,7 +3,7 @@
     <div class="flex flex-col rounded-md p-4 min-h-48 grow w-full h-full">
       <div class="text-ink-gray-8 text-lg font-semibold">Recent Feedback</div>
       <div
-        v-if="data?.average_rating == 0"
+        v-if="averageRating == 0"
         class="flex flex-col justify-center items-center text-center gap-2 h-full w-full"
       >
         <div class="flex flex-col gap-2 max-w-60">
@@ -18,7 +18,7 @@
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
               <div class="text-2xl font-medium text-ink-gray-8">
-                {{ data?.average_rating }}
+                {{ averageRating }}
               </div>
               <Tooltip
                 text="Average rating across all tickets"
@@ -113,14 +113,18 @@ const props = defineProps({
   },
 });
 
-console.log("@@@ props", props.data);
+const averageRating = computed(() => {
+  return getRecentFeedbackResource.fetched
+    ? getRecentFeedbackResource.data?.average_rating
+    : props.data?.average_rating;
+});
 
 const performance = computed(() => {
-  if (props.data?.average_rating >= 4) {
+  if (averageRating.value >= 4) {
     return { text: "excellent", color: "text-green-600" };
-  } else if (props.data?.average_rating >= 3) {
-    return { text: "good", color: "text-yellow-600" };
-  } else if (props.data?.average_rating >= 2) {
+  } else if (averageRating.value >= 3) {
+    return { text: "good", color: "text-green-600" };
+  } else if (averageRating.value >= 2) {
     return { text: "average", color: "text-yellow-600" };
   } else {
     return { text: "poor", color: "text-red-600" };
@@ -128,7 +132,9 @@ const performance = computed(() => {
 });
 
 const feedbacks = computed<Feedback[]>(() => {
-  const _feedbacks = props.data?.recent_feedbacks;
+  const _feedbacks = getRecentFeedbackResource.fetched
+    ? getRecentFeedbackResource.data?.recent_feedbacks
+    : props.data?.recent_feedbacks;
   return _feedbacks || [];
 });
 
@@ -200,6 +206,9 @@ const getStyle = (index: number) => {
 
 onMounted(() => {
   if (feedbacks.value.length > 0) startRotation();
+  if (!props.data?.recent_feedbacks) {
+    getRecentFeedbackResource.submit();
+  }
 });
 
 onUnmounted(() => {

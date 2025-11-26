@@ -9,7 +9,7 @@
           <div class="col-span-1">Status</div>
           <div class="col-span-1">Priority</div>
           <div class="col-span-1">Team</div>
-          <div class="col-span-1">Response</div>
+          <div class="col-span-1">First Response</div>
           <div class="col-span-1">Resolution</div>
         </div>
         <hr class="mx-2" />
@@ -25,7 +25,7 @@
               <div class="col-span-2 truncate">{{ ticket.subject }}</div>
               <div class="col-span-1 truncate">{{ ticket.status }}</div>
               <div class="col-span-1">
-                <Badge :label="ticket.priority" theme="red" />
+                <Badge :label="ticket.priority" />
               </div>
               <div class="col-span-1">
                 {{ ticket.agent_group || __("Not Assigned") }}
