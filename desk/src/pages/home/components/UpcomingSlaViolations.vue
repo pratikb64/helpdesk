@@ -39,7 +39,10 @@
               <div class="col-span-2 truncate">{{ ticket.subject }}</div>
               <div class="col-span-1 truncate">{{ ticket.status }}</div>
               <div class="col-span-1">
-                <Badge :label="ticket.priority" />
+                <Badge
+                  :label="ticket.priority"
+                  :theme="getPriorityBadgeColor(ticket.integer_value)"
+                />
               </div>
               <div class="col-span-1">
                 {{ ticket.agent_group || __("Not Assigned") }}
@@ -74,8 +77,12 @@
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.response_by).long()">
-                  <TimerIcon class="size-4" />
-                  {{ dayjs.tz(ticket.response_by).fromNow() }}
+                  <div class="flex items-center gap-1">
+                    <TimerIcon class="size-4" />
+                    <span class="text-p-sm">
+                      {{ dayjs.tz(ticket.response_by).fromNow() }}
+                    </span>
+                  </div>
                 </Tooltip>
               </div>
               <div class="col-span-1 flex gap-1 items-center">
@@ -105,8 +112,12 @@
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.resolution_by).long()">
-                  <TimerIcon class="size-4" />
-                  {{ dayjs.tz(ticket.resolution_by).fromNow() }}
+                  <div class="flex items-center gap-1">
+                    <TimerIcon class="size-4" />
+                    <span class="text-p-sm">
+                      {{ dayjs.tz(ticket.resolution_by).fromNow() }}
+                    </span>
+                  </div>
                 </Tooltip>
               </div>
             </div>
@@ -179,18 +190,38 @@ const getPriorityListResource = createListResource({
 });
 
 const tickets = computed(() => {
-  console.log(
-    "upcomingSlaViolations",
-    upcomingSlaViolations.fetched ? upcomingSlaViolations.data : props.data
-  );
   return upcomingSlaViolations.fetched
-    ? upcomingSlaViolations.data
-    : props.data || [];
+    ? upcomingSlaViolations.data.upcoming_sla_violations
+    : props.data.upcoming_sla_violations || [];
+});
+
+const minPriority = computed(() => {
+  return upcomingSlaViolations.fetched
+    ? upcomingSlaViolations.data.min_priority
+    : props.data.min_priority;
+});
+
+const maxPriority = computed(() => {
+  return upcomingSlaViolations.fetched
+    ? upcomingSlaViolations.data.max_priority
+    : props.data.max_priority;
 });
 
 const upcomingSlaViolations = createResource({
   url: "helpdesk.api.agent_dashboard.get_upcoming_sla_violations",
 });
+
+function getPriorityBadgeColor(integerValue) {
+  const min = minPriority.value;
+  const max = maxPriority.value;
+  const range = max - min;
+  if (range === 0) return "gray";
+  const position = (integerValue - min) / range;
+  if (position < 0.25) return "red";
+  if (position < 0.5) return "orange";
+  if (position < 0.75) return "green";
+  return "gray";
+}
 
 const goToTicket = (ticket: any) => {
   router.push({

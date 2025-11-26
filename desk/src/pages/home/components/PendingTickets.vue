@@ -22,7 +22,10 @@
               <div class="col-span-2 truncate">{{ ticket.subject }}</div>
               <div class="col-span-1 truncate">{{ ticket.status }}</div>
               <div class="col-span-1">
-                <Badge :label="ticket.priority" />
+                <Badge
+                  :label="ticket.priority"
+                  :theme="getPriorityBadgeColor(ticket.integer_value)"
+                />
               </div>
               <div class="col-span-1">
                 {{ ticket.agent_group || __("Not Assigned") }}
@@ -64,8 +67,12 @@
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.response_by).long()">
-                  <TimerIcon class="size-4" />
-                  {{ dayjs.tz(ticket.response_by).fromNow() }}
+                  <div class="flex items-center gap-1">
+                    <TimerIcon class="size-3.5" />
+                    <span class="text-p-sm">
+                      {{ dayjs.tz(ticket.response_by).fromNow() }}
+                    </span>
+                  </div>
                 </Tooltip>
               </div>
               <div class="col-span-1 flex gap-1 items-center">
@@ -96,7 +103,9 @@
                 />
                 <Tooltip v-else :text="dayjs(ticket.resolution_by).long()">
                   <TimerIcon class="size-4" />
-                  {{ dayjs.tz(ticket.resolution_by).fromNow() }}
+                  <span class="text-p-sm">
+                    {{ dayjs.tz(ticket.resolution_by).fromNow() }}
+                  </span>
                 </Tooltip>
               </div>
             </div>
@@ -144,7 +153,7 @@ import TimerIcon from "~icons/lucide/timer";
 
 const props = defineProps({
   data: {
-    type: Array,
+    type: Object,
     required: true,
   },
 });
@@ -154,13 +163,37 @@ const router = useRouter();
 
 const tickets = computed(() => {
   return getPendingTicketsResource.fetched
-    ? getPendingTicketsResource.data
-    : props.data || [];
+    ? getPendingTicketsResource.data.tickets
+    : props.data.tickets || [];
+});
+
+const minPriority = computed(() => {
+  return getPendingTicketsResource.fetched
+    ? getPendingTicketsResource.data.min_priority
+    : props.data.min_priority;
+});
+
+const maxPriority = computed(() => {
+  return getPendingTicketsResource.fetched
+    ? getPendingTicketsResource.data.max_priority
+    : props.data.max_priority;
 });
 
 const getPendingTicketsResource = createResource({
   url: "helpdesk.api.agent_dashboard.get_pending_tickets",
 });
+
+function getPriorityBadgeColor(integerValue) {
+  const min = minPriority.value;
+  const max = maxPriority.value;
+  const range = max - min;
+  if (range === 0) return "gray";
+  const position = (integerValue - min) / range;
+  if (position < 0.25) return "red";
+  if (position < 0.5) return "orange";
+  if (position < 0.75) return "green";
+  return "gray";
+}
 
 const goToTicket = (ticket: any) => {
   router.push({
@@ -170,7 +203,7 @@ const goToTicket = (ticket: any) => {
 };
 
 onMounted(() => {
-  if (!Array.isArray(props.data)) {
+  if (!Array.isArray(props.data.tickets)) {
     getPendingTicketsResource.fetch();
   }
 });

@@ -72,7 +72,7 @@ const chartConfig = computed<EChartsOption>(() => {
         symbol: "none",
       },
     ],
-    color: _percentageChange > 0 ? "green" : "red",
+    color: _percentageChange > 0 ? "#278F5E" : "#F35555",
     grid: {
       left: 2,
       right: 2,

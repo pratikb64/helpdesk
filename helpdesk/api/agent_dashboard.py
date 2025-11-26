@@ -493,13 +493,16 @@ def get_recent_feedback():
 @agent_only
 def get_avg_time_metrics(period: str = "6m"):
     periods = {
-        "3m": 3,
-        "6m": 6,
-        "1y": 12,
+        "3m": 90,
+        "6m": 180,
+        "1y": 365,
     }
 
-    months = periods.get(period, 6)
+    days = periods.get(period, 180)
     agent = frappe.session.user
+
+    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -days)
+    current_to = frappe.utils.nowdate()
 
     result = frappe.db.sql(
         """
@@ -510,13 +513,13 @@ def get_avg_time_metrics(period: str = "6m"):
             AVG(first_response_time) as avg_first_response,
             AVG(resolution_time) as avg_resolution
         FROM `tabHD Ticket`
-        WHERE creation >= DATE_SUB(NOW(), INTERVAL %(months)s MONTH)
+        WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
         AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
         AND (first_response_time IS NOT NULL OR resolution_time IS NOT NULL)
         GROUP BY YEAR(creation), MONTH(creation)
         ORDER BY YEAR(creation), MONTH(creation)
         """,
-        {"months": months, "agent": agent},
+        {"from_date": current_from, "to_date": current_to, "agent": agent},
         as_dict=1,
     )
 
@@ -534,7 +537,7 @@ def get_avg_time_metrics(period: str = "6m"):
 
     now = datetime.datetime.now()
     data = []
-    for i in range(months - 1, -1, -1):  # From oldest to newest
+    for i in range(days // 30 - 1, -1, -1):  # Approximate months from days
         month_date = now - datetime.timedelta(days=30 * i)
         key = f"{month_date.year}-{month_date.month:02d}"
         if key in data_dict:
@@ -561,11 +564,11 @@ def get_avg_time_metrics(period: str = "6m"):
             AVG(first_response_time) as avg_first_response,
             AVG(resolution_time) as avg_resolution
         FROM `tabHD Ticket`
-        WHERE creation >= DATE_SUB(NOW(), INTERVAL %(months)s MONTH)
+        WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
         AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
         AND (first_response_time IS NOT NULL OR resolution_time IS NOT NULL)
         """,
-        {"months": months, "agent": agent},
+        {"from_date": current_from, "to_date": current_to, "agent": agent},
         as_dict=1,
     )
 
@@ -602,6 +605,7 @@ def get_pending_tickets():
             "subject",
             "status",
             "priority",
+            "priority.integer_value",
             "agent_group",
             "response_by",
             "resolution_by",
@@ -617,7 +621,16 @@ def get_pending_tickets():
         order_by="response_by asc, resolution_by asc",
         limit=5,
     )
-    return tickets
+
+    priorities = frappe.get_all("HD Ticket Priority", fields="integer_value")
+    min_priority = min(priorities, key=lambda x: x["integer_value"])["integer_value"]
+    max_priority = max(priorities, key=lambda x: x["integer_value"])["integer_value"]
+
+    return {
+        "tickets": tickets,
+        "min_priority": min_priority,
+        "max_priority": max_priority,
+    }
 
 
 @frappe.whitelist()
@@ -638,6 +651,7 @@ def get_upcoming_sla_violations(priority=None):
             "subject",
             "status",
             "priority",
+            "priority.integer_value",
             "agent_group",
             "response_by",
             "resolution_by",
@@ -647,10 +661,19 @@ def get_upcoming_sla_violations(priority=None):
             "first_responded_on",
         ],
         filters=filters,
-        order_by="response_by desc, resolution_by desc",
+        order_by="resolution_by desc",
         limit=5,
     )
-    return upcoming_sla_violations
+
+    priorities = frappe.get_all("HD Ticket Priority", fields="integer_value")
+    min_priority = min(priorities, key=lambda x: x["integer_value"])["integer_value"]
+    max_priority = max(priorities, key=lambda x: x["integer_value"])["integer_value"]
+
+    return {
+        "upcoming_sla_violations": upcoming_sla_violations,
+        "min_priority": min_priority,
+        "max_priority": max_priority,
+    }
 
 
 @frappe.whitelist()
