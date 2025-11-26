@@ -57,15 +57,18 @@
       </div>
     </template>
   </LayoutHeader>
-  <div class="flex flex-col p-5 mx-auto max-w-6xl w-full grow relative">
-    <div class="grow">
-      <div
-        v-if="layout.length > 0"
-        class="text-xl font-semibold text-ink-gray-8 pl-2"
-      >
-        Hey, {{ userName }}
-      </div>
-      <!-- <div class="text-sm text-ink-gray-5 mt-1">
+  <div class="h-screen overflow-auto">
+    <div
+      class="flex flex-col p-1 pt-4 md:p-5 mx-auto max-w-6xl w-full grow relative"
+    >
+      <div class="grow">
+        <div
+          v-if="layout.length > 0"
+          class="text-xl font-semibold text-ink-gray-8 pl-2"
+        >
+          Hey, {{ userName }}
+        </div>
+        <!-- <div class="text-sm text-ink-gray-5 mt-1">
         You have
         <span class="font-semibold text-ink-gray-7">3 overdue responses</span>
         and
@@ -73,65 +76,68 @@
           2 tickets about to breach SLA
         </span>
       </div> -->
-      <div
-        v-if="layout.length === 0"
-        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-      >
-        <div class="flex flex-col items-center justify-center gap-1">
-          <FeatherIcon name="layout" class="size-12 text-ink-gray-8" />
-          <div class="text-xl font-semibold text-ink-gray-8">
-            No charts added
-          </div>
-          <div class="text-sm text-ink-gray-5">Add charts to get started</div>
-        </div>
-      </div>
-      <div class="mt-5">
-        <GridLayout
-          v-if="layout.length > 0"
-          class="h-fit w-full"
-          :class="[editing ? 'mb-[20rem] !select-none' : '']"
-          :cols="50"
-          :rowHeight="14"
-          :disabled="!editing"
-          :modelValue="layout.map((item) => item.layout)"
-          @update:modelValue="
-            (newLayout) => {
-              layout.forEach((item, idx) => {
-                item.layout = newLayout[idx];
-              });
-            }
-          "
+        <div
+          v-if="layout.length === 0"
+          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
         >
-          <template #item="{ index }">
-            <div class="group relative flex h-full w-full p-2 text-ink-gray-8">
+          <div class="flex flex-col items-center justify-center gap-1">
+            <FeatherIcon name="layout" class="size-12 text-ink-gray-8" />
+            <div class="text-xl font-semibold text-ink-gray-8">
+              No charts added
+            </div>
+            <div class="text-sm text-ink-gray-5">Add charts to get started</div>
+          </div>
+        </div>
+        <div class="mt-5">
+          <GridLayout
+            v-if="layout.length > 0"
+            class="h-fit w-full"
+            :class="[editing ? 'mb-[20rem] !select-none' : '']"
+            :cols="50"
+            :rowHeight="14"
+            :disabled="!editing"
+            :modelValue="layout.map((item) => item.layout)"
+            @update:modelValue="
+              (newLayout) => {
+                layout.forEach((item, idx) => {
+                  item.layout = newLayout[idx];
+                });
+              }
+            "
+          >
+            <template #item="{ index }">
               <div
-                class="flex h-full w-full items-center justify-center"
-                :class="
-                  editing
-                    ? 'pointer-events-none  [&>div:first-child]:rounded [&>div:first-child]:group-hover:ring-2 [&>div:first-child]:group-hover:ring-outline-gray-2'
-                    : ''
-                "
-              >
-                <ChartItem
-                  :index="index"
-                  :item="layout[index]"
-                  :editing="editing"
-                />
-              </div>
-              <div
-                v-if="editing"
-                class="flex absolute right-0 top-0 bg-surface-gray-6 rounded cursor-pointer opacity-0 group-hover:opacity-100"
+                class="group relative flex h-full w-full p-2 text-ink-gray-8"
               >
                 <div
-                  class="rounded p-1 hover:bg-surface-gray-5"
-                  @click="layout.splice(index, 1)"
+                  class="flex h-full w-full items-center justify-center"
+                  :class="
+                    editing
+                      ? 'pointer-events-none  [&>div:first-child]:rounded [&>div:first-child]:group-hover:ring-2 [&>div:first-child]:group-hover:ring-outline-gray-2'
+                      : ''
+                  "
                 >
-                  <FeatherIcon name="trash-2" class="size-3 text-ink-white" />
+                  <ChartItem
+                    :index="index"
+                    :item="layout[index]"
+                    :editing="editing"
+                  />
+                </div>
+                <div
+                  v-if="editing"
+                  class="flex absolute right-0 top-0 bg-surface-gray-6 rounded cursor-pointer opacity-0 group-hover:opacity-100"
+                >
+                  <div
+                    class="rounded p-1 hover:bg-surface-gray-5"
+                    @click="layout.splice(index, 1)"
+                  >
+                    <FeatherIcon name="trash-2" class="size-3 text-ink-white" />
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </GridLayout>
+            </template>
+          </GridLayout>
+        </div>
       </div>
     </div>
   </div>
