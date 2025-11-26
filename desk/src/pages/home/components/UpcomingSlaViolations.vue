@@ -77,7 +77,10 @@
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.response_by).long()">
-                  <div class="flex items-center gap-1">
+                  <div
+                    class="flex items-center gap-1"
+                    :class="getTimeRemainingClass(ticket.response_by)"
+                  >
                     <TimerIcon class="size-4" />
                     <span class="text-p-sm">
                       {{ dayjs.tz(ticket.response_by).fromNow() }}
@@ -112,7 +115,10 @@
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.resolution_by).long()">
-                  <div class="flex items-center gap-1">
+                  <div
+                    class="flex items-center gap-1"
+                    :class="getTimeRemainingClass(ticket.resolution_by)"
+                  >
                     <TimerIcon class="size-4" />
                     <span class="text-p-sm">
                       {{ dayjs.tz(ticket.resolution_by).fromNow() }}
@@ -229,6 +235,18 @@ const goToTicket = (ticket: any) => {
     params: { ticketId: ticket.name },
   });
 };
+
+function getTimeRemainingClass(resolutionBy: string) {
+  const now = dayjs();
+  const resolutionTime = dayjs(resolutionBy);
+  const diffInMinutes = resolutionTime.diff(now, "minute");
+
+  if (diffInMinutes < 60) {
+    return "text-red-600";
+  } else if (diffInMinutes < 120) {
+    return "text-orange-600";
+  }
+}
 
 function handle_resolution_by_field(row: any, item: string) {
   const status = getStatus(row.status) || {};
