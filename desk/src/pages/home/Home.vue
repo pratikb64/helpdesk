@@ -205,11 +205,6 @@ const chartsDropdown = computed(() => {
       onClick: () => addChart("agent_tickets", 15, 9),
     },
     {
-      label: "Unresolved Tickets",
-      chart: "unresolved_tickets",
-      onClick: () => addChart("unresolved_tickets", 11, 9),
-    },
-    {
       label: "Upcoming SLA Violations",
       chart: "upcoming_sla_violations",
       onClick: () => addChart("upcoming_sla_violations", 50, 24),
