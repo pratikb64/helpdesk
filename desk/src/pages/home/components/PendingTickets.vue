@@ -13,11 +13,8 @@
           <div class="col-span-1">Resolution</div>
         </div>
         <hr class="mx-2" />
-        <div v-if="pendingTickets.data?.length > 0">
-          <div
-            v-for="(ticket, index) in pendingTickets.data"
-            @click="goToTicket(ticket)"
-          >
+        <div v-if="tickets?.length > 0">
+          <div v-for="(ticket, index) in tickets" @click="goToTicket(ticket)">
             <div
               class="grid grid-cols-8 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
             >
@@ -103,7 +100,7 @@
                 </Tooltip>
               </div>
             </div>
-            <hr class="mx-2" v-if="index !== pendingTickets.data.length - 1" />
+            <hr class="mx-2" v-if="index !== tickets.length - 1" />
           </div>
         </div>
         <div v-else class="relative">
@@ -141,12 +138,13 @@
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import dayjs from "dayjs";
 import { Badge, createResource, Tooltip } from "frappe-ui";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import TimerIcon from "~icons/lucide/timer";
 
 const props = defineProps({
   data: {
-    type: Object,
+    type: Array,
     required: true,
   },
 });
@@ -154,9 +152,14 @@ const props = defineProps({
 const { getStatus } = useTicketStatusStore();
 const router = useRouter();
 
-const pendingTickets = createResource({
+const tickets = computed(() => {
+  return getPendingTicketsResource.fetched
+    ? getPendingTicketsResource.data
+    : props.data || [];
+});
+
+const getPendingTicketsResource = createResource({
   url: "helpdesk.api.agent_dashboard.get_pending_tickets",
-  auto: true,
 });
 
 const goToTicket = (ticket: any) => {
@@ -165,4 +168,10 @@ const goToTicket = (ticket: any) => {
     params: { ticketId: ticket.name },
   });
 };
+
+onMounted(() => {
+  if (!Array.isArray(props.data)) {
+    getPendingTicketsResource.fetch();
+  }
+});
 </script>
