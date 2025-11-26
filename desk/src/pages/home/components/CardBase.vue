@@ -3,7 +3,7 @@
     class="flex flex-col w-full h-full rounded-md p-4 min-w-72 min-h-24 max-h-[110px]"
   >
     <slot name="title">
-      <div class="text-ink-gray-5 text-base">
+      <div class="text-ink-gray-5 text-base mb-2">
         {{ title }}
       </div>
     </slot>
