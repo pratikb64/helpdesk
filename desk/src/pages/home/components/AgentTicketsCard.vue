@@ -33,7 +33,7 @@ const percentageChange = computed(() => {
   return {
     icon: _percentageChange > 0 ? "arrow-up-right" : "arrow-down-left",
     value: _percentageChange > 0 ? `+${_percentageChange}` : _percentageChange,
-    color: _percentageChange > 0 ? "text-green-600" : "text-red-600",
+    color: _percentageChange > 0 ? "text-red-600" : "text-green-600",
   };
 });
 
@@ -72,7 +72,7 @@ const chartConfig = computed<EChartsOption>(() => {
         symbol: "none",
       },
     ],
-    color: _percentageChange > 0 ? "#278F5E" : "#F35555",
+    color: _percentageChange > 0 ? "#F35555" : "#278F5E",
     grid: {
       left: 2,
       right: 2,
