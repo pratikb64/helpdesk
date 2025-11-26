@@ -11,7 +11,7 @@ from helpdesk.utils import agent_only
 
 @frappe.whitelist()
 @agent_only
-def get_dashboard():
+def get_dashboard(reset_layout=False):
     dashboard = frappe.db.exists("HD Dashboard", frappe.session.user)
 
     if not dashboard:
@@ -26,13 +26,16 @@ def get_dashboard():
         frappe.db.commit()
         layout = json.loads(get_default_agent_dashboard())
     else:
-        layout = json.loads(
-            frappe.get_value(
-                "HD Dashboard",
-                frappe.session.user,
-                "layout",
+        if reset_layout:
+            layout = json.loads(get_default_agent_dashboard())
+        else:
+            layout = json.loads(
+                frappe.get_value(
+                    "HD Dashboard",
+                    frappe.session.user,
+                    "layout",
+                )
             )
-        )
 
     for chart in layout:
         method_name = f"get_{chart['chart']}"
@@ -44,7 +47,7 @@ def get_dashboard():
         else:
             chart["data"] = None
 
-    return layout
+    return {"layout": layout, "default_layout": get_default_agent_dashboard()}
 
 
 @frappe.whitelist()

@@ -216,7 +216,7 @@ const onDurationChange = (duration: string) => {
 };
 
 onMounted(() => {
-  if (!props.data.data) {
+  if (!props.data?.data) {
     getAvgTimeMetricsResource.submit();
   }
 });

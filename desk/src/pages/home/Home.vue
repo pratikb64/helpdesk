@@ -10,8 +10,15 @@
           :label="'Refresh'"
           variant="subtle"
           :icon-left="'refresh-ccw'"
-          @click="agentDashboard.reload()"
+          @click="agentDashboard.reload({ reset_layout: false })"
           :disabled="agentDashboard.loading"
+        />
+        <Button
+          v-if="editing && isDashboardModified"
+          :label="'Reset'"
+          variant="subtle"
+          :icon-left="'rotate-cw'"
+          @click="onReset"
         />
         <Button
           v-if="editing"
@@ -44,7 +51,6 @@
             label="New"
             variant="solid"
             icon-left="plus"
-            @click="onAdd"
             :disabled="agentDashboard.loading"
           />
         </Dropdown>
@@ -153,8 +159,18 @@ const agentDashboard = createResource({
   url: "helpdesk.api.agent_dashboard.get_dashboard",
   auto: true,
   onSuccess(data) {
-    layout.value = data;
+    layout.value = data.layout;
   },
+});
+
+const isDashboardModified = computed(() => {
+  const _layout = layout.value.map((item) => {
+    return {
+      chart: item.chart,
+      layout: item.layout,
+    };
+  });
+  return JSON.stringify(_layout) !== agentDashboard.data.default_layout;
 });
 
 provide("agentDashboard", agentDashboard);
@@ -267,7 +283,11 @@ const onCancel = () => {
   editing.value = false;
 };
 
-const onAdd = () => {};
+const onReset = () => {
+  agentDashboard.submit({
+    reset_layout: true,
+  });
+};
 
 watch(
   layout,
