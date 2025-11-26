@@ -128,7 +128,7 @@ const chartConfig = computed<EChartsOption>(() => {
     legend: {},
     tooltip: {
       trigger: "item",
-      borderColor: "#333",
+      borderColor: "#eee",
       borderWidth: 1,
       padding: 10,
       textStyle: {
