@@ -46,15 +46,20 @@
               </div>
               <div class="col-span-1 flex gap-1 items-center">
                 <Badge
-                  v-if="getStatus(ticket.status)?.category === 'Paused'"
-                  label="Paused"
-                  theme="blue"
+                  v-if="
+                    !ticket.first_responded_on &&
+                    dayjs(ticket.response_by).isBefore(new Date())
+                  "
+                  label="Failed"
+                  theme="red"
                   variant="outline"
                 />
                 <Badge
                   v-else-if="
-                    ticket.resolution_date &&
-                    dayjs(ticket.resolution_date).isBefore(ticket.response_by)
+                    ticket.first_responded_on &&
+                    dayjs(ticket.first_responded_on).isBefore(
+                      ticket.response_by
+                    )
                   "
                   label="Fulfilled"
                   theme="green"
@@ -62,7 +67,7 @@
                 />
                 <Badge
                   v-else-if="
-                    dayjs(ticket.resolution_date).isAfter(ticket.response_by)
+                    dayjs(ticket.first_responded_on).isAfter(ticket.response_by)
                   "
                   label="Failed"
                   theme="red"
@@ -74,7 +79,6 @@
                 </Tooltip>
               </div>
               <div class="col-span-1 flex gap-1 items-center">
-                <TimerIcon class="size-4" />
                 <Badge
                   v-if="getStatus(ticket.status)?.category === 'Paused'"
                   label="Paused"
@@ -92,13 +96,16 @@
                 />
                 <Badge
                   v-else-if="
-                    dayjs(ticket.resolution_date).isAfter(ticket.resolution_by)
+                    dayjs(ticket.resolution_date || dayjs()).isAfter(
+                      ticket.resolution_by
+                    )
                   "
                   label="Failed"
                   theme="red"
                   variant="outline"
                 />
                 <Tooltip v-else :text="dayjs(ticket.resolution_by).long()">
+                  <TimerIcon class="size-4" />
                   {{ dayjs.tz(ticket.resolution_by).fromNow() }}
                 </Tooltip>
               </div>
@@ -147,7 +154,7 @@ import {
   createResource,
   Tooltip,
 } from "frappe-ui";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, h, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import TimerIcon from "~icons/lucide/timer";
 
@@ -173,9 +180,8 @@ const getPriorityListResource = createListResource({
 
 const tickets = computed(() => {
   console.log(
-    upcomingSlaViolations.fetched
-      ? upcomingSlaViolations.data
-      : props.data || []
+    "upcomingSlaViolations",
+    upcomingSlaViolations.fetched ? upcomingSlaViolations.data : props.data
   );
   return upcomingSlaViolations.fetched
     ? upcomingSlaViolations.data
@@ -192,6 +198,37 @@ const goToTicket = (ticket: any) => {
     params: { ticketId: ticket.name },
   });
 };
+
+function handle_resolution_by_field(row: any, item: string) {
+  const status = getStatus(row.status) || {};
+  if (status.category === "Paused") {
+    return h(Badge, {
+      label: "Paused",
+      theme: "blue",
+      variant: "outline",
+    });
+  } else if (row.resolution_date && dayjs(row.resolution_date).isBefore(item)) {
+    return h(Badge, {
+      label: "Fulfilled",
+      theme: "green",
+      variant: "outline",
+    });
+  } else if (dayjs(row.resolution_date).isAfter(item)) {
+    return h(Badge, {
+      label: "Failed",
+      theme: "red",
+      variant: "outline",
+    });
+  } else {
+    return h(
+      Tooltip,
+      {
+        text: dayjs(item).long(),
+      },
+      () => dayjs.tz(item).fromNow()
+    );
+  }
+}
 
 onMounted(() => {
   if (!props.data.length) {

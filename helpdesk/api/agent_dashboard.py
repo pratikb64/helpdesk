@@ -606,6 +606,9 @@ def get_pending_tickets():
             "response_by",
             "resolution_by",
             "resolution_date",
+            "agreement_status",
+            "status_category",
+            "first_responded_on",
         ],
         filters=[
             ["_assign", "like", f"%{frappe.session.user}%"],
@@ -641,6 +644,7 @@ def get_upcoming_sla_violations(priority=None):
             "resolution_date",
             "agreement_status",
             "status_category",
+            "first_responded_on",
         ],
         filters=filters,
         order_by="response_by desc, resolution_by desc",

@@ -39,8 +39,19 @@
                 />
                 <Badge
                   v-else-if="
-                    ticket.resolution_date &&
-                    dayjs(ticket.resolution_date).isBefore(ticket.response_by)
+                    !ticket.first_responded_on &&
+                    dayjs(ticket.response_by).isBefore(dayjs())
+                  "
+                  label="Failed"
+                  theme="red"
+                  variant="outline"
+                />
+                <Badge
+                  v-else-if="
+                    ticket.first_responded_on &&
+                    dayjs(ticket.first_responded_on).isBefore(
+                      ticket.response_by
+                    )
                   "
                   label="Fulfilled"
                   theme="green"
@@ -48,7 +59,8 @@
                 />
                 <Badge
                   v-else-if="
-                    dayjs(ticket.resolution_date).isAfter(ticket.response_by)
+                    ticket.first_responded_on &&
+                    dayjs(ticket.first_responded_on).isAfter(ticket.response_by)
                   "
                   label="Failed"
                   theme="red"
@@ -77,7 +89,9 @@
                 />
                 <Badge
                   v-else-if="
-                    dayjs(ticket.resolution_date).isAfter(ticket.resolution_by)
+                    dayjs(ticket.resolution_date || dayjs()).isAfter(
+                      ticket.resolution_by
+                    )
                   "
                   label="Failed"
                   theme="red"
