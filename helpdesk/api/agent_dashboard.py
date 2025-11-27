@@ -136,7 +136,7 @@ def get_avg_first_response_time(period="last month"):
             SELECT
                 DATE(creation) as date,
                 AVG(first_response_time) as avg_time
-            FROM `tabHD Ticket`
+            FROM `tabHD Ticket` # noqa: W604
             WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
             AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
             AND first_response_time IS NOT NULL
@@ -156,7 +156,7 @@ def get_avg_first_response_time(period="last month"):
         result = frappe.db.sql(
             f"""
             SELECT AVG({time_field}) as avg_time
-            FROM `tabHD Ticket`
+            FROM `tabHD Ticket` # noqa: W604
             WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
             AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
             AND {time_field} IS NOT NULL
@@ -228,7 +228,7 @@ def get_avg_resolution_time(period="last month"):
             SELECT
                 DATE(creation) as date,
                 AVG(resolution_time) as avg_time
-            FROM `tabHD Ticket`
+            FROM `tabHD Ticket` # noqa: W604
             WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
             AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
             AND resolution_time IS NOT NULL
@@ -248,7 +248,7 @@ def get_avg_resolution_time(period="last month"):
         result = frappe.db.sql(
             f"""
             SELECT AVG({time_field}) as avg_time
-            FROM `tabHD Ticket`
+            FROM `tabHD Ticket` # noqa: W604
             WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
             AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
             AND {time_field} IS NOT NULL
@@ -689,7 +689,7 @@ def generate_data():
     STATUSES = ["Open", "Replied", "Resolved", "Closed"]
     PRIORITIES = ["Low", "Medium", "High", "Urgent"]
     TICKET_TYPES = ["Question", "Bug", "Incident"]
-    TEAMS = ["Billing", "Product Experts"]
+    TEAMS = [team.name for team in frappe.get_all("HD Team")]
     FEEDBACK_OPTIONS = [
         "Response did not help",
         "No resolution provided",

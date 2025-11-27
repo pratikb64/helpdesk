@@ -198,7 +198,7 @@ const getPriorityListResource = createListResource({
 const tickets = computed(() => {
   return upcomingSlaViolations.fetched
     ? upcomingSlaViolations.data.upcoming_sla_violations
-    : props.data.upcoming_sla_violations || [];
+    : props.data?.upcoming_sla_violations || [];
 });
 
 const minPriority = computed(() => {
@@ -248,39 +248,8 @@ function getTimeRemainingClass(resolutionBy: string) {
   }
 }
 
-function handle_resolution_by_field(row: any, item: string) {
-  const status = getStatus(row.status) || {};
-  if (status.category === "Paused") {
-    return h(Badge, {
-      label: "Paused",
-      theme: "blue",
-      variant: "outline",
-    });
-  } else if (row.resolution_date && dayjs(row.resolution_date).isBefore(item)) {
-    return h(Badge, {
-      label: "Fulfilled",
-      theme: "green",
-      variant: "outline",
-    });
-  } else if (dayjs(row.resolution_date).isAfter(item)) {
-    return h(Badge, {
-      label: "Failed",
-      theme: "red",
-      variant: "outline",
-    });
-  } else {
-    return h(
-      Tooltip,
-      {
-        text: dayjs(item).long(),
-      },
-      () => dayjs.tz(item).fromNow()
-    );
-  }
-}
-
 onMounted(() => {
-  if (!props.data.length) {
+  if (!props.data?.upcoming_sla_violations) {
     upcomingSlaViolations.submit();
   }
 });
