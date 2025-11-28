@@ -601,8 +601,9 @@ def get_avg_time_metrics(period: str = "6m"):
 @agent_only
 def get_pending_tickets():
     allowed_statuses = frappe.get_all(
-        "HD Ticket Status", filters={"category": ["!=", "Resolved"]}, pluck="name"
+        "HD Ticket Status", filters={"category": ["=", "Open"]}, pluck="name"
     )
+
     tickets = frappe.get_list(
         "HD Ticket",
         fields=[
@@ -624,7 +625,7 @@ def get_pending_tickets():
             ["_assign", "like", f"%{frappe.session.user}%"],
             ["status", "in", allowed_statuses],
         ],
-        order_by="creation desc",
+        order_by="creation asc",
         limit=5,
     )
 
@@ -641,12 +642,14 @@ def get_pending_tickets():
 
 @frappe.whitelist()
 @agent_only
-def get_upcoming_sla_violations(priority=None):
+def get_upcoming_sla_violations(priority=None, order_by="response_by asc"):
     filters = [
         ["sla", "!=", ""],
         ["agreement_status", "in", ["First Response Due", "Resolution Due"]],
         ["status_category", "!=", "Closed"],
         ["_assign", "like", f"%{frappe.session.user}%"],
+        ["resolution_by", ">", frappe.utils.now()],
+        ["response_by", ">", frappe.utils.now()],
     ]
     if priority:
         filters.append(["priority", "=", priority])
@@ -667,7 +670,7 @@ def get_upcoming_sla_violations(priority=None):
             "first_responded_on",
         ],
         filters=filters,
-        order_by="resolution_by asc",
+        order_by=order_by,
         limit=5,
     )
 

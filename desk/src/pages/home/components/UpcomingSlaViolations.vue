@@ -11,6 +11,21 @@
           variant="subtle"
           @click="priorityFilter = ''"
         />
+        <Autocomplete
+          :options="[
+            { label: 'Response By', value: 'response_by asc' },
+            { label: 'Resolution By', value: 'resolution_by asc' },
+          ]"
+          :model-value="sortValue"
+          :placeholder="'Sort by'"
+          @change="(e) => setSort(e)"
+        >
+          <template #target="{ togglePopover }">
+            <Button :label="'Sort'" @click="togglePopover()">
+              <SortIcon class="h-4" />
+            </Button>
+          </template>
+        </Autocomplete>
         <Combobox
           :options="getPriorityListResource?.data || []"
           v-model="priorityFilter"
@@ -162,6 +177,7 @@
 </template>
 
 <script setup lang="ts">
+import Autocomplete from "@/components/frappe-ui/Autocomplete.vue";
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import dayjs from "dayjs";
 import {
@@ -185,6 +201,7 @@ const props = defineProps({
 const { getStatus } = useTicketStatusStore();
 const router = useRouter();
 const priorityFilter = ref("");
+const sortValue = ref("response_by asc");
 
 const getPriorityListResource = createListResource({
   doctype: "HD Ticket Priority",
@@ -212,6 +229,11 @@ const maxPriority = computed(() => {
     ? upcomingSlaViolations.data.max_priority
     : props.data.max_priority;
 });
+
+const setSort = (value) => {
+  console.log("Sorting by:", value);
+  // Implement sorting logic here
+};
 
 const upcomingSlaViolations = createResource({
   url: "helpdesk.api.agent_dashboard.get_upcoming_sla_violations",
