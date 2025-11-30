@@ -459,18 +459,14 @@ def get_recently_assigned_tickets():
 def get_recent_feedback():
     agent = frappe.session.user
 
-    # Calculate date 3 months ago
-    three_months_ago = frappe.utils.add_days(frappe.utils.nowdate(), -90)
-
     avg_result = frappe.db.sql(
         """
         SELECT AVG(feedback_rating) * 5 as average
         FROM `tabHD Ticket`
         WHERE feedback_rating > 0
         AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-        AND creation >= %(three_months_ago)s
         """,
-        {"agent": agent, "three_months_ago": three_months_ago},
+        {"agent": agent},
         as_dict=True,
     )
     average_rating = (
@@ -485,7 +481,6 @@ def get_recent_feedback():
         filters=[
             ["feedback_rating", ">", 0],
             ["_assign", "like", f"%{agent}%"],
-            ["creation", ">=", three_months_ago],
         ],
         order_by="modified desc",
         limit=10,

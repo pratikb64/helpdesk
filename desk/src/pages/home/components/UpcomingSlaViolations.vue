@@ -5,28 +5,50 @@
         Upcoming SLA Violations
       </div>
       <div class="flex items-center gap-2">
-        <Button
-          v-if="priorityFilter !== ''"
-          label="Clear"
-          variant="subtle"
-          @click="priorityFilter = ''"
-        />
-        <Autocomplete
-          :options="[
-            { label: 'Response By', value: 'response_by asc' },
-            { label: 'Resolution By', value: 'resolution_by asc' },
-          ]"
-          :model-value="sortValue"
-          :placeholder="'Sort by'"
-          @change="(e) => setSort(e)"
-        >
-          <template #target="{ togglePopover }">
-            <Button :label="'Sort'" @click="togglePopover()">
-              <SortIcon class="h-4" />
-            </Button>
-          </template>
-        </Autocomplete>
+        <div class="flex items-center">
+          <Button
+            class="rounded-r-none border-r"
+            @click="
+              sortBy.direction = sortBy.direction == 'asc' ? 'desc' : 'asc'
+            "
+          >
+            <AscendingIcon v-if="sortBy.direction == 'asc'" class="h-4" />
+            <DescendingIcon v-else class="h-4" />
+          </Button>
+          <Dropdown :options="sortDropdownOptions">
+            <template #default>
+              <Button class="rounded-l-none">
+                {{ sortBy.fieldname.label }}
+              </Button>
+            </template>
+          </Dropdown>
+        </div>
+        <div class="flex items-center">
+          <Dropdown
+            v-if="priorityDropdownOptions.length < 7"
+            :options="priorityDropdownOptions"
+          >
+            <template #default>
+              <div class="flex items-center">
+                <Button
+                  :class="priorityFilter !== '' ? 'rounded-r-none' : ''"
+                  :icon-right="priorityFilter !== '' ? '' : 'chevron-down'"
+                >
+                  {{ priorityFilter || "Ticket priority" }}
+                </Button>
+              </div>
+            </template>
+          </Dropdown>
+          <Button
+            v-if="priorityFilter !== ''"
+            class="rounded-l-none"
+            icon="x"
+            @click="priorityFilter = ''"
+            tooltip="Clear priority filter"
+          />
+        </div>
         <Combobox
+          v-if="priorityDropdownOptions.length >= 7"
           :options="getPriorityListResource?.data || []"
           v-model="priorityFilter"
           placeholder="Ticket priority"
@@ -178,13 +200,16 @@
 
 <script setup lang="ts">
 import Autocomplete from "@/components/frappe-ui/Autocomplete.vue";
+import { SortIcon } from "@/components/icons";
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import dayjs from "dayjs";
 import {
   Badge,
+  Button,
   Combobox,
   createListResource,
   createResource,
+  Dropdown,
   Tooltip,
 } from "frappe-ui";
 import { computed, h, onMounted, ref, watch } from "vue";
@@ -201,7 +226,13 @@ const props = defineProps({
 const { getStatus } = useTicketStatusStore();
 const router = useRouter();
 const priorityFilter = ref("");
-const sortValue = ref("response_by asc");
+const sortBy = ref({
+  direction: "asc",
+  fieldname: {
+    label: "First Response",
+    value: "response_by",
+  },
+});
 
 const getPriorityListResource = createListResource({
   doctype: "HD Ticket Priority",
@@ -230,10 +261,39 @@ const maxPriority = computed(() => {
     : props.data.max_priority;
 });
 
-const setSort = (value) => {
-  console.log("Sorting by:", value);
-  // Implement sorting logic here
-};
+const priorityDropdownOptions = computed(() => {
+  return (
+    getPriorityListResource?.data?.map((priority) => ({
+      label: priority,
+      onClick: () => {
+        priorityFilter.value = priority;
+      },
+    })) || []
+  );
+});
+
+const sortDropdownOptions = computed(() => {
+  return [
+    {
+      label: "First Response",
+      onClick: () => {
+        sortBy.value.fieldname = {
+          label: "First Response",
+          value: "response_by",
+        };
+      },
+    },
+    {
+      label: "Resolution",
+      onClick: () => {
+        sortBy.value.fieldname = {
+          label: "Resolution",
+          value: "resolution_by",
+        };
+      },
+    },
+  ];
+});
 
 const upcomingSlaViolations = createResource({
   url: "helpdesk.api.agent_dashboard.get_upcoming_sla_violations",
@@ -276,7 +336,14 @@ onMounted(() => {
   }
 });
 
-watch(priorityFilter, (newPriority) => {
-  upcomingSlaViolations.submit({ priority: newPriority });
-});
+watch(
+  [priorityFilter, sortBy],
+  ([newPriority, newSortBy]) => {
+    upcomingSlaViolations.submit({
+      priority: newPriority,
+      order_by: `${newSortBy.fieldname.value} ${newSortBy.direction}`,
+    });
+  },
+  { deep: true }
+);
 </script>

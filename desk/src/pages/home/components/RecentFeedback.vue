@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full overflow-hidden">
     <div class="flex flex-col rounded-md p-4 min-h-48 grow w-full h-full">
-      <div class="text-ink-gray-8 text-lg font-semibold">Recent Feedback</div>
+      <div class="text-ink-gray-8 text-lg font-semibold">Your rating</div>
       <div
         v-if="averageRating == 0"
         class="flex flex-col justify-center items-center text-center gap-2 h-full w-full"
