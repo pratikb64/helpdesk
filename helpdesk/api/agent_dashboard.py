@@ -624,6 +624,36 @@ def get_pending_tickets():
         limit=5,
     )
 
+    # Get last agent reply time for each ticket
+    ticket_names = [ticket["name"] for ticket in tickets]
+    if ticket_names:
+        last_replies = frappe.db.sql(
+            """
+            SELECT
+                CAST(reference_name AS UNSIGNED) as reference_name_int,
+                MAX(creation) as last_agent_reply
+            FROM `tabCommunication`
+            WHERE reference_doctype = 'HD Ticket'
+            AND reference_name IN %(ticket_names)s
+            AND sent_or_received = 'Sent'
+            GROUP BY reference_name
+            """,
+            {"ticket_names": ticket_names},
+            as_dict=True,
+        )
+        # Create a mapping of ticket name to last reply time
+        last_reply_map = {}
+        for item in last_replies:
+            ticket_id = item["reference_name_int"]
+            if ticket_id and item["last_agent_reply"]:
+                last_reply_map[ticket_id] = item["last_agent_reply"]
+            elif ticket_id:
+                last_reply_map[ticket_id] = None
+
+        # Add last_agent_reply to each ticket
+        for ticket in tickets:
+            ticket["last_agent_reply"] = last_reply_map.get(ticket["name"])
+
     priorities = frappe.get_all("HD Ticket Priority", fields="integer_value")
     min_priority = min(priorities, key=lambda x: x["integer_value"])["integer_value"]
     max_priority = max(priorities, key=lambda x: x["integer_value"])["integer_value"]

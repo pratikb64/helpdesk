@@ -2,24 +2,23 @@
   <div class="rounded-md p-4 grow w-full h-full overflow-hidden">
     <div class="text-lg font-semibold text-ink-gray-8">Pending Tickets</div>
     <div class="mt-5 h-full overflow-auto hide-scrollbar -mx-2">
-      <div class="min-w-[950px]">
-        <div class="grid grid-cols-8 gap-2 text-sm text-gray-600 py-2 px-3">
+      <div class="min-w-[1050px]">
+        <div class="grid grid-cols-9 gap-2 text-sm text-gray-600 py-2 px-3">
           <div class="col-span-1">ID</div>
-          <div class="col-span-2">Subject</div>
+          <div class="col-span-3">Subject</div>
           <div class="col-span-1">Status</div>
           <div class="col-span-1">Priority</div>
           <div class="col-span-1">Team</div>
-          <div class="col-span-1">First Response</div>
-          <div class="col-span-1">Resolution</div>
+          <div class="col-span-2">Last Replied</div>
         </div>
         <hr class="mx-2" />
         <div v-if="tickets?.length > 0">
           <div v-for="(ticket, index) in tickets" @click="goToTicket(ticket)">
             <div
-              class="grid grid-cols-8 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
+              class="grid grid-cols-9 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
             >
               <div class="col-span-1 truncate">{{ ticket.name }}</div>
-              <div class="col-span-2 truncate">{{ ticket.subject }}</div>
+              <div class="col-span-3 truncate">{{ ticket.subject }}</div>
               <div class="col-span-1 truncate">{{ ticket.status }}</div>
               <div class="col-span-1">
                 <Badge
@@ -27,94 +26,14 @@
                   :theme="getPriorityBadgeColor(ticket.integer_value)"
                 />
               </div>
-              <div class="col-span-1">
+              <div class="col-span-1 truncate">
                 {{ ticket.agent_group || __("Not Assigned") }}
               </div>
-              <div class="col-span-1 flex gap-1 items-center">
-                <Badge
-                  v-if="getStatus(ticket.status)?.category === 'Paused'"
-                  label="Paused"
-                  theme="blue"
-                  variant="outline"
-                />
-                <Badge
-                  v-else-if="
-                    !ticket.first_responded_on &&
-                    dayjs(ticket.response_by).isBefore(dayjs())
-                  "
-                  label="Failed"
-                  theme="red"
-                  variant="outline"
-                />
-                <Badge
-                  v-else-if="
-                    ticket.first_responded_on &&
-                    dayjs(ticket.first_responded_on).isBefore(
-                      ticket.response_by
-                    )
-                  "
-                  label="Fulfilled"
-                  theme="green"
-                  variant="outline"
-                />
-                <Badge
-                  v-else-if="
-                    ticket.first_responded_on &&
-                    dayjs(ticket.first_responded_on).isAfter(ticket.response_by)
-                  "
-                  label="Failed"
-                  theme="red"
-                  variant="outline"
-                />
-                <Tooltip v-else :text="dayjs(ticket.response_by).long()">
-                  <div
-                    class="flex items-center gap-1"
-                    :class="getTimeRemainingClass(ticket.response_by)"
-                  >
-                    <TimerIcon class="size-3.5" />
-                    <span class="text-p-sm">
-                      {{ dayjs.tz(ticket.response_by).fromNow() }}
-                    </span>
-                  </div>
-                </Tooltip>
-              </div>
-              <div class="col-span-1 flex gap-1 items-center">
-                <Badge
-                  v-if="getStatus(ticket.status)?.category === 'Paused'"
-                  label="Paused"
-                  theme="blue"
-                  variant="outline"
-                />
-                <Badge
-                  v-else-if="
-                    ticket.resolution_date &&
-                    dayjs(ticket.resolution_date).isBefore(ticket.resolution_by)
-                  "
-                  label="Fulfilled"
-                  theme="green"
-                  variant="outline"
-                />
-                <Badge
-                  v-else-if="
-                    dayjs(ticket.resolution_date || dayjs()).isAfter(
-                      ticket.resolution_by
-                    )
-                  "
-                  label="Failed"
-                  theme="red"
-                  variant="outline"
-                />
-                <Tooltip v-else :text="dayjs(ticket.resolution_by).long()">
-                  <div
-                    class="flex items-center gap-1"
-                    :class="getTimeRemainingClass(ticket.resolution_by)"
-                  >
-                    <TimerIcon class="size-4" />
-                    <span class="text-p-sm">
-                      {{ dayjs.tz(ticket.resolution_by).fromNow() }}
-                    </span>
-                  </div>
-                </Tooltip>
+              <div class="col-span-2 truncate">
+                <span v-if="ticket.last_agent_reply" class="text-ink-gray-7">
+                  {{ dayjs.tz(ticket.last_agent_reply).fromNow() }}
+                </span>
+                <span v-else class="text-ink-gray-4">Not replied</span>
               </div>
             </div>
             <hr class="mx-2" v-if="index !== tickets.length - 1" />
@@ -122,9 +41,10 @@
         </div>
         <div v-else class="relative">
           <div v-for="i in 5" :key="i">
-            <div class="grid grid-cols-8 gap-2 py-3 px-3">
+            <div class="grid grid-cols-9 gap-2 py-3 px-3">
               <div class="col-span-1 h-4 bg-surface-gray-1" />
               <div class="col-span-2 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
               <div class="col-span-1 h-4 bg-surface-gray-1" />
               <div class="col-span-1 h-4 bg-surface-gray-1" />
               <div class="col-span-1 h-4 bg-surface-gray-1" />
