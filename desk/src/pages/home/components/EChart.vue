@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { EChartsOption, init } from "echarts";
-import debounce from "frappe-ui/src/utils/debounce";
+import { debounce } from "frappe-ui";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const props = defineProps<{

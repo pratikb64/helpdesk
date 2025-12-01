@@ -208,42 +208,99 @@ const chartsDropdown = computed(() => {
     {
       label: "My Tickets",
       chart: "agent_tickets",
-      onClick: () => addChart("agent_tickets", 15, 9),
+      onClick: () =>
+        addChart("agent_tickets", {
+          w: 17,
+          h: 9,
+          minW: 14,
+          minH: 9,
+          maxH: 9,
+        }),
     },
     {
       label: "Upcoming SLA Violations",
       chart: "upcoming_sla_violations",
-      onClick: () => addChart("upcoming_sla_violations", 50, 24),
+      onClick: () =>
+        addChart("upcoming_sla_violations", {
+          w: 50,
+          h: 25,
+          minW: 25,
+          minH: 25,
+          maxH: 25,
+        }),
     },
     {
       label: "Average Time Metrics",
       chart: "avg_time_metrics",
-      onClick: () => addChart("avg_time_metrics", 50, 24),
+      onClick: () =>
+        addChart("avg_time_metrics", {
+          w: 50,
+          h: 24,
+          minW: 18,
+          minH: 24,
+          maxH: 44,
+        }),
     },
     {
       label: "Avg. First Response Time",
       chart: "avg_first_response_time",
-      onClick: () => addChart("avg_first_response_time", 17, 9),
+      onClick: () =>
+        addChart("avg_first_response_time", {
+          w: 17,
+          h: 9,
+          minW: 14,
+          minH: 9,
+          maxH: 9,
+        }),
     },
     {
       label: "Avg. Resolution Time",
       chart: "avg_resolution_time",
-      onClick: () => addChart("avg_resolution_time", 17, 9),
+      onClick: () =>
+        addChart("avg_resolution_time", {
+          w: 17,
+          h: 9,
+          minW: 14,
+          minH: 9,
+          maxH: 9,
+        }),
     },
     {
-      label: "Recent Feedback",
+      label: "Your rating",
       chart: "recent_feedback",
-      onClick: () => addChart("recent_feedback", 16, 27),
+      onClick: () =>
+        addChart("recent_feedback", {
+          w: 16,
+          h: 27,
+          minW: 16,
+          minH: 27,
+          maxW: 27,
+          maxH: 27,
+        }),
     },
     {
       label: "Recently Assigned Tickets",
       chart: "recently_assigned_tickets",
-      onClick: () => addChart("recently_assigned_tickets", 20, 23),
+      onClick: () =>
+        addChart("recently_assigned_tickets", {
+          w: 17,
+          h: 27,
+          minW: 16,
+          minH: 27,
+          maxH: 27,
+        }),
     },
     {
       label: "Pending Tickets",
       chart: "pending_tickets",
-      onClick: () => addChart("pending_tickets", 50, 25),
+      onClick: () =>
+        addChart("pending_tickets", {
+          w: 50,
+          h: 24,
+          minW: 25,
+          minH: 24,
+          maxH: 24,
+        }),
     },
   ].filter((chart) => {
     return !layout.value.some((item) => item.chart === chart.chart);
@@ -251,7 +308,16 @@ const chartsDropdown = computed(() => {
   return _charts;
 });
 
-const addChart = (chart, width, height) => {
+type ChartSize = {
+  w: number;
+  h: number;
+  minW?: number;
+  minH?: number;
+  maxW?: number;
+  maxH?: number;
+};
+
+const addChart = (chart: string, config: ChartSize) => {
   if (!editing.value) {
     onEdit();
   }
@@ -261,10 +327,13 @@ const addChart = (chart, width, height) => {
     layout: {
       x: 0,
       y: 0,
-      w: width,
-      h: height,
+      w: config.w,
+      h: config.h,
       i: Math.random().toString(),
-      moved: false,
+      minW: config.minW,
+      minH: config.minH,
+      maxW: config.maxW,
+      maxH: config.maxH,
     },
   });
 };

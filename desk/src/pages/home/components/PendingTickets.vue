@@ -3,19 +3,19 @@
     <div class="text-lg font-semibold text-ink-gray-8">Pending Tickets</div>
     <div class="mt-5 h-full overflow-auto hide-scrollbar -mx-2">
       <div class="min-w-[1050px]">
-        <div class="grid grid-cols-9 gap-2 text-sm text-gray-600 py-2 px-3">
+        <div class="grid grid-cols-10 gap-2 text-sm text-gray-600 py-2 px-3">
           <div class="col-span-1">ID</div>
           <div class="col-span-3">Subject</div>
           <div class="col-span-1">Status</div>
           <div class="col-span-1">Priority</div>
-          <div class="col-span-1">Team</div>
+          <div class="col-span-2">Team</div>
           <div class="col-span-2">Last Replied</div>
         </div>
         <hr class="mx-2" />
         <div v-if="tickets?.length > 0">
           <div v-for="(ticket, index) in tickets" @click="goToTicket(ticket)">
             <div
-              class="grid grid-cols-9 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
+              class="grid grid-cols-10 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
             >
               <div class="col-span-1 truncate">{{ ticket.name }}</div>
               <div class="col-span-3 truncate">{{ ticket.subject }}</div>
@@ -26,7 +26,7 @@
                   :theme="getPriorityBadgeColor(ticket.integer_value)"
                 />
               </div>
-              <div class="col-span-1 truncate">
+              <div class="col-span-2 truncate">
                 {{ ticket.agent_group || __("Not Assigned") }}
               </div>
               <div class="col-span-2 truncate">
@@ -41,15 +41,13 @@
         </div>
         <div v-else class="relative">
           <div v-for="i in 5" :key="i">
-            <div class="grid grid-cols-9 gap-2 py-3 px-3">
+            <div class="grid grid-cols-10 gap-2 py-3 px-3">
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-3 h-4 bg-surface-gray-1" />
+              <div class="col-span-1 h-4 bg-surface-gray-1" />
               <div class="col-span-1 h-4 bg-surface-gray-1" />
               <div class="col-span-2 h-4 bg-surface-gray-1" />
-              <div class="col-span-1 h-4 bg-surface-gray-1" />
-              <div class="col-span-1 h-4 bg-surface-gray-1" />
-              <div class="col-span-1 h-4 bg-surface-gray-1" />
-              <div class="col-span-1 h-4 bg-surface-gray-1" />
-              <div class="col-span-1 h-4 bg-surface-gray-1" />
-              <div class="col-span-1 h-4 bg-surface-gray-1" />
+              <div class="col-span-2 h-4 bg-surface-gray-1" />
             </div>
             <hr class="mx-2" v-if="i < 5" />
           </div>
