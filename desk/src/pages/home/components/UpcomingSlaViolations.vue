@@ -23,11 +23,11 @@
             </template>
           </Dropdown>
         </div>
-        <div class="flex items-center">
-          <Dropdown
-            v-if="priorityDropdownOptions.length < 7"
-            :options="priorityDropdownOptions"
-          >
+        <div
+          v-if="priorityDropdownOptions.length < 7"
+          class="flex items-center"
+        >
+          <Dropdown :options="priorityDropdownOptions">
             <template #default>
               <div class="flex items-center">
                 <Button
@@ -48,7 +48,7 @@
           />
         </div>
         <Combobox
-          v-if="priorityDropdownOptions.length >= 7"
+          v-else
           :options="getPriorityListResource?.data || []"
           v-model="priorityFilter"
           placeholder="Ticket priority"
