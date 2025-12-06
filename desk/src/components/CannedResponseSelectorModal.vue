@@ -96,6 +96,7 @@ import { ref, computed, nextTick, watch, onUnmounted } from "vue";
 import { showEmailBox } from "../pages/ticket/modalStates";
 import { useConfigStore } from "@/stores/config";
 import { storeToRefs } from "pinia";
+import { useStorage } from "@vueuse/core";
 
 const props = defineProps({
   doctype: {
@@ -111,7 +112,7 @@ const props = defineProps({
 const { teamRestrictionApplied } = storeToRefs(useConfigStore());
 const show = defineModel();
 const searchInput = ref("");
-const activeFilter = ref(teamRestrictionApplied.value ? "My Team" : "Global");
+const activeFilter = useStorage("saved-replies-filter", "Personal");
 
 const filters = computed(() => {
   return [

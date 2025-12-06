@@ -68,12 +68,11 @@
         </div>
         <div v-if="cannedResponseData.scope === 'Team'" class="space-y-1.5">
           <FormLabel :label="__('Teams')" required />
-          <Autocomplete
-            :multiple="true"
+          <MultiSelect
+            class="max-w-4xl"
             :options="teamsList"
             v-model="cannedResponseData.teams"
-            required
-            @update:modelValue="validateData('teams')"
+            placeholder="Select teams"
           />
           <div class="text-xs text-ink-gray-5 cursor-default">
             {{ __("Restrict visibility to these teams") }}
@@ -119,7 +118,6 @@
 
 <script setup lang="ts">
 import {
-  Autocomplete,
   Badge,
   Button,
   call,
@@ -128,6 +126,7 @@ import {
   ErrorMessage,
   FormControl,
   FormLabel,
+  MultiSelect,
   Select,
   TextEditor,
   toast,
@@ -144,6 +143,9 @@ import { useConfigStore } from "@/stores/config";
 import { useAuthStore } from "@/stores/auth";
 import { FieldAutocomplete } from "../../../tiptap-extensions";
 import SettingsLayoutBase from "../../layouts/SettingsLayoutBase.vue";
+import UserIcon from "~icons/lucide/user";
+import UsersIcon from "~icons/lucide/users";
+import GlobeIcon from "~icons/lucide/globe";
 
 const showConfirmDialog = ref({
   show: false,
@@ -184,16 +186,19 @@ const scopeDropdownOptions = computed(() => {
     {
       label: "Personal",
       value: "Personal",
+      icon: UserIcon,
     },
     {
       label: "Team",
       value: "Team",
+      icon: UsersIcon,
     },
   ];
   if (!teamRestrictionApplied.value) {
     _scopes.push({
       label: "Global",
       value: "Global",
+      icon: GlobeIcon,
     });
   }
   return _scopes;

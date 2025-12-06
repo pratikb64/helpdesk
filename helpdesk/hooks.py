@@ -71,6 +71,7 @@ has_permission = {
 
 permission_query_conditions = {
     "HD Ticket": "helpdesk.helpdesk.doctype.hd_ticket.hd_ticket.permission_query",
+    "Email Template": "helpdesk.overrides.email_template.permission_query",
 }
 
 # DocType Class

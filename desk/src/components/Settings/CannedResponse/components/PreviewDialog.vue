@@ -19,7 +19,6 @@
           placeholder="Search ticket"
           :show-description="true"
           @change="getResponsePreview"
-          :filters="ticketFilters"
         />
 
         <div class="space-y-1.5">
@@ -121,7 +120,6 @@ watch(
           dialogModel.value.ticketId = data[0].name;
           getResponsePreview(data[0].name);
         },
-        filters: ticketFilters.value,
       });
     }
   }

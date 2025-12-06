@@ -57,6 +57,7 @@ def get_canned_responses(scope):
                         & (QBEmailTemplate.owner == frappe.session.user)
                     )
                 )
+            print("@@@query", query)
         else:
             query = base_query
 

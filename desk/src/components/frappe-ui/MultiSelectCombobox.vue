@@ -63,7 +63,7 @@
         </slot>
       </template>
       <template #body="{ isOpen, togglePopover }">
-        <div v-show="isOpen">
+        <div v-show="isOpen" class="w-[--reka-popover-trigger-width]">
           <div
             class="relative mt-1 overflow-hidden rounded-lg bg-white text-base shadow-2xl"
             :class="bodyClasses"

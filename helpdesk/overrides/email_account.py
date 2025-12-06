@@ -4,6 +4,7 @@ import frappe
 from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.receive import InboundMail
+from utils import get_agents_team, is_admin, is_agent
 
 
 class CustomEmailAccount(EmailAccount):
@@ -92,3 +93,56 @@ class CustomEmailAccount(EmailAccount):
             return []
 
         return mails
+
+
+def permission_query(user):
+    if not user:
+        user = frappe.session.user
+    if is_admin(user):
+        return
+
+    # Check if team restrictions are enabled (similar to canned responses)
+    is_team_restriction_applied = frappe.db.get_single_value(
+        "HD Settings", "restrict_tickets_by_agent_group"
+    )
+
+    # For normal users (non-agents), only show email accounts they own
+    if not is_agent(user):
+        query = "`tabEmail Account`.owner = {user}".format(user=frappe.db.escape(user))
+        return query
+
+    # For agents, apply team-based restrictions if enabled
+    if is_team_restriction_applied:
+        teams = get_agents_team()
+        user_team_names = [team["team_name"] for team in teams]
+
+        # If agent belongs to a team with ignore_restrictions, show all email accounts
+        if any(team.get("ignore_restrictions") for team in teams):
+            return  # Return all email accounts
+
+        # If agent has teams, show email accounts based on team membership
+        if user_team_names:
+            # Show email accounts owned by the user or their team members
+            team_names = ", ".join(f"'{team}'" for team in user_team_names)
+            query = """(
+                `tabEmail Account`.owner = {user} OR 
+                `tabEmail Account`.name IN (
+                    SELECT DISTINCT ea.name 
+                    FROM `tabEmail Account` ea
+                    LEFT JOIN `tabHD Team Member` tm ON tm.user = ea.owner
+                    WHERE tm.parent IN ({team_names})
+                )
+            )""".format(
+                user=frappe.db.escape(user), team_names=team_names
+            )
+            return query
+        else:
+            # Agent has no teams, only show their own email accounts
+            query = "`tabEmail Account`.owner = {user}".format(
+                user=frappe.db.escape(user)
+            )
+            return query
+
+    # If team restrictions are not enabled, show email accounts owned by the agent
+    query = "`tabEmail Account`.owner = {user}".format(user=frappe.db.escape(user))
+    return query
