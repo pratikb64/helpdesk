@@ -9,6 +9,19 @@ from frappe.query_builder.functions import Avg, Cast, Count, Function, Max
 from helpdesk.utils import agent_only
 
 
+def calculate_percentage_change(current_value: float, previous_value: float) -> float:
+    """
+    Calculate the percentage change between two values.
+    Returns 999 when there's no previous value but there is a current value.
+    Returns 0 when both values are zero.
+    """
+    if previous_value > 0:
+        return round(((current_value - previous_value) / previous_value) * 100, 2)
+    elif current_value > 0:
+        return 999
+    return 0
+
+
 def get_default_agent_dashboard():
     return '[{"chart":"recently_assigned_tickets","layout":{"x":17,"y":25,"w":17,"h":27,"i":"0.5901090349104408","minW":16,"minH":27,"maxH":27,"moved":false}},{"chart":"recent_feedback","layout":{"x":34,"y":25,"w":16,"h":27,"i":"0.2090867593567277","minW":16,"minH":27,"maxW":27,"maxH":27,"moved":false}},{"chart":"avg_time_metrics","layout":{"x":0,"y":0,"w":50,"h":25,"i":"0.9444757118289221","moved":false,"minW":18,"minH":24,"maxH":44}},{"chart":"upcoming_sla_violations","layout":{"x":0,"y":52,"w":50,"h":25,"i":"0.644411970698438","moved":false,"minW":25,"minH":25,"maxH":25}},{"chart":"pending_tickets","layout":{"x":0,"y":77,"w":50,"h":24,"i":"0.12878740671098265","moved":false,"minW":25,"minH":24,"maxH":24}},{"chart":"avg_resolution_time","layout":{"x":0,"y":43,"w":17,"h":9,"i":"0.17044916608149618","moved":false,"minW":14,"minH":9,"maxH":9}},{"chart":"avg_first_response_time","layout":{"x":0,"y":34,"w":17,"h":9,"i":"0.408504238844829","moved":false,"minW":14,"minH":9,"maxH":9}},{"chart":"agent_tickets","layout":{"x":0,"y":25,"w":17,"h":9,"i":"0.38621973888392136","moved":false,"minW":14,"minH":9,"maxH":9}}]'
 
@@ -100,14 +113,7 @@ def get_agent_tickets(period="last month"):
     current_total = sum(row["count"] for row in current_result)
     previous_total = sum(row["count"] for row in previous_result)
 
-    if previous_total > 0:
-        percentage_change = round(
-            ((current_total - previous_total) / previous_total) * 100, 2
-        )
-    elif current_total > 0:
-        percentage_change = 999
-    else:
-        percentage_change = 0
+    percentage_change = calculate_percentage_change(current_total, previous_total)
 
     # Fill missing days with 0
     from_date_obj = date.fromisoformat(current_from)
@@ -195,14 +201,7 @@ def _get_avg_time_metric(period: str, time_field: str) -> dict:
     current_avg = get_avg_time(current_from, current_to, time_field)
     previous_avg = get_avg_time(previous_from, previous_to, time_field)
 
-    if previous_avg > 0:
-        percentage_change = round(
-            ((current_avg - previous_avg) / previous_avg) * 100, 2
-        )
-    elif current_avg > 0:
-        percentage_change = 999
-    else:
-        percentage_change = 0
+    percentage_change = calculate_percentage_change(current_avg, previous_avg)
 
     # Fill missing days with 0
     from_date_obj = date.fromisoformat(current_from)
@@ -304,14 +303,9 @@ def get_sla_fulfilled_count(period="last month"):
     current_percentage = get_sla_data(current_from, current_to)
     previous_percentage = get_sla_data(previous_from, previous_to)
 
-    if previous_percentage > 0:
-        percentage_change = round(
-            ((current_percentage - previous_percentage) / previous_percentage) * 100, 2
-        )
-    elif current_percentage > 0:
-        percentage_change = 999
-    else:
-        percentage_change = 0
+    percentage_change = calculate_percentage_change(
+        current_percentage, previous_percentage
+    )
 
     return {
         "percentage": current_percentage,
