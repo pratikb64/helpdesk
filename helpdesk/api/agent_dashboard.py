@@ -690,7 +690,7 @@ def get_pending_tickets():
 
     # Rename fields to match expected format
     for ticket in pending_tickets:
-        ticket["priority.integer_value"] = ticket.pop("priority_integer_value")
+        ticket["integer_value"] = ticket.pop("priority_integer_value")
 
     # Get priority range (cache this query as it's used frequently)
     priorities = frappe.get_all("HD Ticket Priority", fields="integer_value")
