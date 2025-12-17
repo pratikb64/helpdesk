@@ -25,7 +25,7 @@
               <div class="col-span-1">
                 <Badge
                   :label="ticket.priority"
-                  :theme="getPriorityBadgeColor(ticket.integer_value)"
+                  :theme="getPriorityBadgeColor(ticket.priority_integer_value)"
                 />
               </div>
               <div class="col-span-2 truncate">
