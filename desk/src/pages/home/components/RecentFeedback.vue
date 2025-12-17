@@ -21,8 +21,11 @@
         <div class="flex items-end justify-between w-full gap-2">
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
-              <div class="text-2xl font-medium text-ink-gray-8">
-                {{ averageRating }}
+              <div class="flex items-center gap-1">
+                <LucideStar class="size-4 fill-[#de9735] text-[#de9735]" />
+                <div class="text-2xl font-medium text-ink-gray-8">
+                  {{ averageRating }}
+                </div>
               </div>
               <Tooltip
                 text="Average rating across all tickets"
@@ -32,7 +35,9 @@
                 <FeatherIcon name="info" class="size-4" />
               </Tooltip>
             </div>
-            <div class="text-base text-ink-gray-5">{{ __("Avg rating") }}</div>
+            <div class="text-base text-ink-gray-5">
+              {{ __("{0} reviews", totalFeedbacks) }}
+            </div>
           </div>
           <div class="text-sm">
             {{ __("Your performance is") }}
@@ -107,6 +112,7 @@ const router = useRouter();
 interface Feedback {
   name: string;
   feedback_rating: number;
+  total_feedbacks: number;
   feedback: string;
   feedback_extra: string;
   contact: string;
@@ -123,6 +129,12 @@ const averageRating = computed(() => {
   return getRecentFeedbackResource.fetched
     ? getRecentFeedbackResource.data?.average_rating
     : props.data?.average_rating;
+});
+
+const totalFeedbacks = computed(() => {
+  return getRecentFeedbackResource.fetched
+    ? getRecentFeedbackResource.data?.total_feedbacks
+    : props.data?.total_feedbacks;
 });
 
 const performance = computed(() => {

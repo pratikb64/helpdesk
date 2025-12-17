@@ -23,19 +23,20 @@
           </div>
         </div>
       </div>
-      <div class="space-y-5 mt-7">
+      <div v-else class="space-y-5 mt-7">
         <div
           v-for="ticket in tickets"
           class="flex justify-between items-center gap-2 rounded relative group/child my-2 cursor-pointer"
           @click="goToTicket(ticket)"
         >
           <div class="text-base space-y-1 grow truncate">
-            <div class="font-medium text-ink-gray-7 truncate">
+            <div class="font-medium text-base text-ink-gray-7 truncate">
               {{ ticket.subject }}
             </div>
             <div class="text-ink-gray-5 truncate">
-              {{ dateFormat(ticket.creation, "MMM DD, YYYY") }} ·
-              {{ ticket.name }}
+              {{ dateFormat(ticket.creation, "MMM DD, YYYY") }} · #{{
+                ticket.name
+              }}
             </div>
           </div>
           <div>
@@ -48,6 +49,13 @@
               height: 'calc(100% + 16px)',
             }"
           />
+        </div>
+        <div
+          v-if="tickets?.length == 5"
+          class="p-0 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
+        >
+          {{ __("See all") }}
+          <FeatherIcon name="arrow-right" class="size-4" />
         </div>
       </div>
     </div>

@@ -155,7 +155,14 @@
                 </Tooltip>
               </div>
             </div>
-            <hr class="mx-2" v-if="index !== tickets.length - 1" />
+            <hr class="mx-2" />
+          </div>
+          <div
+            v-if="tickets?.length == 5"
+            class="p-2 pt-3 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
+          >
+            {{ __("See all {0} tickets", totalSlaViolationsCount) }}
+            <FeatherIcon name="arrow-right" class="size-4" />
           </div>
         </div>
         <div v-else class="relative">
@@ -200,6 +207,7 @@ import {
   createListResource,
   createResource,
   Dropdown,
+  FeatherIcon,
   Tooltip,
 } from "frappe-ui";
 import { computed, onMounted, ref, watch } from "vue";
@@ -231,6 +239,12 @@ const getPriorityListResource = createListResource({
   transform(data) {
     return data.map((d) => d.name);
   },
+});
+
+const totalSlaViolationsCount = computed(() => {
+  return upcomingSlaViolations.fetched
+    ? upcomingSlaViolations.data.total_sla_violations_count
+    : props.data?.total_sla_violations_count || 0;
 });
 
 const tickets = computed(() => {

@@ -195,10 +195,10 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("agent_tickets", {
           w: 17,
-          h: 9,
-          minW: 14,
-          minH: 9,
-          maxH: 9,
+          h: 10,
+          minW: 16,
+          minH: 10,
+          maxH: 11,
         }),
     },
     {
@@ -207,10 +207,10 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("upcoming_sla_violations", {
           w: 50,
-          h: 25,
+          h: 27,
           minW: 25,
-          minH: 25,
-          maxH: 25,
+          minH: 27,
+          maxH: 27,
         }),
     },
     {
@@ -231,10 +231,10 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("avg_first_response_time", {
           w: 17,
-          h: 9,
-          minW: 14,
-          minH: 9,
-          maxH: 9,
+          h: 10,
+          minW: 16,
+          minH: 10,
+          maxH: 11,
         }),
     },
     {
@@ -243,10 +243,10 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("avg_resolution_time", {
           w: 17,
-          h: 9,
-          minW: 14,
-          minH: 9,
-          maxH: 9,
+          h: 10,
+          minW: 16,
+          minH: 10,
+          maxH: 11,
         }),
     },
     {
@@ -255,11 +255,11 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("recent_feedback", {
           w: 16,
-          h: 27,
+          h: 30,
           minW: 16,
           minH: 27,
           maxW: 27,
-          maxH: 27,
+          maxH: 30,
         }),
     },
     {
@@ -268,10 +268,10 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("recently_assigned_tickets", {
           w: 17,
-          h: 27,
+          h: 30,
           minW: 16,
-          minH: 27,
-          maxH: 27,
+          minH: 30,
+          maxH: 30,
         }),
     },
     {
@@ -280,10 +280,10 @@ const chartsDropdown = computed(() => {
       onClick: () =>
         addChart("pending_tickets", {
           w: 50,
-          h: 24,
+          h: 27,
           minW: 25,
-          minH: 24,
-          maxH: 24,
+          minH: 27,
+          maxH: 27,
         }),
     },
   ].filter((chart) => {

@@ -40,7 +40,14 @@
                 }}</span>
               </div>
             </div>
-            <hr class="mx-2" v-if="index !== tickets.length - 1" />
+            <hr class="mx-2" />
+          </div>
+          <div
+            v-if="tickets?.length == 5"
+            class="p-2 pt-3 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
+          >
+            {{ __("See all tickets") }}
+            <FeatherIcon name="arrow-right" class="size-4" />
           </div>
         </div>
         <div v-else class="relative">

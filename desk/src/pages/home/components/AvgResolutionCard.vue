@@ -5,7 +5,8 @@
       :text="average"
       :currentDuration="currentDuration"
       :percentageChange="percentageChange"
-      :chartConfig="chartConfig"
+      :chartData="chartConfig.data"
+      :chartDates="chartConfig.dates"
       @changeDuration="changeDuration"
     />
   </div>
@@ -16,7 +17,6 @@ import { computed, onMounted, ref } from "vue";
 import CardBase from "./CardBase.vue";
 import { createResource } from "frappe-ui";
 import { formatTime } from "@/utils";
-import { EChartsOption } from "echarts";
 
 const props = defineProps({
   data: {
@@ -60,42 +60,18 @@ const changeDuration = (period: string) => {
   getAvgResolutionTimeResource.submit();
 };
 
-const chartConfig = computed<EChartsOption>(() => {
+const chartConfig = computed(() => {
   const isDataFetched = getAvgResolutionTimeResource.fetched;
   const _data = isDataFetched
     ? getAvgResolutionTimeResource.data?.data
     : props.data?.data;
   if (!_data) return {};
 
-  const dates = _data.map((item) => item.date);
-  const avg_time = _data.map((item) => item.avg_time);
-  const _percentageChange = isDataFetched
-    ? getAvgResolutionTimeResource.data?.percentage_change
-    : props.data?.percentage_change;
+  const dates = _data.map((item: any) => item.date);
+  const avg_time = _data.map((item: any) => item.avg_time);
   return {
-    xAxis: {
-      type: "category",
-      data: dates,
-      show: false,
-    },
-    yAxis: {
-      type: "value",
-      show: false,
-    },
-    series: [
-      {
-        data: avg_time,
-        type: "line",
-        symbol: "none",
-      },
-    ],
-    color: _percentageChange > 0 ? "#F35555" : "#278F5E",
-    grid: {
-      left: 2,
-      right: 2,
-      top: 2,
-      bottom: 2,
-    },
+    data: avg_time,
+    dates,
   };
 });
 
