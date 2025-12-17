@@ -300,39 +300,38 @@ def get_sla_fulfilled_count(period="last month"):
     )
 
     def get_sla_data(from_date, to_date):
-        fulfilled_result = frappe.db.sql(
-            """
-            SELECT COUNT(name) as fulfilled_count
-            FROM `tabHD Ticket`
-            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-            AND agreement_status = 'Fulfilled'
-            AND status in %(resolved_statuses)s
-            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-            """,
-            {
-                "from_date": from_date,
-                "to_date": to_date,
-                "resolved_statuses": resolved_statuses,
-                "agent": frappe.session.user,
-            },
-            as_dict=1,
+        ticket = DocType("HD Ticket")
+        to_date_plus_one = Function(
+            "DATE_ADD", to_date, frappe.qb.terms.PseudoColumn("INTERVAL 1 DAY")
         )
 
-        total_result = frappe.db.sql(
-            """
-            SELECT COUNT(name) as total_count
-            FROM `tabHD Ticket`
-            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-            AND status in %(resolved_statuses)s
-            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-            """,
-            {
-                "from_date": from_date,
-                "to_date": to_date,
-                "resolved_statuses": resolved_statuses,
-                "agent": frappe.session.user,
-            },
-            as_dict=1,
+        fulfilled_result = (
+            frappe.qb.from_(ticket)
+            .select(Count(ticket.name).as_("fulfilled_count"))
+            .where(ticket.creation >= from_date)
+            .where(ticket.creation < to_date_plus_one)
+            .where(ticket.agreement_status == "Fulfilled")
+            .where(ticket.status.isin(resolved_statuses))
+            .where(
+                Function(
+                    "JSON_SEARCH", ticket._assign, "one", frappe.session.user
+                ).isnotnull()
+            )
+            .run(as_dict=True)
+        )
+
+        total_result = (
+            frappe.qb.from_(ticket)
+            .select(Count(ticket.name).as_("total_count"))
+            .where(ticket.creation >= from_date)
+            .where(ticket.creation < to_date_plus_one)
+            .where(ticket.status.isin(resolved_statuses))
+            .where(
+                Function(
+                    "JSON_SEARCH", ticket._assign, "one", frappe.session.user
+                ).isnotnull()
+            )
+            .run(as_dict=True)
         )
 
         fulfilled_count = fulfilled_result[0].fulfilled_count or 0
