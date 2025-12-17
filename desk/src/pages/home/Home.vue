@@ -19,6 +19,7 @@
           variant="subtle"
           :icon-left="'rotate-cw'"
           @click="onReset"
+          :disabled="saveDashboard.loading"
         />
         <Button
           v-if="editing"
@@ -27,6 +28,7 @@
           :icon-left="'check'"
           @click="onSave"
           :disabled="!isDirty"
+          :loading="saveDashboard.loading"
         />
         <Button
           v-if="layout.length > 0 && !editing"
@@ -41,6 +43,7 @@
           :label="__('Cancel')"
           variant="subtle"
           @click="onCancel"
+          :disabled="saveDashboard.loading"
         />
         <Dropdown
           v-if="chartsDropdown.length > 0"
@@ -51,7 +54,7 @@
             :label="__('New')"
             variant="solid"
             icon-left="plus"
-            :disabled="agentDashboard.loading"
+            :disabled="agentDashboard.loading || saveDashboard.loading"
           />
         </Dropdown>
       </div>
@@ -63,13 +66,19 @@
     >
       <div class="grow">
         <div
-          v-if="layout.length > 0"
+          v-if="agentDashboard.loading"
+          class="flex items-center justify-center h-full"
+        >
+          <LoadingIndicator class="size-6" />
+        </div>
+        <div
+          v-if="!agentDashboard.loading && layout.length > 0"
           class="text-xl font-semibold text-ink-gray-8 pl-2"
         >
           {{ __("Hey") }}, {{ userName }}
         </div>
         <div
-          v-if="layout.length === 0"
+          v-if="!agentDashboard.loading && layout.length === 0"
           class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
         >
           <div class="flex flex-col items-center justify-center gap-1">
@@ -84,7 +93,7 @@
         </div>
         <div class="mt-5">
           <GridLayout
-            v-if="layout.length > 0"
+            v-if="!agentDashboard.loading && layout.length > 0"
             class="h-fit w-full"
             :class="[editing ? 'mb-[20rem] !select-none' : '']"
             :cols="50"
@@ -129,7 +138,14 @@
 
 <script setup lang="ts">
 import { LayoutHeader } from "@/components";
-import { Button, createResource, Dropdown, GridLayout, toast } from "frappe-ui";
+import {
+  Button,
+  createResource,
+  Dropdown,
+  GridLayout,
+  LoadingIndicator,
+  toast,
+} from "frappe-ui";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { computed, provide, ref } from "vue";
@@ -328,8 +344,9 @@ const onEdit = () => {
 };
 
 const onSave = () => {
-  saveDashboard.submit();
-  editing.value = false;
+  saveDashboard.submit().then(() => {
+    editing.value = false;
+  });
 };
 
 const onCancel = () => {
