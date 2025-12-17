@@ -2,6 +2,8 @@ import json
 from datetime import date, timedelta
 
 import frappe
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Cast, Count, Function, Max
 
 from helpdesk.utils import agent_only
 
@@ -591,90 +593,108 @@ def get_pending_tickets():
         "HD Ticket Status", filters={"category": ["=", "Open"]}, pluck="name"
     )
 
-    # Get all tickets first
-    all_tickets = frappe.get_list(
-        "HD Ticket",
-        fields=[
-            "name",
-            "subject",
-            "status",
-            "priority",
-            "priority.integer_value",
-            "agent_group",
-            "response_by",
-            "resolution_by",
-            "resolution_date",
-            "agreement_status",
-            "status_category",
-            "first_responded_on",
-            "creation",
-        ],
-        filters=[
-            ["_assign", "like", f"%{frappe.session.user}%"],
-            ["status", "in", allowed_statuses],
-        ],
-        limit=50,
+    # Define DocTypes
+    ticket = DocType("HD Ticket")
+    priority = DocType("HD Ticket Priority")
+    communication = DocType("Communication")
+
+    # Subquery for last customer reply (received communications)
+    last_customer_subq = (
+        frappe.qb.from_(communication)
+        .select(
+            communication.reference_name,
+            Max(communication.creation).as_("last_customer_reply"),
+        )
+        .where(communication.reference_doctype == "HD Ticket")
+        .where(communication.sent_or_received == "Received")
+        .groupby(communication.reference_name)
     )
 
-    ticket_names = [ticket["name"] for ticket in all_tickets]
-    if not ticket_names:
-        return {
-            "tickets": [],
-            "min_priority": 0,
-            "max_priority": 0,
-        }
-
-    # Get last customer reply and last agent reply for each ticket
-    last_replies = frappe.db.sql(
-        """
-        SELECT
-            CAST(reference_name AS UNSIGNED) as reference_name_int,
-            MAX(CASE WHEN sent_or_received = 'Received' THEN creation END) as last_customer_reply,
-            MAX(CASE WHEN sent_or_received = 'Sent' THEN creation END) as last_agent_reply
-        FROM `tabCommunication`
-        WHERE reference_doctype = 'HD Ticket'
-        AND reference_name IN %(ticket_names)s
-        GROUP BY reference_name
-        """,
-        {"ticket_names": ticket_names},
-        as_dict=True,
+    # Subquery for last agent reply (sent communications)
+    last_agent_subq = (
+        frappe.qb.from_(communication)
+        .select(
+            communication.reference_name,
+            Max(communication.creation).as_("last_agent_reply"),
+        )
+        .where(communication.reference_doctype == "HD Ticket")
+        .where(communication.sent_or_received == "Sent")
+        .groupby(communication.reference_name)
     )
 
-    # Create mappings of ticket name to reply times
-    customer_reply_map = {}
-    agent_reply_map = {}
+    # Build base query with joins and conditions
+    base_query = (
+        frappe.qb.from_(ticket)
+        .left_join(priority)
+        .on(ticket.priority == priority.name)
+        .left_join(last_customer_subq)
+        .on(Cast(ticket.name, "UNSIGNED") == last_customer_subq.reference_name)
+        .left_join(last_agent_subq)
+        .on(Cast(ticket.name, "UNSIGNED") == last_agent_subq.reference_name)
+        .where(
+            Function(
+                "JSON_SEARCH", ticket._assign, "one", frappe.session.user
+            ).isnotnull()
+        )
+        .where(ticket.status.isin(allowed_statuses))
+        .where(last_customer_subq.last_customer_reply.isnotnull())
+        .where(
+            last_agent_subq.last_agent_reply.isnull()
+            | (
+                last_agent_subq.last_agent_reply
+                < last_customer_subq.last_customer_reply
+            )
+        )
+    )
 
-    for item in last_replies:
-        ticket_id = item["reference_name_int"]
-        if ticket_id:
-            customer_reply_map[ticket_id] = item["last_customer_reply"]
-            agent_reply_map[ticket_id] = item["last_agent_reply"]
+    # Count query for total pending tickets
+    count_result = base_query.select(Count(ticket.name).as_("total")).run(as_dict=True)
+    total_pending_tickets = count_result[0].total if count_result else 0
 
-    pending_tickets = []
-    for ticket in all_tickets:
-        ticket_id = ticket["name"]
-        last_customer_reply = customer_reply_map.get(ticket_id)
-        last_agent_reply = agent_reply_map.get(ticket_id)
+    # Main query with select, order and limit
+    query = (
+        base_query.select(
+            ticket.name,
+            ticket.subject,
+            ticket.status,
+            ticket.priority,
+            priority.integer_value.as_("priority_integer_value"),
+            ticket.agent_group,
+            ticket.response_by,
+            ticket.resolution_by,
+            ticket.resolution_date,
+            ticket.agreement_status,
+            ticket.status_category,
+            ticket.first_responded_on,
+            ticket.creation,
+            last_customer_subq.last_customer_reply,
+            last_agent_subq.last_agent_reply,
+        )
+        .orderby(last_customer_subq.last_customer_reply, order=frappe.qb.desc)
+        .limit(5)
+    )
 
-        if last_customer_reply and (
-            not last_agent_reply or last_agent_reply < last_customer_reply
-        ):
-            ticket["last_customer_reply"] = last_customer_reply
-            ticket["last_agent_reply"] = last_agent_reply
-            pending_tickets.append(ticket)
+    pending_tickets = query.run(as_dict=True)
 
-    # Sort pending tickets by last customer reply time (most recent first)
-    pending_tickets.sort(key=lambda x: x["last_customer_reply"])
+    # Rename fields to match expected format
+    for ticket in pending_tickets:
+        ticket["priority.integer_value"] = ticket.pop("priority_integer_value")
 
-    # Limit to 5 tickets
-    tickets = pending_tickets[:5]
-
+    # Get priority range (cache this query as it's used frequently)
     priorities = frappe.get_all("HD Ticket Priority", fields="integer_value")
-    min_priority = min(priorities, key=lambda x: x["integer_value"])["integer_value"]
-    max_priority = max(priorities, key=lambda x: x["integer_value"])["integer_value"]
+    if priorities:
+        min_priority = min(priorities, key=lambda x: x["integer_value"])[
+            "integer_value"
+        ]
+        max_priority = max(priorities, key=lambda x: x["integer_value"])[
+            "integer_value"
+        ]
+    else:
+        min_priority = max_priority = 0
 
     return {
-        "tickets": tickets,
+        "tickets": pending_tickets,
+        "total_pending_tickets": total_pending_tickets,
         "min_priority": min_priority,
         "max_priority": max_priority,
     }

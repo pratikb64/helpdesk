@@ -46,7 +46,7 @@
             v-if="tickets?.length == 5"
             class="p-2 pt-3 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
           >
-            {{ __("See all tickets") }}
+            {{ __("See all {0} tickets", totalPendingTickets) }}
             <FeatherIcon name="arrow-right" class="size-4" />
           </div>
         </div>
@@ -94,6 +94,12 @@ const props = defineProps({
 });
 
 const router = useRouter();
+
+const totalPendingTickets = computed(() => {
+  return getPendingTicketsResource.fetched
+    ? getPendingTicketsResource.data.total_pending_tickets
+    : props.data.total_pending_tickets;
+});
 
 const tickets = computed(() => {
   return getPendingTicketsResource.fetched
