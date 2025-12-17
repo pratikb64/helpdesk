@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 import frappe
 from frappe.query_builder import DocType
-from frappe.query_builder.functions import Cast, Count, Function, Max
+from frappe.query_builder.functions import Avg, Cast, Count, Function, Max
 
 from helpdesk.utils import agent_only
 
@@ -131,22 +131,53 @@ def get_agent_tickets(period="last month"):
 
 
 def get_avg_time(from_date, to_date, time_field):
-    result = frappe.db.sql(
-        f"""
-        SELECT AVG({time_field}) as avg_time
-        FROM `tabHD Ticket` # noqa: W604
-        WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-        AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-        AND {time_field} IS NOT NULL
-        """,
-        {
-            "from_date": from_date,
-            "to_date": to_date,
-            "agent": frappe.session.user,
-        },
-        as_dict=1,
+    ticket = DocType("HD Ticket")
+    to_date_plus_one = Function(
+        "DATE_ADD", to_date, frappe.qb.terms.PseudoColumn("INTERVAL 1 DAY")
+    )
+
+    result = (
+        frappe.qb.from_(ticket)
+        .select(Avg(ticket[time_field]).as_("avg_time"))
+        .where(ticket.creation >= from_date)
+        .where(ticket.creation < to_date_plus_one)
+        .where(
+            Function(
+                "JSON_SEARCH", ticket._assign, "one", frappe.session.user
+            ).isnotnull()
+        )
+        .where(ticket[time_field].isnotnull())
+        .run(as_dict=True)
     )
     return result[0]["avg_time"] if result and result[0]["avg_time"] is not None else 0
+
+
+def get_avg_time_data(from_date, to_date, field):
+    ticket = DocType("HD Ticket")
+    creation_date = Function("DATE", ticket.creation)
+    to_date_plus_one = Function(
+        "DATE_ADD", to_date, frappe.qb.terms.PseudoColumn("INTERVAL 1 DAY")
+    )
+
+    result = (
+        frappe.qb.from_(ticket)
+        .select(
+            creation_date.as_("date"),
+            Avg(ticket[field]).as_("avg_time"),
+        )
+        .where(ticket.creation >= from_date)
+        .where(ticket.creation < to_date_plus_one)
+        .where(
+            Function(
+                "JSON_SEARCH", ticket._assign, "one", frappe.session.user
+            ).isnotnull()
+        )
+        .where(ticket[field].isnotnull())
+        .groupby(creation_date)
+        .orderby(creation_date)
+        .run(as_dict=True)
+    )
+    return result
 
 
 @frappe.whitelist()
@@ -160,29 +191,7 @@ def get_avg_first_response_time(period="last month"):
     previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
-    def get_avg_time_data(from_date, to_date):
-        result = frappe.db.sql(
-            """
-            SELECT
-                DATE(creation) as date,
-                AVG(first_response_time) as avg_time
-            FROM `tabHD Ticket` # noqa: W604
-            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-            AND first_response_time IS NOT NULL
-            GROUP BY DATE(creation)
-            ORDER BY DATE(creation)
-            """,
-            {
-                "from_date": from_date,
-                "to_date": to_date,
-                "agent": frappe.session.user,
-            },
-            as_dict=1,
-        )
-        return result
-
-    current_result = get_avg_time_data(current_from, current_to)
+    current_result = get_avg_time_data(current_from, current_to, "first_response_time")
 
     current_avg = get_avg_time(current_from, current_to, "first_response_time")
     previous_avg = get_avg_time(previous_from, previous_to, "first_response_time")
@@ -232,29 +241,7 @@ def get_avg_resolution_time(period="last month"):
     previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
-    def get_avg_time_data(from_date, to_date):
-        result = frappe.db.sql(
-            """
-            SELECT
-                DATE(creation) as date,
-                AVG(resolution_time) as avg_time
-            FROM `tabHD Ticket` # noqa: W604
-            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-            AND resolution_time IS NOT NULL
-            GROUP BY DATE(creation)
-            ORDER BY DATE(creation)
-            """,
-            {
-                "from_date": from_date,
-                "to_date": to_date,
-                "agent": frappe.session.user,
-            },
-            as_dict=1,
-        )
-        return result
-
-    current_result = get_avg_time_data(current_from, current_to)
+    current_result = get_avg_time_data(current_from, current_to, "resolution_time")
 
     current_avg = get_avg_time(current_from, current_to, "resolution_time")
     previous_avg = get_avg_time(previous_from, previous_to, "resolution_time")
