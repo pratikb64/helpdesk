@@ -181,9 +181,7 @@ def get_avg_time_data(from_date, to_date, field):
     return result
 
 
-@frappe.whitelist()
-@agent_only
-def get_avg_first_response_time(period="last month"):
+def _get_avg_time_metric(period: str, time_field: str) -> dict:
     periods = {"last week": 7, "last month": 30, "last 3 months": 90}
     days = periods.get(period, 7)
 
@@ -192,10 +190,10 @@ def get_avg_first_response_time(period="last month"):
     previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
-    current_result = get_avg_time_data(current_from, current_to, "first_response_time")
+    current_result = get_avg_time_data(current_from, current_to, time_field)
 
-    current_avg = get_avg_time(current_from, current_to, "first_response_time")
-    previous_avg = get_avg_time(previous_from, previous_to, "first_response_time")
+    current_avg = get_avg_time(current_from, current_to, time_field)
+    previous_avg = get_avg_time(previous_from, previous_to, time_field)
 
     if previous_avg > 0:
         percentage_change = round(
@@ -229,56 +227,18 @@ def get_avg_first_response_time(period="last month"):
         "average": round(current_avg, 2),
         "percentage_change": percentage_change,
     }
+
+
+@frappe.whitelist()
+@agent_only
+def get_avg_first_response_time(period="last month"):
+    return _get_avg_time_metric(period, "first_response_time")
 
 
 @frappe.whitelist()
 @agent_only
 def get_avg_resolution_time(period="last month"):
-    periods = {"last week": 7, "last month": 30, "last 3 months": 90}
-    days = periods.get(period, 7)
-
-    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -days)
-    current_to = frappe.utils.nowdate()
-    previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
-    previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
-
-    current_result = get_avg_time_data(current_from, current_to, "resolution_time")
-
-    current_avg = get_avg_time(current_from, current_to, "resolution_time")
-    previous_avg = get_avg_time(previous_from, previous_to, "resolution_time")
-
-    if previous_avg > 0:
-        percentage_change = round(
-            ((current_avg - previous_avg) / previous_avg) * 100, 2
-        )
-    elif current_avg > 0:
-        percentage_change = 999
-    else:
-        percentage_change = 0
-
-    # Fill missing days with 0
-    from_date_obj = date.fromisoformat(current_from)
-    to_date_obj = date.fromisoformat(current_to)
-    date_dict = {}
-    current_date = from_date_obj
-    while current_date <= to_date_obj:
-        date_str = current_date.isoformat()
-        date_dict[date_str] = 0
-        current_date += timedelta(days=1)
-
-    for row in current_result:
-        date_dict[str(row["date"])] = round(row["avg_time"] or 0, 2)
-
-    data = [
-        {"date": date, "avg_time": avg_time}
-        for date, avg_time in sorted(date_dict.items())
-    ]
-
-    return {
-        "data": data,
-        "average": round(current_avg, 2),
-        "percentage_change": percentage_change,
-    }
+    return _get_avg_time_metric(period, "resolution_time")
 
 
 @frappe.whitelist()
