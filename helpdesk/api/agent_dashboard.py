@@ -1,3 +1,4 @@
+import datetime
 import json
 from datetime import date, timedelta
 
@@ -498,23 +499,35 @@ def get_avg_time_metrics(period: str = "6m"):
     current_from = frappe.utils.add_days(frappe.utils.nowdate(), -days)
     current_to = frappe.utils.nowdate()
 
-    result = frappe.db.sql(
-        """
-        SELECT
-            DATE_FORMAT(creation, '%%b') as month,
-            YEAR(creation) as year,
-            MONTH(creation) as month_num,
-            AVG(first_response_time) as avg_first_response,
-            AVG(resolution_time) as avg_resolution
-        FROM `tabHD Ticket`
-        WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-        AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-        AND (first_response_time IS NOT NULL OR resolution_time IS NOT NULL)
-        GROUP BY YEAR(creation), MONTH(creation)
-        ORDER BY YEAR(creation), MONTH(creation)
-        """,
-        {"from_date": current_from, "to_date": current_to, "agent": agent},
-        as_dict=1,
+    ticket = DocType("HD Ticket")
+    to_date_plus_one = Function(
+        "DATE_ADD", current_to, frappe.qb.terms.PseudoColumn("INTERVAL 1 DAY")
+    )
+
+    # Monthly aggregation query using query builder
+    month_abbr = Function("DATE_FORMAT", ticket.creation, "%b")
+    year_val = Function("YEAR", ticket.creation)
+    month_val = Function("MONTH", ticket.creation)
+
+    result = (
+        frappe.qb.from_(ticket)
+        .select(
+            month_abbr.as_("month"),
+            year_val.as_("year"),
+            month_val.as_("month_num"),
+            Avg(ticket.first_response_time).as_("avg_first_response"),
+            Avg(ticket.resolution_time).as_("avg_resolution"),
+        )
+        .where(ticket.creation >= current_from)
+        .where(ticket.creation < to_date_plus_one)
+        .where(Function("JSON_SEARCH", ticket._assign, "one", agent).isnotnull())
+        .where(
+            ticket.first_response_time.isnotnull() | ticket.resolution_time.isnotnull()
+        )
+        .groupby(year_val, month_val)
+        .orderby(year_val)
+        .orderby(month_val)
+        .run(as_dict=True)
     )
 
     data_dict = {}
@@ -527,8 +540,6 @@ def get_avg_time_metrics(period: str = "6m"):
         }
 
     # Generate all months in the period
-    import datetime
-
     now = datetime.datetime.now()
     data = []
     for i in range(days // 30 - 1, -1, -1):  # Approximate months from days
@@ -551,19 +562,20 @@ def get_avg_time_metrics(period: str = "6m"):
                 ]
             )
 
-    # Calculate overall averages for the period
-    overall_result = frappe.db.sql(
-        """
-        SELECT
-            AVG(first_response_time) as avg_first_response,
-            AVG(resolution_time) as avg_resolution
-        FROM `tabHD Ticket`
-        WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-        AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-        AND (first_response_time IS NOT NULL OR resolution_time IS NOT NULL)
-        """,
-        {"from_date": current_from, "to_date": current_to, "agent": agent},
-        as_dict=1,
+    # Calculate overall averages for the period using query builder
+    overall_result = (
+        frappe.qb.from_(ticket)
+        .select(
+            Avg(ticket.first_response_time).as_("avg_first_response"),
+            Avg(ticket.resolution_time).as_("avg_resolution"),
+        )
+        .where(ticket.creation >= current_from)
+        .where(ticket.creation < to_date_plus_one)
+        .where(Function("JSON_SEARCH", ticket._assign, "one", agent).isnotnull())
+        .where(
+            ticket.first_response_time.isnotnull() | ticket.resolution_time.isnotnull()
+        )
+        .run(as_dict=True)
     )
 
     overall_avg_first = (
