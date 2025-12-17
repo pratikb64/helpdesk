@@ -434,17 +434,20 @@ def get_recently_assigned_tickets():
 @agent_only
 def get_recent_feedback():
     agent = frappe.session.user
+    ticket = DocType("HD Ticket")
 
-    avg_result = frappe.db.sql(
-        """
-        SELECT AVG(feedback_rating) * 5 as average, COUNT(*) as total_feedbacks
-        FROM `tabHD Ticket`
-        WHERE feedback_rating > 0
-        AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-        """,
-        {"agent": agent},
-        as_dict=True,
+    # Get average rating and total feedbacks using query builder
+    avg_result = (
+        frappe.qb.from_(ticket)
+        .select(
+            (Avg(ticket.feedback_rating) * 5).as_("average"),
+            Count(ticket.name).as_("total_feedbacks"),
+        )
+        .where(ticket.feedback_rating > 0)
+        .where(Function("JSON_SEARCH", ticket._assign, "one", agent).isnotnull())
+        .run(as_dict=True)
     )
+
     average_rating = (
         avg_result[0]["average"]
         if avg_result and avg_result[0]["average"] is not None
@@ -456,15 +459,21 @@ def get_recent_feedback():
         else 0
     )
 
-    feedback = frappe.get_list(
-        "HD Ticket",
-        fields=["name", "feedback_rating", "feedback", "feedback_extra", "contact"],
-        filters=[
-            ["feedback_rating", ">", 0],
-            ["_assign", "like", f"%{agent}%"],
-        ],
-        order_by="modified desc",
-        limit=10,
+    # Get recent feedbacks using query builder
+    feedback = (
+        frappe.qb.from_(ticket)
+        .select(
+            ticket.name,
+            ticket.feedback_rating,
+            ticket.feedback,
+            ticket.feedback_extra,
+            ticket.contact,
+        )
+        .where(ticket.feedback_rating > 0)
+        .where(Function("JSON_SEARCH", ticket._assign, "one", agent).isnotnull())
+        .orderby(ticket.modified, order=frappe.qb.desc)
+        .limit(10)
+        .run(as_dict=True)
     )
 
     return {
