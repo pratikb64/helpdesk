@@ -1,6 +1,6 @@
-import datetime
 import json
-from datetime import date, timedelta
+import random
+from datetime import date, datetime, timedelta
 
 import frappe
 from frappe.query_builder import DocType
@@ -540,10 +540,10 @@ def get_avg_time_metrics(period: str = "6m"):
         }
 
     # Generate all months in the period
-    now = datetime.datetime.now()
+    now = datetime.now()
     data = []
     for i in range(days // 30 - 1, -1, -1):  # Approximate months from days
-        month_date = now - datetime.timedelta(days=30 * i)
+        month_date = now - timedelta(days=30 * i)
         key = f"{month_date.year}-{month_date.month:02d}"
         if key in data_dict:
             data.append(
@@ -764,9 +764,6 @@ def get_upcoming_sla_violations(priority=None, order_by="response_by asc"):
 
 @frappe.whitelist()
 def generate_data():
-    import random
-    from datetime import datetime, timedelta
-
     STATUSES = ["Open", "Replied", "Resolved", "Closed"]
     PRIORITIES = ["Low", "Medium", "High", "Urgent"]
     TICKET_TYPES = ["Question", "Bug", "Incident"]
