@@ -378,16 +378,16 @@ def get_unresolved_tickets():
 @agent_only
 def get_recently_assigned_tickets():
     one_week_ago = frappe.utils.add_days(frappe.utils.nowdate(), -7)
-    assigned_tickets = frappe.db.sql(
-        """
-        SELECT DISTINCT reference_name
-        FROM `tabToDo`
-        WHERE reference_type = 'HD Ticket'
-        AND allocated_to = %(user)s
-        AND creation >= %(one_week_ago)s
-        """,
-        {"user": frappe.session.user, "one_week_ago": one_week_ago},
-        as_dict=False,
+
+    todo = DocType("ToDo")
+    assigned_tickets = (
+        frappe.qb.from_(todo)
+        .select(todo.reference_name)
+        .distinct()
+        .where(todo.reference_type == "HD Ticket")
+        .where(todo.allocated_to == frappe.session.user)
+        .where(todo.creation >= one_week_ago)
+        .run(as_dict=False)
     )
     ticket_names = [row[0] for row in assigned_tickets]
 
