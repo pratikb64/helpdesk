@@ -62,29 +62,34 @@ def get_agent_tickets(period="last month"):
     periods = {"last week": 7, "last month": 30, "last 3 months": 90}
     days = periods.get(period, 7)
 
-    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -days)
+    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -(days - 1))
     current_to = frappe.utils.nowdate()
-    previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
+    previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -(2 * days - 1))
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
     def get_ticket_data(from_date, to_date):
-        result = frappe.db.sql(
-            """
-            SELECT
-                DATE(creation) as date,
-                COUNT(name) as count
-            FROM `tabHD Ticket`
-            WHERE creation >= %(from_date)s AND creation < DATE_ADD(%(to_date)s, INTERVAL 1 DAY)
-            AND JSON_SEARCH(_assign, 'one', %(agent)s) IS NOT NULL
-            GROUP BY DATE(creation)
-            ORDER BY DATE(creation)
-            """,
-            {
-                "from_date": from_date,
-                "to_date": to_date,
-                "agent": frappe.session.user,
-            },
-            as_dict=1,
+        ticket = DocType("HD Ticket")
+        creation_date = Function("DATE", ticket.creation)
+        to_date_plus_one = Function(
+            "DATE_ADD", to_date, frappe.qb.terms.PseudoColumn("INTERVAL 1 DAY")
+        )
+
+        result = (
+            frappe.qb.from_(ticket)
+            .select(
+                creation_date.as_("date"),
+                Count(ticket.name).as_("count"),
+            )
+            .where(ticket.creation >= from_date)
+            .where(ticket.creation < to_date_plus_one)
+            .where(
+                Function(
+                    "JSON_SEARCH", ticket._assign, "one", frappe.session.user
+                ).isnotnull()
+            )
+            .groupby(creation_date)
+            .orderby(creation_date)
+            .run(as_dict=True)
         )
         return result
 
