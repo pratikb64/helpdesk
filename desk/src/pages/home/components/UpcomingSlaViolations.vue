@@ -160,6 +160,7 @@
           <div
             v-if="tickets?.length == 5"
             class="p-2 pt-3 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
+            @click="goToAllSlaViolations"
           >
             {{ __("See all {0} tickets", totalSlaViolationsCount) }}
             <FeatherIcon name="arrow-right" class="size-4" />
@@ -197,6 +198,7 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from "@/stores/auth";
 import { useTicketStatusStore } from "@/stores/ticketStatus";
 import { __ } from "@/translation";
 import dayjs from "dayjs";
@@ -210,6 +212,7 @@ import {
   FeatherIcon,
   Tooltip,
 } from "frappe-ui";
+import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import TimerIcon from "~icons/lucide/timer";
@@ -231,6 +234,7 @@ const sortBy = ref({
     value: "response_by",
   },
 });
+const { userId } = storeToRefs(useAuthStore());
 
 const getPriorityListResource = createListResource({
   doctype: "HD Ticket Priority",
@@ -319,6 +323,28 @@ const goToTicket = (ticket: any) => {
   router.push({
     name: "TicketAgent",
     params: { ticketId: ticket.name },
+  });
+};
+
+const goToAllSlaViolations = () => {
+  const filters: Record<string, any> = {
+    sla: ["is", "set"],
+    status_category: ["!=", "Closed"],
+    agreement_status: ["in", ["First Response Due", "Resolution Due"]],
+    _assign: ["LIKE", `%${userId.value}%`],
+  };
+
+  // Add priority filter if set
+  if (priorityFilter.value) {
+    filters.priority = priorityFilter.value;
+  }
+
+  router.push({
+    name: "TicketsAgent",
+    query: {
+      filters: JSON.stringify(filters),
+      order_by: `${sortBy.value.fieldname.value} ${sortBy.value.direction}`,
+    },
   });
 };
 

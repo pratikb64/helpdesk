@@ -45,6 +45,7 @@
           <div
             v-if="tickets?.length == 5"
             class="p-2 pt-3 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
+            @click="goToAllPendingTickets"
           >
             {{ __("See all {0} tickets", totalPendingTickets) }}
             <FeatherIcon name="arrow-right" class="size-4" />
@@ -81,8 +82,10 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from "@/stores/auth";
 import dayjs from "dayjs";
 import { Badge, createResource } from "frappe-ui";
+import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
@@ -94,6 +97,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const { userId } = storeToRefs(useAuthStore());
 
 const totalPendingTickets = computed(() => {
   return getPendingTicketsResource.fetched
@@ -139,6 +143,20 @@ const goToTicket = (ticket: any) => {
   router.push({
     name: "TicketAgent",
     params: { ticketId: ticket.name },
+  });
+};
+
+const goToAllPendingTickets = () => {
+  const filters = {
+    status_category: "Open",
+    _assign: ["LIKE", `%${userId.value}%`],
+  };
+  router.push({
+    name: "TicketsAgent",
+    query: {
+      filters: JSON.stringify(filters),
+      order_by: "modified desc",
+    },
   });
 };
 

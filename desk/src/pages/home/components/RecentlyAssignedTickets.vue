@@ -53,6 +53,7 @@
         <div
           v-if="tickets?.length == 5"
           class="p-0 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
+          @click="goToAllTickets"
         >
           {{ __("See all") }}
           <FeatherIcon name="arrow-right" class="size-4" />
@@ -63,12 +64,15 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from "@/stores/auth";
 import { dateFormat } from "@/utils";
 import { createResource } from "frappe-ui";
+import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const { userId } = storeToRefs(useAuthStore());
 
 const props = defineProps({
   data: {
@@ -93,6 +97,20 @@ const goToTicket = (ticket: any) => {
   router.push({
     name: "TicketAgent",
     params: { ticketId: ticket.name },
+  });
+};
+
+const goToAllTickets = () => {
+  const filters = {
+    _assign: ["LIKE", `%${userId.value}%`],
+  };
+
+  router.push({
+    name: "TicketsAgent",
+    query: {
+      filters: JSON.stringify(filters),
+      order_by: "modified desc",
+    },
   });
 };
 
