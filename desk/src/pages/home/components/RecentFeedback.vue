@@ -168,7 +168,7 @@ const startRotation = () => {
   if (interval) clearInterval(interval);
   interval = setInterval(() => {
     currentIndex.value = (currentIndex.value + 1) % feedbacks.value.length;
-  }, 2000);
+  }, 5000);
 };
 
 const stopRotation = () => {
