@@ -8,6 +8,7 @@
       :chartData="chartConfig.data"
       :chartDates="chartConfig.dates"
       @changeDuration="changeDuration"
+      :chartColor="chartColor"
     />
   </div>
 </template>
@@ -26,6 +27,11 @@ const props = defineProps({
 });
 
 const currentDuration = ref("Last month");
+
+const chartColor = {
+  lineColor: "#7263E8",
+  gradientColor: { start: "#a093ee", end: "rgba(239, 237, 252,0)" },
+};
 
 const average = computed(() => {
   const _average = getAvgResolutionTimeResource.fetched

@@ -8,6 +8,7 @@
       :chartData="chartConfig.data"
       :chartDates="chartConfig.dates"
       @changeDuration="changeDuration"
+      :chartColor="chartColor"
     />
   </div>
 </template>
@@ -17,7 +18,6 @@ import { computed, onMounted, ref } from "vue";
 import CardBase from "./CardBase.vue";
 import { createResource } from "frappe-ui";
 import { formatTime } from "@/utils";
-import { EChartsOption } from "echarts";
 
 const props = defineProps({
   data: {
@@ -27,6 +27,11 @@ const props = defineProps({
 });
 
 const currentDuration = ref("Last month");
+
+const chartColor = {
+  lineColor: "#F35555",
+  gradientColor: { start: "#ee9d9f", end: "rgba(251,232,233,0)" },
+};
 
 const average = computed(() => {
   const _average = getAvgFirstResponseTimeResource.fetched

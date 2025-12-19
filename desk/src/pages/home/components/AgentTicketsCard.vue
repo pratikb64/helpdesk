@@ -8,6 +8,7 @@
       :currentDuration="currentDuration"
       :percentageChange="percentageChange"
       @changeDuration="changeDuration"
+      :chartColor="chartColor"
     />
   </div>
 </template>
@@ -25,6 +26,11 @@ const props = defineProps({
 });
 
 const currentDuration = ref("Last month");
+
+const chartColor = {
+  lineColor: "#5597F3",
+  gradientColor: { start: "#abccfc", end: "rgba(229,240,254,0)" },
+};
 
 const percentageChange = computed(() => {
   const _percentageChange = getAgentTicketsResource.fetched

@@ -62,6 +62,10 @@ const props = defineProps({
     type: String,
     default: "Last month",
   },
+  chartColor: {
+    type: Object,
+    required: true,
+  },
   percentageChange: {
     type: Object,
     required: true,
@@ -92,14 +96,8 @@ const durationOptions = computed(() => {
 });
 
 const chartConfig = computed<EChartsOption>(() => {
-  const color =
-    props.percentageChange.value > 0
-      ? "rgba(243, 85, 85, 1)"
-      : "rgba(39, 143, 94, 1)";
-  const bottomColor =
-    props.percentageChange.value > 0
-      ? "rgba(243, 85, 85, 0)"
-      : "rgba(39, 143, 94, 0)";
+  const color = props.chartColor.lineColor;
+  const gradientColor = props.chartColor.gradientColor;
   return {
     xAxis: {
       type: "category",
@@ -130,11 +128,11 @@ const chartConfig = computed<EChartsOption>(() => {
             colorStops: [
               {
                 offset: 0,
-                color: color,
+                color: gradientColor.start,
               },
               {
-                offset: 50,
-                color: bottomColor,
+                offset: 1,
+                color: gradientColor.end,
               },
             ],
             global: false,
