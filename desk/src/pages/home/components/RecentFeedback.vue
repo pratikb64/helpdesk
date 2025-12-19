@@ -5,7 +5,7 @@
         {{ __("Your rating") }}
       </div>
       <div
-        v-if="averageRating == 0"
+        v-if="chartConfig.averageRating == 0"
         class="flex flex-col justify-center items-center text-center gap-2 h-full w-full"
       >
         <div class="flex flex-col gap-2 max-w-60">
@@ -24,7 +24,7 @@
               <div class="flex items-center gap-1">
                 <LucideStar class="size-4 fill-[#de9735] text-[#de9735]" />
                 <div class="text-2xl font-medium text-ink-gray-8">
-                  {{ averageRating }}
+                  {{ chartConfig.averageRating }}
                 </div>
               </div>
               <Tooltip
@@ -36,7 +36,7 @@
               </Tooltip>
             </div>
             <div class="text-base text-ink-gray-5">
-              {{ __("{0} reviews", totalFeedbacks) }}
+              {{ __("{0} reviews", chartConfig.totalFeedbacks) }}
             </div>
           </div>
           <div class="text-sm">
@@ -56,7 +56,7 @@
         >
           <div class="relative h-full">
             <div
-              v-for="(feedback, index) in feedbacks"
+              v-for="(feedback, index) in chartConfig.feedbacks"
               :key="feedback.name || index"
               class="flex flex-col absolute inset-0 bg-surface-white border border-outline-gray-2 rounded-lg p-4 shadow-sm transition-all duration-500 ease-in-out"
               :style="getStyle(index)"
@@ -125,35 +125,31 @@ const props = defineProps({
   },
 });
 
-const averageRating = computed(() => {
-  return getRecentFeedbackResource.fetched
-    ? getRecentFeedbackResource.data?.average_rating
-    : props.data?.average_rating;
-});
-
-const totalFeedbacks = computed(() => {
-  return getRecentFeedbackResource.fetched
-    ? getRecentFeedbackResource.data?.total_feedbacks
-    : props.data?.total_feedbacks;
-});
-
 const performance = computed(() => {
-  if (averageRating.value >= 4) {
+  if (chartConfig.value.averageRating >= 4) {
     return { text: __("excellent"), color: "text-green-600" };
-  } else if (averageRating.value >= 3) {
+  } else if (chartConfig.value.averageRating >= 3) {
     return { text: __("good"), color: "text-green-600" };
-  } else if (averageRating.value >= 2) {
+  } else if (chartConfig.value.averageRating >= 2) {
     return { text: __("average"), color: "text-yellow-600" };
   } else {
     return { text: __("poor"), color: "text-red-600" };
   }
 });
 
-const feedbacks = computed<Feedback[]>(() => {
-  const _feedbacks = getRecentFeedbackResource.fetched
-    ? getRecentFeedbackResource.data?.recent_feedbacks
-    : props.data?.recent_feedbacks;
-  return _feedbacks || [];
+const chartConfig = computed(() => {
+  const _data = getRecentFeedbackResource.fetched
+    ? getRecentFeedbackResource.data
+    : props.data;
+  const feedbacks = _data.recent_feedbacks;
+  const totalFeedbacks = _data.total_feedbacks;
+  const averageRating = _data.average_rating;
+
+  return {
+    feedbacks,
+    totalFeedbacks,
+    averageRating,
+  };
 });
 
 const getRecentFeedbackResource = createResource({
@@ -167,7 +163,8 @@ let interval: number | null = null;
 const startRotation = () => {
   if (interval) clearInterval(interval);
   interval = setInterval(() => {
-    currentIndex.value = (currentIndex.value + 1) % feedbacks.value.length;
+    currentIndex.value =
+      (currentIndex.value + 1) % chartConfig.value.feedbacks.length;
   }, 5000);
 };
 
@@ -181,15 +178,16 @@ const stopRotation = () => {
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === "ArrowLeft") {
     currentIndex.value =
-      (currentIndex.value - 1 + feedbacks.value.length) %
-      feedbacks.value.length;
+      (currentIndex.value - 1 + chartConfig.value.feedbacks.length) %
+      chartConfig.value.feedbacks.length;
   } else if (e.key === "ArrowRight") {
-    currentIndex.value = (currentIndex.value + 1) % feedbacks.value.length;
+    currentIndex.value =
+      (currentIndex.value + 1) % chartConfig.value.feedbacks.length;
   }
 };
 
 const getStyle = (index: number) => {
-  const len = feedbacks.value.length;
+  const len = chartConfig.value.feedbacks.length;
   if (len === 0) return { zIndex: 0, transform: "", opacity: 0 };
   const diff = (index - currentIndex.value + len) % len;
   const offset = 20;
@@ -223,7 +221,7 @@ const getStyle = (index: number) => {
 };
 
 onMounted(() => {
-  if (feedbacks.value.length > 0) startRotation();
+  if (chartConfig.value.feedbacks.length > 0) startRotation();
   if (!props.data?.recent_feedbacks) {
     getRecentFeedbackResource.submit();
   }

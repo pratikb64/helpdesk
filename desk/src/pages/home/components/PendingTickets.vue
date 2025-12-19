@@ -14,8 +14,11 @@
           <div class="col-span-2">{{ __("Last Replied") }}</div>
         </div>
         <hr class="mx-2" />
-        <div v-if="tickets?.length > 0">
-          <div v-for="(ticket, index) in tickets" @click="goToTicket(ticket)">
+        <div v-if="chartConfig?.tickets?.length > 0">
+          <div
+            v-for="(ticket, index) in chartConfig?.tickets"
+            @click="goToTicket(ticket)"
+          >
             <div
               class="grid grid-cols-10 gap-2 text-sm items-center py-3 px-3 cursor-pointer hover:bg-gray-50 rounded"
             >
@@ -43,11 +46,11 @@
             <hr class="mx-2" />
           </div>
           <div
-            v-if="tickets?.length == 5"
+            v-if="chartConfig?.tickets?.length == 5"
             class="p-2 pt-3 flex items-center gap-1 text-base text-ink-gray-5 cursor-pointer hover:text-ink-gray-7 w-max select-none"
             @click="goToAllPendingTickets"
           >
-            {{ __("See all {0} tickets", totalPendingTickets) }}
+            {{ __("See all {0} tickets", chartConfig?.totalPendingTickets) }}
             <FeatherIcon name="arrow-right" class="size-4" />
           </div>
         </div>
@@ -99,37 +102,30 @@ const props = defineProps({
 const router = useRouter();
 const { userId } = storeToRefs(useAuthStore());
 
-const totalPendingTickets = computed(() => {
-  return getPendingTicketsResource.fetched
-    ? getPendingTicketsResource.data.total_pending_tickets
-    : props.data.total_pending_tickets;
-});
+const chartConfig = computed(() => {
+  const _data = getPendingTicketsResource.fetched
+    ? getPendingTicketsResource.data
+    : props.data;
+  const maxPriority = _data.max_priority;
+  const minPriority = _data.min_priority;
+  const tickets = _data.tickets;
+  const totalPendingTickets = _data.total_pending_tickets;
 
-const tickets = computed(() => {
-  return getPendingTicketsResource.fetched
-    ? getPendingTicketsResource.data.tickets
-    : props.data.tickets || [];
-});
-
-const minPriority = computed(() => {
-  return getPendingTicketsResource.fetched
-    ? getPendingTicketsResource.data.min_priority
-    : props.data.min_priority;
-});
-
-const maxPriority = computed(() => {
-  return getPendingTicketsResource.fetched
-    ? getPendingTicketsResource.data.max_priority
-    : props.data.max_priority;
+  return {
+    tickets,
+    maxPriority,
+    minPriority,
+    totalPendingTickets,
+  };
 });
 
 const getPendingTicketsResource = createResource({
   url: "helpdesk.api.agent_dashboard.get_pending_tickets",
 });
 
-function getPriorityBadgeColor(integerValue) {
-  const min = minPriority.value;
-  const max = maxPriority.value;
+function getPriorityBadgeColor(integerValue: number) {
+  const min = chartConfig.value.minPriority;
+  const max = chartConfig.value.maxPriority;
   const range = max - min;
   if (range === 0) return "gray";
   const position = (integerValue - min) / range;
