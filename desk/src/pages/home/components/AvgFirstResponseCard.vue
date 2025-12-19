@@ -2,9 +2,9 @@
   <div class="w-full h-full overflow-hidden">
     <CardBase
       :title="__('Avg. First Response')"
-      :text="average"
+      :text="chartConfig.average"
       :currentDuration="currentDuration"
-      :percentageChange="percentageChange"
+      :percentageChange="chartConfig.percentageChange"
       :chartData="chartConfig.data"
       :chartDates="chartConfig.dates"
       @changeDuration="changeDuration"
@@ -33,21 +33,27 @@ const chartColor = {
   gradientColor: { start: "#ee9d9f", end: "rgba(251,232,233,0)" },
 };
 
-const average = computed(() => {
-  const _average = getAvgFirstResponseTimeResource.fetched
-    ? getAvgFirstResponseTimeResource.data?.average
-    : props.data?.average;
-  return formatTime(_average, { day: true, hour: true, minute: true }) || "0m";
-});
+const chartConfig = computed(() => {
+  const _data = getAvgFirstResponseTimeResource.fetched
+    ? getAvgFirstResponseTimeResource.data
+    : props.data;
 
-const percentageChange = computed(() => {
-  const _percentageChange = getAvgFirstResponseTimeResource.fetched
-    ? getAvgFirstResponseTimeResource.data?.percentage_change
-    : props.data?.percentage_change;
-  return {
+  const dates = _data.data.map((item: any) => item.date);
+  const avg_time = _data.data.map((item: any) => item.avg_time);
+  const average =
+    formatTime(_data.average, { day: true, hour: true, minute: true }) || "0m";
+  const _percentageChange = _data?.percentage_change;
+  const percentageChange = {
     icon: _percentageChange > 0 ? "arrow-up-right" : "arrow-down-left",
     value: _percentageChange > 0 ? `+${_percentageChange}` : _percentageChange,
     color: _percentageChange > 0 ? "text-red-600" : "text-green-600",
+  };
+
+  return {
+    data: avg_time,
+    dates,
+    average,
+    percentageChange,
   };
 });
 
@@ -65,22 +71,6 @@ const changeDuration = (period: string) => {
   currentDuration.value = period;
   getAvgFirstResponseTimeResource.submit();
 };
-
-const chartConfig = computed(() => {
-  const isDataFetched = getAvgFirstResponseTimeResource.fetched;
-  const _data = isDataFetched
-    ? getAvgFirstResponseTimeResource.data?.data
-    : props.data?.data;
-  if (!_data) return {};
-
-  const dates = _data.map((item: any) => item.date);
-  const avg_time = _data.map((item: any) => item.avg_time);
-
-  return {
-    data: avg_time,
-    dates,
-  };
-});
 
 onMounted(() => {
   if (!props.data?.data) {

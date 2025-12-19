@@ -2,11 +2,11 @@
   <div class="w-full h-full overflow-hidden">
     <CardBase
       :title="__('My Tickets')"
-      :text="total"
+      :text="chartConfig.total"
       :chartData="chartConfig.data"
       :chartDates="chartConfig.dates"
       :currentDuration="currentDuration"
-      :percentageChange="percentageChange"
+      :percentageChange="chartConfig.percentageChange"
       @changeDuration="changeDuration"
       :chartColor="chartColor"
     />
@@ -32,34 +32,27 @@ const chartColor = {
   gradientColor: { start: "#abccfc", end: "rgba(229,240,254,0)" },
 };
 
-const percentageChange = computed(() => {
-  const _percentageChange = getAgentTicketsResource.fetched
-    ? getAgentTicketsResource.data?.percentage_change
-    : props.data?.percentage_change;
-  return {
+const chartConfig = computed(() => {
+  const _data = getAgentTicketsResource.fetched
+    ? getAgentTicketsResource.data
+    : props.data;
+
+  const _percentageChange = _data?.percentage_change;
+  const total = _data?.total;
+  const dates = _data?.data.map((item: any) => item.date);
+  const counts = _data?.data.map((item: any) => item.count);
+
+  const percentageChange = {
     icon: _percentageChange > 0 ? "arrow-up-right" : "arrow-down-left",
     value: _percentageChange > 0 ? `+${_percentageChange}` : _percentageChange,
     color: _percentageChange > 0 ? "text-red-600" : "text-green-600",
   };
-});
 
-const total = computed(() => {
-  return getAgentTicketsResource.fetched
-    ? getAgentTicketsResource.data?.total
-    : props.data?.total;
-});
-
-const chartConfig = computed(() => {
-  const isDataFetched = getAgentTicketsResource.fetched;
-  const _data = isDataFetched
-    ? getAgentTicketsResource.data?.data
-    : props.data?.data;
-  if (!_data) return {};
-
-  const dates = _data.map((item: any) => item.date);
-  const counts = _data.map((item: any) => item.count);
   return {
     data: counts,
+    percentageChange,
+    total,
+    counts,
     dates,
   };
 });
