@@ -191,9 +191,9 @@ def _get_avg_time_metric(period: str, time_field: str) -> dict:
     periods = {"last week": 7, "last month": 30, "last 3 months": 90}
     days = periods.get(period, 7)
 
-    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -days)
+    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -(days - 1))
     current_to = frappe.utils.nowdate()
-    previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
+    previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -(2 * days - 1))
     previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
 
     current_result = get_avg_time_data(current_from, current_to, time_field)
@@ -238,79 +238,6 @@ def get_avg_first_response_time(period="last month"):
 @agent_only
 def get_avg_resolution_time(period="last month"):
     return _get_avg_time_metric(period, "resolution_time")
-
-
-@frappe.whitelist()
-@agent_only
-def get_sla_fulfilled_count(period="last month"):
-    periods = {"last week": 7, "last month": 30, "last 3 months": 90}
-    days = periods.get(period, 7)
-
-    current_from = frappe.utils.add_days(frappe.utils.nowdate(), -days)
-    current_to = frappe.utils.nowdate()
-    previous_from = frappe.utils.add_days(frappe.utils.nowdate(), -2 * days)
-    previous_to = frappe.utils.add_days(frappe.utils.nowdate(), -days)
-
-    resolved_statuses = tuple(
-        frappe.get_all(
-            "HD Ticket Status",
-            filters={"category": "Resolved"},
-            pluck="name",
-        )
-    )
-
-    def get_sla_data(from_date, to_date):
-        ticket = DocType("HD Ticket")
-        to_date_plus_one = Function(
-            "DATE_ADD", to_date, frappe.qb.terms.PseudoColumn("INTERVAL 1 DAY")
-        )
-
-        fulfilled_result = (
-            frappe.qb.from_(ticket)
-            .select(Count(ticket.name).as_("fulfilled_count"))
-            .where(ticket.creation >= from_date)
-            .where(ticket.creation < to_date_plus_one)
-            .where(ticket.agreement_status == "Fulfilled")
-            .where(ticket.status.isin(resolved_statuses))
-            .where(
-                Function(
-                    "JSON_SEARCH", ticket._assign, "one", frappe.session.user
-                ).isnotnull()
-            )
-            .run(as_dict=True)
-        )
-
-        total_result = (
-            frappe.qb.from_(ticket)
-            .select(Count(ticket.name).as_("total_count"))
-            .where(ticket.creation >= from_date)
-            .where(ticket.creation < to_date_plus_one)
-            .where(ticket.status.isin(resolved_statuses))
-            .where(
-                Function(
-                    "JSON_SEARCH", ticket._assign, "one", frappe.session.user
-                ).isnotnull()
-            )
-            .run(as_dict=True)
-        )
-
-        fulfilled_count = fulfilled_result[0].fulfilled_count or 0
-        total_count = total_result[0].total_count or 0
-        percentage = (fulfilled_count / total_count * 100) if total_count > 0 else 0
-
-        return percentage
-
-    current_percentage = get_sla_data(current_from, current_to)
-    previous_percentage = get_sla_data(previous_from, previous_to)
-
-    percentage_change = calculate_percentage_change(
-        current_percentage, previous_percentage
-    )
-
-    return {
-        "percentage": current_percentage,
-        "percentage_change": percentage_change,
-    }
 
 
 @frappe.whitelist()
